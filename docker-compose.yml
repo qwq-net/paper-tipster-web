@@ -2,10 +2,12 @@ services:
   app:
     build: .
     ports:
-      - '3000:3000'
+      - "3000:3000"
     volumes:
       - .:/app
       - /app/node_modules
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/webapp
     depends_on:
@@ -18,7 +20,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: webapp
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
 

@@ -1,3 +1,4 @@
+import { Badge } from '@/shared/ui';
 import { Eye } from 'lucide-react';
 import Link from 'next/link';
 import { getRaces } from '../actions';
@@ -35,48 +36,14 @@ export async function RaceList() {
               <td className="px-4 py-3 text-sm text-gray-600">{race.location}</td>
               <td className="px-4 py-3 text-sm font-medium text-gray-900">{race.name}</td>
               <td className="px-4 py-3 text-sm text-gray-600">
-                <span
-                  className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                    race.surface === '芝' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                  }`}
-                >
-                  {race.surface}
-                </span>
-                <span className="ml-1">{race.distance}m</span>
+                <Badge variant="surface" label={race.surface} />
+                <span className="ml-1 text-xs font-bold text-gray-400">{race.distance}m</span>
               </td>
               <td className="px-4 py-3 text-sm text-gray-600">
-                {race.condition ? (
-                  <span
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      race.condition === '良'
-                        ? 'bg-sky-100 text-sky-800'
-                        : race.condition === '稍重'
-                          ? 'bg-cyan-100 text-cyan-800'
-                          : race.condition === '重'
-                            ? 'bg-slate-200 text-slate-800'
-                            : 'bg-gray-300 text-gray-800'
-                    }`}
-                  >
-                    {race.condition}
-                  </span>
-                ) : (
-                  '-'
-                )}
+                <Badge variant="condition" label={race.condition} />
               </td>
               <td className="px-4 py-3 text-sm">
-                <span
-                  className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                    race.status === 'SCHEDULED'
-                      ? 'bg-blue-100 text-blue-800'
-                      : race.status === 'CLOSED'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : race.status === 'FINALIZED'
-                          ? 'bg-gray-100 text-gray-800'
-                          : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {race.status}
-                </span>
+                <Badge variant="status" label={race.status} />
               </td>
               <td className="px-4 py-3 text-right">
                 <div className="flex items-center justify-end gap-2">

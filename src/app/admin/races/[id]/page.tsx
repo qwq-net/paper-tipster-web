@@ -52,8 +52,8 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className={race.status === 'FINALIZED' ? 'grid gap-6 lg:grid-cols-3' : ''}>
+        <div className={race.status === 'FINALIZED' ? 'lg:col-span-2' : ''}>
           {race.status === 'FINALIZED' ? (
             <Card>
               <CardHeader>
@@ -86,18 +86,21 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
               </CardContent>
             </Card>
           ) : entriesWithResult.length > 0 ? (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-gray-900">着順を確定する</h2>
-              <RaceResultForm
-                raceId={race.id}
-                entries={entriesWithResult.map((e) => ({
-                  id: e.id,
-                  horseNumber: e.horseNumber,
-                  horseName: e.horseName,
-                  bracketNumber: e.bracketNumber,
-                }))}
-              />
-            </div>
+            <RaceResultForm
+              raceId={race.id}
+              entries={entriesWithResult.map((e) => ({
+                id: e.id,
+                horseNumber: e.horseNumber,
+                horseName: e.horseName,
+                bracketNumber: e.bracketNumber,
+              }))}
+              race={{
+                status: race.status,
+                surface: race.surface,
+                distance: race.distance,
+                condition: race.condition,
+              }}
+            />
           ) : (
             <Card>
               <CardContent className="py-12 text-center text-gray-500">
@@ -111,29 +114,31 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
           )}
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <h2 className="text-lg font-semibold">レース情報</h2>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div className="flex justify-between border-b pb-2">
-                <span className="text-gray-500">ステータス</span>
-                <span className="font-medium">{race.status}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2">
-                <span className="text-gray-500">コース</span>
-                <span className="font-medium">
-                  {race.surface} {race.distance}m
-                </span>
-              </div>
-              <div className="flex justify-between border-b pb-2">
-                <span className="text-gray-500">馬場状態</span>
-                <span className="font-medium">{race.condition || '-'}</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {race.status === 'FINALIZED' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <h2 className="text-lg font-semibold">レース情報</h2>
+              </CardHeader>
+              <CardContent className="space-y-4 text-sm">
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-gray-500">ステータス</span>
+                  <span className="font-medium">{race.status}</span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-gray-500">コース</span>
+                  <span className="font-medium">
+                    {race.surface} {race.distance}m
+                  </span>
+                </div>
+                <div className="flex justify-between border-b pb-2">
+                  <span className="text-gray-500">馬場状態</span>
+                  <span className="font-medium">{race.condition || '-'}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

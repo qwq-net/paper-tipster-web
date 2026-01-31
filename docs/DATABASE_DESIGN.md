@@ -118,23 +118,14 @@
 | `sireId` | UUID | No | 父馬の `horse.id` への参照 (外部キー) |
 | `damId` | UUID | No | 母馬の `horse.id` への参照 (外部キー) |
 
-### `daily_schedule` テーブル
+### `race` テーブル
 
-特定の開催地・日付におけるレース開催スケジュール。
+レース情報。WinningPostではレースごとに開催場所を変更できるため、レース単位で開催日と場所を管理します。
 | カラム名 | 型 | 必須 | 説明 |
 | :--- | :--- | :--- | :--- |
 | `id` | UUID | Yes | 主キー |
 | `date` | Date | Yes | 開催日 |
 | `location` | Text | Yes | 競馬場名 (例: 東京) |
-| `name` | Text | Yes | 開催名 (例: "1回東京1日目") |
-
-### `race` テーブル
-
-スケジュール内の個別のレース情報。
-| カラム名 | 型 | 必須 | 説明 |
-| :--- | :--- | :--- | :--- |
-| `id` | UUID | Yes | 主キー |
-| `scheduleId` | UUID | Yes | `daily_schedule.id` への外部キー |
 | `raceNumber` | Integer | Yes | レース番号 (1-12) |
 | `name` | Text | Yes | レース名 (例: "ジャパンカップ") |
 | `startTime` | Timestamp | Yes | 発走時刻 |
@@ -168,7 +159,6 @@ erDiagram
     USER ||--o{ ACCOUNT : "保持 (has)"
     USER ||--o| BANK_ACCOUNT : "所有 (owns)"
 
-    DAILY_SCHEDULE ||--|{ RACE : "含む (contains)"
     RACE ||--|{ RACE_ENTRY : "持つ (has)"
     HORSE ||--o{ RACE_ENTRY : "出走 (enters)"
 

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader } from '@/shared/ui';
-import { ArrowRight, Calendar, TrendingUp, Users } from 'lucide-react';
+import { ArrowRight, Calendar, ClipboardList, Rabbit, TrendingUp, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function AdminPage() {
@@ -7,48 +7,41 @@ export default async function AdminPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-secondary text-3xl font-bold">Dashboard</h1>
-        <p className="mt-2 text-gray-500">Welcome back, Administrator. Here is what&apos;s happening today.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="flex flex-wrap gap-4">
         <Card className="border-l-primary border-l-4">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total Users</p>
-                <h3 className="text-secondary mt-1 text-2xl font-bold">--</h3>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                <Users className="h-5 w-5" />
-              </div>
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-full">
+              <Users className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Total Users</p>
+              <h3 className="text-secondary text-lg font-bold">--</h3>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-l-accent border-l-4">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Active Events</p>
-                <h3 className="text-secondary mt-1 text-2xl font-bold">--</h3>
-              </div>
-              <div className="text-accent flex h-10 w-10 items-center justify-center rounded-full bg-orange-50">
-                <Calendar className="h-5 w-5" />
-              </div>
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="text-accent flex h-9 w-9 items-center justify-center rounded-full bg-orange-50">
+              <Calendar className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Active Events</p>
+              <h3 className="text-secondary text-lg font-bold">--</h3>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-green-500">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                <h3 className="text-secondary mt-1 text-2xl font-bold">¥ --</h3>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-50 text-green-600">
-                <TrendingUp className="h-5 w-5" />
-              </div>
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-50 text-green-600">
+              <TrendingUp className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Total Revenue</p>
+              <h3 className="text-secondary text-lg font-bold">¥ --</h3>
             </div>
           </CardContent>
         </Card>
@@ -90,6 +83,54 @@ export default async function AdminPage() {
                 </div>
               </div>
               <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-blue-600" />
+            </Link>
+
+            <Link
+              href="/admin/horses"
+              className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-colors group-hover:bg-amber-600 group-hover:text-white">
+                  <Rabbit className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-secondary font-bold">Manage Horses</h4>
+                  <p className="text-xs text-gray-500">Register and manage horses</p>
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-amber-600" />
+            </Link>
+
+            <Link
+              href="/admin/races"
+              className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
+                  <Trophy className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-secondary font-bold">Manage Races</h4>
+                  <p className="text-xs text-gray-500">Create and manage race schedules</p>
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-purple-600" />
+            </Link>
+
+            <Link
+              href="/admin/entries"
+              className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600 transition-colors group-hover:bg-green-600 group-hover:text-white">
+                  <ClipboardList className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-secondary font-bold">Manage Entries</h4>
+                  <p className="text-xs text-gray-500">Register horses to races</p>
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-green-600" />
             </Link>
           </CardContent>
         </Card>

@@ -1,6 +1,6 @@
 import { LogoutButton } from '@/features/auth/ui/logout-button';
 import { auth } from '@/shared/config/auth';
-import { Calendar, LayoutDashboard, Users } from 'lucide-react';
+import { Calendar, ClipboardList, ExternalLink, LayoutDashboard, Rabbit, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -14,6 +14,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { label: 'Users', href: '/admin/users', icon: Users },
     { label: 'Events', href: '/admin/events', icon: Calendar },
+    { label: 'Horses', href: '/admin/horses', icon: Rabbit },
+    { label: 'Races', href: '/admin/races', icon: Trophy },
+    { label: 'Entries', href: '/admin/entries', icon: ClipboardList },
   ];
 
   return (
@@ -43,6 +46,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </Link>
             );
           })}
+          <div className="mt-4 border-t border-gray-700 pt-4">
+            <Link
+              href="/mypage"
+              className="flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <ExternalLink className="h-5 w-5 opacity-70" />
+              Mypage
+            </Link>
+          </div>
         </nav>
 
         <div className="border-t border-gray-800 bg-black/20 p-4">

@@ -126,20 +126,10 @@ export const horses = pgTable('horse', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   gender: text('gender').notNull(),
+  age: integer('age'),
+  notes: text('notes'),
   sireId: uuid('sireId'),
   damId: uuid('damId'),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt')
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
-
-export const dailySchedules = pgTable('daily_schedule', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  date: date('date').notNull(),
-  location: text('location').notNull(),
-  name: text('name').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt')
     .defaultNow()
@@ -151,12 +141,9 @@ export const raceStatusEnum = pgEnum('race_status', ['SCHEDULED', 'CLOSED', 'FIN
 
 export const races = pgTable('race', {
   id: uuid('id').defaultRandom().primaryKey(),
-  scheduleId: uuid('scheduleId')
-    .notNull()
-    .references(() => dailySchedules.id, { onDelete: 'cascade' }),
-  raceNumber: integer('raceNumber').notNull(),
+  date: date('date').notNull(),
+  location: text('location').notNull(),
   name: text('name').notNull(),
-  startTime: timestamp('startTime').notNull(),
   distance: integer('distance').notNull(),
   surface: text('surface').notNull(),
   condition: text('condition'),

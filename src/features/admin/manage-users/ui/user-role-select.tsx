@@ -29,7 +29,7 @@ export function UserRoleSelect({ userId, currentRole }: UserRoleSelectProps) {
       onChange={handleChange}
       disabled={isPending}
       className={`rounded border px-2 py-1 text-sm ${
-        currentRole === 'ADMIN' ? 'border-red-200 bg-red-50 text-red-700' : 'bg-white'
+        currentRole === 'ADMIN' ? 'border-primary/30 bg-primary/10 text-primary' : 'bg-white'
       }`}
     >
       <option value="USER">USER</option>

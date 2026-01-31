@@ -1,4 +1,4 @@
-# Japan Ranranru Racing Club
+# Japan Ranranru Racing Association
 
 JRRAのWebアプリケーションです。
 

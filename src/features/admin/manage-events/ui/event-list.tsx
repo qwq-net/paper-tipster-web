@@ -3,7 +3,6 @@
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
 
-// Type definition for what we receive from DB
 type Event = {
   id: string;
   name: string;
@@ -35,7 +34,7 @@ export function EventList({ events }: { events: Event[] }) {
         </thead>
         <tbody>
           {events.map((event) => (
-            <tr key={event.id} className="border-b hover:bg-gray-50">
+            <tr key={event.id} className="hover:bg-gray-50">
               <td className="px-4 py-3">
                 <span
                   className={`rounded px-2 py-1 text-xs font-semibold ${

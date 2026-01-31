@@ -1,4 +1,6 @@
 import { CreateEventForm, EventList } from '@/features/admin/manage-events';
+import { Card } from '@/shared/ui';
+
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events } from '@/shared/db/schema';
@@ -18,21 +20,23 @@ export default async function AdminEventsPage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Event Management</h1>
+        <h1 className="text-secondary text-3xl font-bold">Event Management</h1>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Left: List */}
-        <div className="rounded bg-white p-6 shadow lg:col-span-2">
-          <h2 className="mb-4 text-lg font-semibold">All Events</h2>
-          <EventList events={allEvents} />
-        </div>
+        <Card className="border-none bg-transparent p-0 shadow-none hover:shadow-none lg:col-span-2">
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-secondary mb-4 text-xl font-bold">All Events</h2>
+            <EventList events={allEvents} />
+          </div>
+        </Card>
 
-        {/* Right: Create Form */}
-        <div className="h-fit rounded bg-white p-6 shadow">
-          <h2 className="mb-4 text-lg font-semibold">Create New Event</h2>
-          <CreateEventForm />
-        </div>
+        <Card className="h-fit">
+          <div className="p-6">
+            <h2 className="text-secondary mb-4 text-xl font-bold">Create New Event</h2>
+            <CreateEventForm />
+          </div>
+        </Card>
       </div>
     </div>
   );

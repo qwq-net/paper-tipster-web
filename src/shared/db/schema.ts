@@ -13,10 +13,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
-// --- Enums ---
 export const roleEnum = pgEnum('role', ['USER', 'ADMIN']);
-
-// --- Auth.js Tables ---
 
 export const users = pgTable('user', {
   id: text('id')
@@ -78,8 +75,6 @@ export const verificationTokens = pgTable(
   })
 );
 
-// --- Economy System ---
-
 export const eventStatusEnum = pgEnum('event_status', ['SCHEDULED', 'ACTIVE', 'COMPLETED']);
 
 export const events = pgTable('event', {
@@ -126,8 +121,6 @@ export const transactions = pgTable('transaction', {
   referenceId: uuid('referenceId'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 });
-
-// --- Racing Data System ---
 
 export const horses = pgTable('horse', {
   id: uuid('id').defaultRandom().primaryKey(),

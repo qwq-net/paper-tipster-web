@@ -76,6 +76,20 @@ export function HorseForm() {
       </div>
 
       <div>
+        <label className="mb-1.5 block text-sm font-semibold text-gray-700">産地</label>
+        <select
+          name="origin"
+          required
+          defaultValue="DOMESTIC"
+          className="focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none"
+        >
+          <option value="DOMESTIC">日本産</option>
+          <option value="FOREIGN_BRED">外国産</option>
+          <option value="FOREIGN_TRAINED">外来馬</option>
+        </select>
+      </div>
+
+      <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-700">
           備考 <span className="font-normal text-gray-400">(任意)</span>
         </label>

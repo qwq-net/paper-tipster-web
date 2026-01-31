@@ -122,11 +122,14 @@ export const transactions = pgTable('transaction', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 });
 
+export const horseOriginEnum = pgEnum('horse_origin', ['DOMESTIC', 'FOREIGN_BRED', 'FOREIGN_TRAINED']);
+
 export const horses = pgTable('horse', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   gender: text('gender').notNull(),
   age: integer('age'),
+  origin: horseOriginEnum('origin').default('DOMESTIC').notNull(),
   notes: text('notes'),
   sireId: uuid('sireId'),
   damId: uuid('damId'),

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader } from '@/shared/ui';
-import { ArrowRight, Calendar, ClipboardList, Rabbit, TrendingUp, Trophy, Users } from 'lucide-react';
+import { ArrowRight, Calendar, Carrot, ClipboardList, TrendingUp, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function AdminPage() {
@@ -91,7 +91,7 @@ export default async function AdminPage() {
             >
               <div className="flex items-center gap-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-colors group-hover:bg-amber-600 group-hover:text-white">
-                  <Rabbit className="h-5 w-5" />
+                  <Carrot className="h-5 w-5" />
                 </div>
                 <div>
                   <h4 className="text-secondary font-bold">Manage Horses</h4>

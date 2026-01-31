@@ -7,6 +7,7 @@ import {
   DragOverlay,
   DragStartEvent,
   PointerSensor,
+  useDroppable,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -119,7 +120,7 @@ function SortableEntry({
       >
         {bracketNumber}
       </span>
-      <span className="text-primary bg-primary/10 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold">
+      <span className="text-primary bg-primary/10 flex h-6 w-6 items-center justify-center rounded text-xs font-bold">
         {horseNumber}
       </span>
       <span className="flex-1 font-medium text-gray-900">{horse.name}</span>
@@ -209,20 +210,31 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
     const activeIdStr = active.id as string;
     const overIdStr = over.id as string;
 
+    // 左から右への移動
     if (activeIdStr.startsWith('available-')) {
       const horseId = activeIdStr.replace('available-', '');
-      const horse = available.find((h) => h.id === horseId);
-      if (horse) {
-        setAvailable((prev) => prev.filter((h) => h.id !== horseId));
-        setEntries((prev) => [...prev, horse]);
+      // 出走馬一覧側、または出走馬アイテムの上にドロップされた場合
+      if (overIdStr === 'entries-list' || entries.some((e) => e.id === overIdStr)) {
+        const horse = available.find((h) => h.id === horseId);
+        if (horse) {
+          addToEntries(horse);
+        }
       }
       return;
     }
 
+    // 右側のアイテムを操作している場合
     if (entries.some((e) => e.id === activeIdStr)) {
+      // 左側のリスト、または左側のアイテムの上にドロップされた場合（戻す操作）
+      if (overIdStr === 'available-list' || available.some((h) => `available-${h.id}` === overIdStr)) {
+        removeFromEntries(activeIdStr);
+        return;
+      }
+
+      // 右側リスト内での並び替え
       const oldIndex = entries.findIndex((e) => e.id === activeIdStr);
       const newIndex = entries.findIndex((e) => e.id === overIdStr);
-      if (oldIndex !== -1 && newIndex !== -1) {
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
         setEntries((prev) => arrayMove(prev, oldIndex, newIndex));
       }
     }
@@ -258,6 +270,9 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
     });
   };
 
+  const { setNodeRef: setAvailableRef } = useDroppable({ id: 'available-list' });
+  const { setNodeRef: setEntriesRef } = useDroppable({ id: 'entries-list' });
+
   const activeHorse = activeId
     ? available.find((h) => `available-${h.id}` === activeId) || entries.find((h) => h.id === activeId)
     : null;
@@ -271,9 +286,13 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
       onDragEnd={handleDragEnd}
     >
       <div className="grid gap-6 lg:grid-cols-2">
-        <div>
+        <div className="flex flex-col">
           <h3 className="mb-3 font-semibold text-gray-900">登録馬一覧</h3>
-          <div className="max-h-[500px] space-y-2 overflow-y-auto rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
+          <div
+            ref={setAvailableRef}
+            id="available-list"
+            className="h-[calc(100vh-320px)] min-h-[500px] space-y-2 overflow-y-auto rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4"
+          >
             {available.length === 0 ? (
               <div className="py-8 text-center text-sm text-gray-500">すべての馬が出走登録済みです</div>
             ) : (
@@ -286,9 +305,13 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
           </div>
         </div>
 
-        <div>
+        <div className="flex flex-col">
           <h3 className="mb-3 font-semibold text-gray-900">出走馬一覧 ({entries.length}頭)</h3>
-          <div className="max-h-[500px] space-y-2 overflow-y-auto rounded-lg border border-gray-300 bg-white p-4">
+          <div
+            ref={setEntriesRef}
+            id="entries-list"
+            className="h-[calc(100vh-320px)] min-h-[500px] space-y-2 overflow-y-auto rounded-lg border border-gray-300 bg-white p-4"
+          >
             {entries.length === 0 ? (
               <div className="py-8 text-center text-sm text-gray-500">左から馬をドラッグまたはクリックして追加</div>
             ) : (

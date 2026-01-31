@@ -6,7 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check": "npx tsc --noEmit && npx prettier --write .",
+    "db:seed": "npx tsx src/shared/db/seed.ts",
+    "db:reset": "npx tsx src/shared/db/reset.ts",
+    "db:admin": "npx tsx src/shared/db/set-admin.ts",
+    "db:setup": "npx drizzle-kit push && npm run db:seed",
+    "d:up": "docker compose up -d",
+    "d:down": "docker compose down",
+    "d:restart": "docker compose restart",
+    "d:build": "docker compose up -d --build",
+    "d:install": "docker compose exec app npm install",
+    "d:logs": "docker compose logs -f",
+    "d:clean": "docker compose down -v && docker compose up -d --build"
   },
   "dependencies": {
     "@auth/core": "0.41.1",
@@ -14,6 +26,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.1",
     "lucide-react": "^0.563.0",
@@ -31,6 +44,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
@@ -38,9 +52,11 @@
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   },
   "overrides": {
-    "@auth/core": "0.41.1"
+    "@auth/core": "0.41.1",
+    "esbuild": "0.25.0"
   }
 }

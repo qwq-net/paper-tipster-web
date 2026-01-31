@@ -1,6 +1,11 @@
-# Feature-Sliced Design (FSD) Architecture Guide
+# Application Design & Architecture Guide
 
 このプロジェクトでは、フロントエンドのメンテナンス性と拡張性を高めるため、**Feature-Sliced Design (FSD)** というアーキテクチャパターンを採用しています。
+
+## アプリケーションの前提・目的
+
+本アプリケーションは、コーエーテクモゲームスの競馬シミュレーションゲーム「Winning Post」等のプレイデータを元に、仲間内で仮想的な競馬・馬券遊びを行うためのシステムです。
+実際の金銭のやり取りは発生せず、ゲーム内のレース結果を元に架空の通貨を賭けて楽しむことを目的としています。
 
 ## FSDの基本概念
 

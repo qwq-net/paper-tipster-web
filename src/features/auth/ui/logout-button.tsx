@@ -1,12 +1,12 @@
-import { signOut } from "@/shared/config/auth";
-import { Button } from "@/shared/ui";
+import { signOut } from '@/shared/config/auth';
+import { Button } from '@/shared/ui';
 
 export function LogoutButton() {
   return (
     <form
       action={async () => {
-        "use server";
-        await signOut({ redirectTo: "/login" });
+        'use server';
+        await signOut({ redirectTo: '/login' });
       }}
     >
       <Button variant="secondary" type="submit">

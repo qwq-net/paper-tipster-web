@@ -62,6 +62,7 @@ export async function getEntriesForRace(raceId: string) {
       horseNumber: raceEntries.horseNumber,
       horseName: horses.name,
       horseGender: horses.gender,
+      horseAge: horses.age,
     })
     .from(raceEntries)
     .innerJoin(horses, eq(raceEntries.horseId, horses.id))

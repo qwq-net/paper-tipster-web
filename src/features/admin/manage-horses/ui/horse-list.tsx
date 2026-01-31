@@ -1,3 +1,4 @@
+import { getDisplayGender, getGenderBadgeClass } from '@/shared/utils/gender';
 import { getHorses } from '../actions';
 import { DeleteHorseButton } from './delete-horse-button';
 import { EditHorseDialog } from './edit-horse-dialog';
@@ -41,15 +42,9 @@ export async function HorseList() {
               </td>
               <td className="px-4 py-3 text-sm text-gray-600">
                 <span
-                  className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                    horse.gender === '牡'
-                      ? 'bg-blue-100 text-blue-800'
-                      : horse.gender === '牝'
-                        ? 'bg-pink-100 text-pink-800'
-                        : 'bg-gray-100 text-gray-800'
-                  }`}
+                  className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${getGenderBadgeClass(horse.gender)}`}
                 >
-                  {horse.gender}
+                  {getDisplayGender(horse.gender)}
                 </span>
               </td>
               <td className="px-4 py-3 text-sm text-gray-600">{horse.age ? `${horse.age}歳` : '-'}</td>

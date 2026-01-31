@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "check": "npx tsc --noEmit && npx prettier --write .",
+    "test": "vitest",
     "db:seed": "npx tsx src/shared/db/seed.ts",
     "db:reset": "npx tsx src/shared/db/reset.ts",
     "db:admin": "npx tsx src/shared/db/set-admin.ts",
@@ -53,7 +54,8 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   },
   "overrides": {
     "@auth/core": "0.41.1",

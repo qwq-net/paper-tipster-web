@@ -13,6 +13,8 @@ interface TransactionHistoryDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+type WalletTransaction = Awaited<ReturnType<typeof getWalletTransactions>>[number];
+
 export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChange }: TransactionHistoryDialogProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,10 +34,26 @@ export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChan
       getWalletTransactions(walletId)
         .then((data) => {
           if (active) {
-            const mapped = data.map((tx) => ({
-              ...tx,
-              description: null,
-            }));
+            const mapped = data.map((tx: WalletTransaction) => {
+              let description = null;
+              if (tx.type === 'BET' || tx.type === 'PAYOUT' || tx.type === 'REFUND') {
+                const raceName = tx.bet?.race?.name;
+                const location = tx.bet?.race?.location;
+                if (raceName) {
+                  description = `${location} ${raceName}`;
+                }
+              } else if (tx.type === 'DISTRIBUTION') {
+                description = tx.event?.name || '配布金';
+              }
+
+              return {
+                id: tx.id,
+                amount: tx.amount,
+                type: tx.type,
+                description,
+                createdAt: tx.createdAt,
+              };
+            });
             setTransactions(mapped);
             setIsLoading(false);
           }

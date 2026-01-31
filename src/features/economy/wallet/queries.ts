@@ -22,6 +22,14 @@ export async function getEventWallets(userId: string) {
 export async function getWalletTransactions(walletId: string) {
   return db.query.transactions.findMany({
     where: eq(transactions.walletId, walletId),
+    with: {
+      bet: {
+        with: {
+          race: true,
+        },
+      },
+      event: true,
+    },
     orderBy: [desc(transactions.createdAt)],
   });
 }

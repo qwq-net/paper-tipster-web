@@ -3,6 +3,7 @@ import { relations } from 'drizzle-orm';
 import {
   bigint,
   date,
+  index,
   integer,
   jsonb,
   numeric,
@@ -112,16 +113,22 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'ADJUSTMENT',
 ]);
 
-export const transactions = pgTable('transaction', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  walletId: uuid('walletId')
-    .notNull()
-    .references(() => wallets.id, { onDelete: 'cascade' }),
-  type: transactionTypeEnum('type').notNull(),
-  amount: bigint('amount', { mode: 'number' }).notNull(),
-  referenceId: uuid('referenceId'),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-});
+export const transactions = pgTable(
+  'transaction',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    walletId: uuid('walletId')
+      .notNull()
+      .references(() => wallets.id, { onDelete: 'cascade' }),
+    type: transactionTypeEnum('type').notNull(),
+    amount: bigint('amount', { mode: 'number' }).notNull(),
+    referenceId: uuid('referenceId'),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+  },
+  (table) => ({
+    referenceIdx: index('transaction_reference_idx').on(table.referenceId),
+  })
+);
 
 export const horseOriginEnum = pgEnum('horse_origin', ['DOMESTIC', 'FOREIGN_BRED', 'FOREIGN_TRAINED']);
 
@@ -223,6 +230,29 @@ export const eventRelations = relations(events, ({ many }) => ({
 export const transactionRelations = relations(transactions, ({ one }) => ({
   wallet: one(wallets, {
     fields: [transactions.walletId],
+    references: [wallets.id],
+  }),
+  bet: one(bets, {
+    fields: [transactions.referenceId],
+    references: [bets.id],
+  }),
+  event: one(events, {
+    fields: [transactions.referenceId],
+    references: [events.id],
+  }),
+}));
+
+export const betRelations = relations(bets, ({ one }) => ({
+  user: one(users, {
+    fields: [bets.userId],
+    references: [users.id],
+  }),
+  race: one(races, {
+    fields: [bets.raceId],
+    references: [races.id],
+  }),
+  wallet: one(wallets, {
+    fields: [bets.walletId],
     references: [wallets.id],
   }),
 }));

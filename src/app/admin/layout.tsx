@@ -11,12 +11,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   const navItems = [
-    { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { label: 'Users', href: '/admin/users', icon: Users },
-    { label: 'Events', href: '/admin/events', icon: Calendar },
-    { label: 'Horses', href: '/admin/horses', icon: Carrot },
-    { label: 'Races', href: '/admin/races', icon: Trophy },
-    { label: 'Entries', href: '/admin/entries', icon: ClipboardList },
+    { label: 'ダッシュボード', href: '/admin', icon: LayoutDashboard },
+    { label: 'ユーザー管理', href: '/admin/users', icon: Users },
+    { label: 'イベント管理', href: '/admin/events', icon: Calendar },
+    { label: '馬管理', href: '/admin/horses', icon: Carrot },
+    { label: 'レース管理', href: '/admin/races', icon: Trophy },
+    { label: '出走馬管理', href: '/admin/entries', icon: ClipboardList },
   ];
 
   return (

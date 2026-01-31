@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-const createHorseSchema = z.object({
+const horseSchema = z.object({
   name: z.string().min(1),
   gender: z.enum(['牡', '牝', 'セン']),
   age: z.coerce.number().min(2).max(20).optional(),
@@ -23,7 +23,7 @@ export async function createHorse(formData: FormData) {
 
   const ageValue = formData.get('age');
   const notesValue = formData.get('notes');
-  const parse = createHorseSchema.safeParse({
+  const parse = horseSchema.safeParse({
     name: formData.get('name'),
     gender: formData.get('gender'),
     age: ageValue && ageValue !== '' ? ageValue : undefined,
@@ -43,6 +43,41 @@ export async function createHorse(formData: FormData) {
     origin: parse.data.origin,
     notes: parse.data.notes,
   });
+
+  revalidatePath('/admin/horses');
+}
+
+export async function updateHorse(id: string, formData: FormData) {
+  const session = await auth();
+  if (session?.user?.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  const ageValue = formData.get('age');
+  const notesValue = formData.get('notes');
+  const parse = horseSchema.safeParse({
+    name: formData.get('name'),
+    gender: formData.get('gender'),
+    age: ageValue && ageValue !== '' ? ageValue : undefined,
+    origin: formData.get('origin'),
+    notes: notesValue && notesValue !== '' ? notesValue : undefined,
+  });
+
+  if (!parse.success) {
+    console.error(parse.error);
+    throw new Error('Invalid Input');
+  }
+
+  await db
+    .update(horses)
+    .set({
+      name: parse.data.name,
+      gender: parse.data.gender,
+      age: parse.data.age,
+      origin: parse.data.origin,
+      notes: parse.data.notes,
+    })
+    .where(eq(horses.id, id));
 
   revalidatePath('/admin/horses');
 }

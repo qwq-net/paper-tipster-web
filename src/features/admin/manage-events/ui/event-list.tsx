@@ -2,10 +2,12 @@
 
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
+import { EditEventDialog } from './edit-event-dialog';
 
 type Event = {
   id: string;
   name: string;
+  description: string | null;
   status: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED';
   distributeAmount: number;
   date: string;
@@ -29,7 +31,7 @@ export function EventList({ events }: { events: Event[] }) {
             <th className="px-4 py-3">イベント名</th>
             <th className="px-4 py-3">配布金額</th>
             <th className="px-4 py-3">開催日</th>
-            <th className="px-4 py-3">操作</th>
+            <th className="w-[240px] px-4 py-3">操作</th>
           </tr>
         </thead>
         <tbody>
@@ -53,43 +55,46 @@ export function EventList({ events }: { events: Event[] }) {
               </td>
               <td className="px-4 py-3">{event.distributeAmount.toLocaleString()} 円</td>
               <td className="px-4 py-3 text-xs text-gray-500">{event.date}</td>
-              <td className="flex min-w-[150px] gap-2 px-4 py-3">
-                {event.status === 'SCHEDULED' && (
-                  <button
-                    disabled={isPending}
-                    onClick={() => handleStatusChange(event.id, 'ACTIVE')}
-                    className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-50"
-                  >
-                    Start
-                  </button>
-                )}
-                {event.status === 'ACTIVE' && (
-                  <>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <EditEventDialog event={event} />
+                  {event.status === 'SCHEDULED' && (
                     <button
                       disabled={isPending}
-                      onClick={() => handleStatusChange(event.id, 'SCHEDULED')}
-                      className="rounded bg-yellow-500 px-3 py-1 text-xs text-white hover:bg-yellow-600 disabled:opacity-50"
+                      onClick={() => handleStatusChange(event.id, 'ACTIVE')}
+                      className="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-50"
                     >
-                      Pause
+                      Start
                     </button>
+                  )}
+                  {event.status === 'ACTIVE' && (
+                    <>
+                      <button
+                        disabled={isPending}
+                        onClick={() => handleStatusChange(event.id, 'SCHEDULED')}
+                        className="rounded bg-yellow-500 px-3 py-1 text-xs text-white hover:bg-yellow-600 disabled:opacity-50"
+                      >
+                        Pause
+                      </button>
+                      <button
+                        disabled={isPending}
+                        onClick={() => handleStatusChange(event.id, 'COMPLETED')}
+                        className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 disabled:opacity-50"
+                      >
+                        End
+                      </button>
+                    </>
+                  )}
+                  {event.status === 'COMPLETED' && (
                     <button
                       disabled={isPending}
-                      onClick={() => handleStatusChange(event.id, 'COMPLETED')}
-                      className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 disabled:opacity-50"
+                      onClick={() => handleStatusChange(event.id, 'ACTIVE')}
+                      className="rounded bg-gray-500 px-3 py-1 text-xs text-white hover:bg-gray-600 disabled:opacity-50"
                     >
-                      End
+                      Re-Open
                     </button>
-                  </>
-                )}
-                {event.status === 'COMPLETED' && (
-                  <button
-                    disabled={isPending}
-                    onClick={() => handleStatusChange(event.id, 'ACTIVE')}
-                    className="rounded bg-gray-500 px-3 py-1 text-xs text-white hover:bg-gray-600 disabled:opacity-50"
-                  >
-                    Re-Open
-                  </button>
-                )}
+                  )}
+                </div>
               </td>
             </tr>
           ))}

@@ -1,5 +1,6 @@
 import { getHorses } from '../actions';
 import { DeleteHorseButton } from './delete-horse-button';
+import { EditHorseDialog } from './edit-horse-dialog';
 
 export async function HorseList() {
   const horses = await getHorses();
@@ -24,7 +25,9 @@ export async function HorseList() {
             <th className="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase">性別</th>
             <th className="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase">年齢</th>
             <th className="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase">備考</th>
-            <th className="w-20 px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-600 uppercase"></th>
+            <th className="w-28 px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-600 uppercase">
+              操作
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 bg-white">
@@ -54,7 +57,15 @@ export async function HorseList() {
                 {horse.notes || '-'}
               </td>
               <td className="px-4 py-3 text-right">
-                <DeleteHorseButton horseId={horse.id} horseName={horse.name} />
+                <div className="flex justify-end">
+                  <EditHorseDialog
+                    horse={{
+                      ...horse,
+                      gender: horse.gender as '牡' | '牝' | 'セン',
+                    }}
+                  />
+                  <DeleteHorseButton horseId={horse.id} horseName={horse.name} />
+                </div>
               </td>
             </tr>
           ))}

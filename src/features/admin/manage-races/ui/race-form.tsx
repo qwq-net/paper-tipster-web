@@ -3,25 +3,44 @@
 import { Calendar, MapPin } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { createRace } from '../actions';
+import { createRace, updateRace } from '../actions';
 
-export function RaceForm() {
+interface RaceFormProps {
+  initialData?: {
+    id: string;
+    date: string;
+    location: string;
+    name: string;
+    distance: number;
+    surface: '芝' | 'ダート';
+    condition: '良' | '稍重' | '重' | '不良' | null;
+  };
+  onSuccess?: () => void;
+}
+
+export function RaceForm({ initialData, onSuccess }: RaceFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [surface, setSurface] = useState('芝');
-  const [condition, setCondition] = useState('良');
+  const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
+  const [surface, setSurface] = useState(initialData?.surface || '芝');
+  const [condition, setCondition] = useState(initialData?.condition || '良');
 
   async function handleSubmit(formData: FormData) {
     try {
-      await createRace(formData);
-      formRef.current?.reset();
-      setDate(new Date().toISOString().split('T')[0]);
-      setSurface('芝');
-      setCondition('良');
-      toast.success('レースを登録しました');
+      if (initialData) {
+        await updateRace(initialData.id, formData);
+        toast.success('レース情報を更新しました');
+      } else {
+        await createRace(formData);
+        formRef.current?.reset();
+        setDate(new Date().toISOString().split('T')[0]);
+        setSurface('芝');
+        setCondition('良');
+        toast.success('レースを登録しました');
+      }
+      onSuccess?.();
     } catch (error) {
       console.error(error);
-      toast.error('登録に失敗しました');
+      toast.error(initialData ? '更新に失敗しました' : '登録に失敗しました');
     }
   }
 
@@ -54,6 +73,7 @@ export function RaceForm() {
               name="location"
               type="text"
               required
+              defaultValue={initialData?.location}
               className="focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 py-2 pr-3 pl-9 text-sm transition-all focus:ring-2 focus:outline-none"
               placeholder="例: 東京"
             />
@@ -67,6 +87,7 @@ export function RaceForm() {
           name="name"
           type="text"
           required
+          defaultValue={initialData?.name}
           className="focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none"
           placeholder="例: ジャパンカップ"
         />
@@ -80,6 +101,7 @@ export function RaceForm() {
             type="number"
             min="100"
             required
+            defaultValue={initialData?.distance}
             className="focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none"
             placeholder="2400"
           />
@@ -102,7 +124,7 @@ export function RaceForm() {
                   name="surface"
                   value={s}
                   checked={surface === s}
-                  onChange={(e) => setSurface(e.target.value)}
+                  onChange={(e) => setSurface(e.target.value as '芝' | 'ダート')}
                   className="sr-only"
                 />
                 {s}
@@ -129,7 +151,7 @@ export function RaceForm() {
                 name="condition"
                 value={c}
                 checked={condition === c}
-                onChange={(e) => setCondition(e.target.value)}
+                onChange={(e) => setCondition(e.target.value as '良' | '稍重' | '重' | '不良')}
                 className="sr-only"
               />
               {c}
@@ -142,7 +164,7 @@ export function RaceForm() {
         type="submit"
         className="from-primary to-primary/80 hover:to-primary w-full rounded-md bg-linear-to-r px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg"
       >
-        登録する
+        {initialData ? '更新する' : '登録する'}
       </button>
     </form>
   );

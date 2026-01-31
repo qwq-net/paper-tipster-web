@@ -2,21 +2,39 @@
 
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { createHorse } from '../actions';
+import { createHorse, updateHorse } from '../actions';
 
-export function HorseForm() {
+interface HorseFormProps {
+  initialData?: {
+    id: string;
+    name: string;
+    gender: '牡' | '牝' | 'セン';
+    age: number | null;
+    origin: 'DOMESTIC' | 'FOREIGN_BRED' | 'FOREIGN_TRAINED';
+    notes: string | null;
+  };
+  onSuccess?: () => void;
+}
+
+export function HorseForm({ initialData, onSuccess }: HorseFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [gender, setGender] = useState('牡');
+  const [gender, setGender] = useState(initialData?.gender || '牡');
 
   async function handleSubmit(formData: FormData) {
     try {
-      await createHorse(formData);
-      formRef.current?.reset();
-      setGender('牡');
-      toast.success('馬を登録しました');
+      if (initialData) {
+        await updateHorse(initialData.id, formData);
+        toast.success('馬情報を更新しました');
+      } else {
+        await createHorse(formData);
+        formRef.current?.reset();
+        setGender('牡');
+        toast.success('馬を登録しました');
+      }
+      onSuccess?.();
     } catch (error) {
       console.error(error);
-      toast.error('登録に失敗しました');
+      toast.error(initialData ? '更新に失敗しました' : '登録に失敗しました');
     }
   }
 
@@ -28,6 +46,7 @@ export function HorseForm() {
           name="name"
           type="text"
           required
+          defaultValue={initialData?.name}
           className="focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none"
           placeholder="例: ディープインパクト"
         />
@@ -51,7 +70,7 @@ export function HorseForm() {
                   name="gender"
                   value={g}
                   checked={gender === g}
-                  onChange={(e) => setGender(e.target.value)}
+                  onChange={(e) => setGender(e.target.value as '牡' | '牝' | 'セン')}
                   className="sr-only"
                 />
                 {g}
@@ -69,6 +88,7 @@ export function HorseForm() {
             type="number"
             min="2"
             max="20"
+            defaultValue={initialData?.age ?? ''}
             className="focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none"
             placeholder="例: 4"
           />
@@ -80,7 +100,7 @@ export function HorseForm() {
         <select
           name="origin"
           required
-          defaultValue="DOMESTIC"
+          defaultValue={initialData?.origin || 'DOMESTIC'}
           className="focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none"
         >
           <option value="DOMESTIC">日本産</option>
@@ -96,6 +116,7 @@ export function HorseForm() {
         <textarea
           name="notes"
           rows={3}
+          defaultValue={initialData?.notes ?? ''}
           className="focus:ring-primary/20 focus:border-primary w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none"
           placeholder="馬の特徴や評価など"
         />
@@ -105,7 +126,7 @@ export function HorseForm() {
         type="submit"
         className="from-primary to-primary/80 hover:to-primary w-full rounded-md bg-linear-to-r px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg"
       >
-        登録する
+        {initialData ? '更新する' : '登録する'}
       </button>
     </form>
   );

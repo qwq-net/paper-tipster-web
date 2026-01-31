@@ -1,4 +1,5 @@
 import { getRaces } from '../actions';
+import { EditRaceDialog } from './edit-race-dialog';
 
 export async function RaceList() {
   const races = await getRaces();
@@ -20,6 +21,9 @@ export async function RaceList() {
             <th className="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase">距離</th>
             <th className="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase">馬場</th>
             <th className="px-4 py-3 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase">状態</th>
+            <th className="w-20 px-4 py-3 text-right text-xs font-semibold tracking-wider text-gray-600 uppercase">
+              操作
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 bg-white">
@@ -71,6 +75,15 @@ export async function RaceList() {
                 >
                   {race.status}
                 </span>
+              </td>
+              <td className="px-4 py-3 text-right">
+                <EditRaceDialog
+                  race={{
+                    ...race,
+                    surface: race.surface as '芝' | 'ダート',
+                    condition: race.condition as '良' | '稍重' | '重' | '不良' | null,
+                  }}
+                />
               </td>
             </tr>
           ))}

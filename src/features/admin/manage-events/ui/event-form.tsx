@@ -2,19 +2,51 @@
 
 import { Button } from '@/shared/ui';
 import { Calendar } from 'lucide-react';
-import { useState } from 'react';
-import { createEvent } from '../actions';
+import { useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { createEvent, updateEvent } from '../actions';
 
-export function CreateEventForm() {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+interface EventFormProps {
+  initialData?: {
+    id: string;
+    name: string;
+    description: string | null;
+    distributeAmount: number;
+    date: string;
+  };
+  onSuccess?: () => void;
+}
+
+export function EventForm({ initialData, onSuccess }: EventFormProps) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
+
+  async function handleSubmit(formData: FormData) {
+    try {
+      if (initialData) {
+        await updateEvent(initialData.id, formData);
+        toast.success('イベント情報を更新しました');
+      } else {
+        await createEvent(formData);
+        formRef.current?.reset();
+        setDate(new Date().toISOString().split('T')[0]);
+        toast.success('イベントを作成しました');
+      }
+      onSuccess?.();
+    } catch (error) {
+      console.error(error);
+      toast.error(initialData ? '更新に失敗しました' : '作成に失敗しました');
+    }
+  }
 
   return (
-    <form action={createEvent} className="space-y-5">
+    <form ref={formRef} action={handleSubmit} className="space-y-5">
       <div>
         <label className="mb-1.5 block text-sm font-semibold text-gray-700">イベント名</label>
         <input
           name="name"
           required
+          defaultValue={initialData?.name}
           className="focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none"
           placeholder="例: 第1回 拠り所杯"
         />
@@ -24,6 +56,7 @@ export function CreateEventForm() {
         <label className="mb-1.5 block text-sm font-semibold text-gray-700">説明 (任意)</label>
         <textarea
           name="description"
+          defaultValue={initialData?.description || ''}
           className="focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none"
           rows={3}
           placeholder="イベントの詳細や説明を入力"
@@ -38,7 +71,7 @@ export function CreateEventForm() {
               name="distributeAmount"
               type="number"
               required
-              defaultValue={100000}
+              defaultValue={initialData?.distributeAmount ?? 100000}
               className="focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 pr-8 text-sm transition-all focus:ring-2 focus:outline-none"
             />
             <span className="absolute top-2 right-3 text-sm text-gray-400">円</span>
@@ -67,7 +100,7 @@ export function CreateEventForm() {
       </div>
 
       <Button type="submit" className="mt-2 w-full" size="lg">
-        イベント作成
+        {initialData ? 'イベント更新' : 'イベント作成'}
       </Button>
     </form>
   );

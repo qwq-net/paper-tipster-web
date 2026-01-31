@@ -1,4 +1,4 @@
-import { CreateEventForm, EventList } from '@/features/admin/manage-events';
+import { EventForm, EventList } from '@/features/admin/manage-events';
 import { Card } from '@/shared/ui';
 
 import { auth } from '@/shared/config/auth';
@@ -34,7 +34,7 @@ export default async function AdminEventsPage() {
         <Card className="h-fit">
           <div className="p-6">
             <h2 className="text-secondary mb-4 text-xl font-bold">Create New Event</h2>
-            <CreateEventForm />
+            <EventForm />
           </div>
         </Card>
       </div>

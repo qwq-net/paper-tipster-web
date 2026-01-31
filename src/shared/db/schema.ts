@@ -1,4 +1,5 @@
 import type { AdapterAccount } from '@auth/core/adapters';
+import { relations } from 'drizzle-orm';
 import {
   bigint,
   date,
@@ -201,3 +202,31 @@ export const raceEntries = pgTable('race_entry', {
     .notNull()
     .$onUpdate(() => new Date()),
 });
+
+export const walletRelations = relations(wallets, ({ one, many }) => ({
+  user: one(users, {
+    fields: [wallets.userId],
+    references: [users.id],
+  }),
+  event: one(events, {
+    fields: [wallets.eventId],
+    references: [events.id],
+  }),
+  transactions: many(transactions),
+}));
+
+export const eventRelations = relations(events, ({ many }) => ({
+  wallets: many(wallets),
+}));
+
+export const transactionRelations = relations(transactions, ({ one }) => ({
+  wallet: one(wallets, {
+    fields: [transactions.walletId],
+    references: [wallets.id],
+  }),
+}));
+
+export const userRelations = relations(users, ({ many }) => ({
+  wallets: many(wallets),
+  bets: many(bets),
+}));

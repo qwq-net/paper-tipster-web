@@ -1,5 +1,6 @@
 'use client';
 
+import { calculateBracketNumber, getBracketColor } from '@/shared/utils/bracket';
 import {
   closestCenter,
   DndContext,
@@ -14,7 +15,7 @@ import {
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Trash2 } from 'lucide-react';
-import { useId, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { saveEntries } from '../actions';
 
@@ -38,49 +39,6 @@ type Props = {
   availableHorses: Horse[];
   existingEntries: Entry[];
 };
-
-const BRACKET_COLORS = [
-  'bg-white border-2 border-gray-300',
-  'bg-black text-white',
-  'bg-red-600 text-white',
-  'bg-blue-600 text-white',
-  'bg-yellow-400 text-black',
-  'bg-green-600 text-white',
-  'bg-orange-500 text-white',
-  'bg-pink-400 text-white',
-];
-
-function calculateBracketNumber(horseNumber: number, totalHorses: number): number {
-  if (totalHorses <= 8) {
-    return horseNumber;
-  }
-  if (totalHorses <= 15) {
-    const singleBrackets = 16 - totalHorses;
-    if (horseNumber <= singleBrackets) {
-      return horseNumber;
-    }
-    return singleBrackets + Math.ceil((horseNumber - singleBrackets) / 2);
-  }
-  if (totalHorses === 16) {
-    return Math.ceil(horseNumber / 2);
-  }
-  if (totalHorses === 17) {
-    if (horseNumber <= 14) {
-      return Math.ceil(horseNumber / 2);
-    }
-    return 8;
-  }
-  if (totalHorses === 18) {
-    if (horseNumber <= 12) {
-      return Math.ceil(horseNumber / 2);
-    }
-    if (horseNumber <= 15) {
-      return 7;
-    }
-    return 8;
-  }
-  return Math.min(horseNumber, 8);
-}
 
 function SortableEntry({
   horse,
@@ -116,9 +74,9 @@ function SortableEntry({
         <GripVertical className="h-4 w-4" />
       </button>
       <span
-        className={`flex h-6 w-6 items-center justify-center rounded text-xs font-bold ${BRACKET_COLORS[bracketNumber - 1]}`}
+        className={`flex h-6 w-6 items-center justify-center rounded text-xs font-bold ${getBracketColor(bracketNumber)}`}
       >
-        {bracketNumber}
+        {bracketNumber || '?'}
       </span>
       <span className="text-primary bg-primary/10 flex h-6 w-6 items-center justify-center rounded text-xs font-bold">
         {horseNumber}
@@ -183,7 +141,6 @@ function DraggableHorse({ horse, onClick }: { horse: Horse; onClick: () => void 
 }
 
 export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEntries }: Props) {
-  const dndId = useId();
   const [available, setAvailable] = useState<Horse[]>(initialAvailable);
   const [entries, setEntries] = useState<Horse[]>(
     existingEntries.map((e) => ({
@@ -279,7 +236,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
 
   return (
     <DndContext
-      id={dndId}
+      id={`entry-dnd-${raceId}`}
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}

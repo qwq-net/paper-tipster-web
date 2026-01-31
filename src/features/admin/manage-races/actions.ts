@@ -2,7 +2,7 @@
 
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { races } from '@/shared/db/schema';
+import { raceEntries, races } from '@/shared/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -85,4 +85,31 @@ export async function updateRace(id: string, formData: FormData) {
 
 export async function getRaces() {
   return db.select().from(races).orderBy(desc(races.date), races.name);
+}
+
+export async function finalizeRace(raceId: string, results: { entryId: string; finishPosition: number }[]) {
+  const session = await auth();
+  if (session?.user?.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  await db.transaction(async (tx) => {
+    for (const result of results) {
+      await tx
+        .update(raceEntries)
+        .set({ finishPosition: result.finishPosition })
+        .where(eq(raceEntries.id, result.entryId));
+    }
+
+    await tx
+      .update(races)
+      .set({
+        status: 'FINALIZED',
+        finalizedAt: new Date(),
+      })
+      .where(eq(races.id, raceId));
+  });
+
+  revalidatePath('/admin/races');
+  revalidatePath(`/admin/races/${raceId}`);
 }

@@ -195,6 +195,7 @@ export const raceEntries = pgTable('race_entry', {
   horseNumber: integer('horseNumber'),
   jockey: text('jockey'),
   weight: integer('weight'),
+  finishPosition: integer('finishPosition'),
   status: raceEntryStatusEnum('status').default('ENTRANT').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt')

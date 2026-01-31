@@ -1,3 +1,5 @@
+import { Eye } from 'lucide-react';
+import Link from 'next/link';
 import { getRaces } from '../actions';
 import { EditRaceDialog } from './edit-race-dialog';
 
@@ -77,13 +79,21 @@ export async function RaceList() {
                 </span>
               </td>
               <td className="px-4 py-3 text-right">
-                <EditRaceDialog
-                  race={{
-                    ...race,
-                    surface: race.surface as '芝' | 'ダート',
-                    condition: race.condition as '良' | '稍重' | '重' | '不良' | null,
-                  }}
-                />
+                <div className="flex items-center justify-end gap-2">
+                  <Link
+                    href={`/admin/races/${race.id}`}
+                    className="hover:text-primary flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-400 transition-colors hover:bg-gray-50"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                  <EditRaceDialog
+                    race={{
+                      ...race,
+                      surface: race.surface as '芝' | 'ダート',
+                      condition: race.condition as '良' | '稍重' | '重' | '不良' | null,
+                    }}
+                  />
+                </div>
               </td>
             </tr>
           ))}

@@ -1,116 +1,81 @@
-# Japan Ranranru Racing Association
+# Japan Ranranru Racing Association (JRRA)
 
-JRRAのWebアプリケーションです。
+## 概要
 
-## 必要環境
+Winning Post等のプレイデータを元に、仲間内で仮想的な競馬・馬券遊びを行うためのWebアプリケーションです。
+Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js + PostgreSQLで構築されています。
 
-- **Node.js**: 20.x (LTS)
-- **Docker** / **Docker Compose**
+## 機能
+
+- **ユーザー**: Discordログイン、イベント参加、馬券購入（単勝〜3連単）、リアルタイム結果確認
+- **管理者**: イベント・レース・馬の管理、レース進行（着順・配当確定）
 
 ## 技術スタック
 
-- **フレームワーク**: Next.js 16
-- **言語**: TypeScript 5
-- **スタイル**: Tailwind CSS v4
-- **データベース**: PostgreSQL
+- **Framework**: Next.js 15+ (App Router)
+- **Database**: PostgreSQL
 - **ORM**: Drizzle ORM
-- **認証**: Auth.js (NextAuth) with Discord Provider
-- **ドラッグ&ドロップ**: @dnd-kit
-- **アイコン**: Lucide React
+- **Styling**: Tailwind CSS v4
+- **Auth**: Auth.js (Discord OAuth)
+- **Infrastructure**: Docker Compose
 
-## 始め方
+## 開発環境セットアップ
 
-### 1. 環境変数の設定
+### 前提条件
 
-`.env` ファイルを作成し、設定を行ってください。
+- Docker & Docker Compose
+- Node.js (ホスト側で実行する場合)
 
-```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/webapp
-AUTH_SECRET=your-secret-key
-AUTH_DISCORD_ID=your-discord-client-id
-AUTH_DISCORD_SECRET=your-discord-client-secret
-```
+### 起動手順 (Docker)
 
-> [!NOTE]
-> ホストOS（Mac/Windows/Linux）のターミナルから `npm run db:*` 系のコマンドを実行する場合は、ホスト名に `localhost` を指定してください。
+1. 環境変数の設定
+   `.env.example` をコピーして `.env` を作成し、必要な値を設定してください。
 
-### 2. アプリケーションの起動 (Docker)
+2. 開発環境の起動
 
-```bash
-docker compose up -d
-```
+   ```bash
+   npm run d:up
+   ```
 
-### 3. データベースの初期化
+   コンテナが起動し、Next.jsアプリ、PostgreSQL、Drizzle Studioが立ち上がります。
 
-初回起動時やデータをリセットしたい時に実行します。
+3. データベースのセットアップ
+   初回起動時やリセット時は以下を実行します。
+   ```bash
+   npm run db:setup
+   ```
 
-```bash
-npm run db:setup
-```
+### 便利なコマンド
 
----
+`package.json` に定義されている主要なスクリプトです。
 
-## 開発コマンド
+| コマンド            | 説明                                        |
+| :------------------ | :------------------------------------------ |
+| `npm run dev`       | ローカルで開発サーバーを起動                |
+| `npm run d:up`      | Docker環境を起動 (バックグラウンド)         |
+| `npm run d:down`    | Docker環境を停止                            |
+| `npm run d:restart` | Docker環境を再起動                          |
+| `npm run d:logs`    | Dockerコンテナのログを表示                  |
+| `npm run d:clean`   | Docker環境を完全にリセット (Volume削除含む) |
+| `npm run db:setup`  | DBスキーマの適用とシードデータの投入        |
+| `npm run db:reset`  | DBのリセット                                |
+| `npm run check`     | 型チェックとフォーマッタの実行              |
+| `npm test`          | テストの実行 (Vitest)                       |
 
-### データベース管理
+## ディレクトリ構成
 
-| コマンド               | 説明                                                       |
-| :--------------------- | :--------------------------------------------------------- |
-| `npm run db:setup`     | 全データの削除と初期データ（シード）の投入を一括で行います |
-| `npm run db:reset`     | すべてのテーブルのデータを消去（Truncate）します           |
-| `npm run db:seed`      | シードデータを投入します                                   |
-| `npm run db:admin`     | 最初のユーザーに管理者（ADMIN）権限を付与します            |
-| `npx drizzle-kit push` | スキーマの変更をDBに反映します                             |
+本プロジェクトは **Feature-Sliced Design (FSD)** を採用しています。
+詳細は [docs/APPLICATION_DESIGN.md](docs/APPLICATION_DESIGN.md) を参照してください。
 
-### Docker 運用
+- `src/app`: App Router Pages
+- `src/features`: 機能モジュール (Auth, Betting, Admin, Economy)
+- `src/entities`: ドメインモデル (User, Horse, Race)
+- `src/shared`: 共有コンポーネント・ユーティリティ
 
-Docker コンテナ内の環境を操作するためのショートカットです。
+## ドキュメント
 
-| コマンド                         | 説明                                                 |
-| :------------------------------- | :--------------------------------------------------- |
-| `npm run d:install -- [package]` | コンテナ内にパッケージを即座にインストールします     |
-| `npm run d:logs`                 | コンテナのログをリアルタイムで表示します             |
-| `npm run d:up`                   | コンテナを起動（バックグラウンド）                   |
-| `npm run d:build`                | Dockerfile をビルドして起動                          |
-| `npm run d:restart`              | コンテナを再起動                                     |
-| `npm run d:clean`                | 依存関係やボリュームを全削除してクリーンビルドします |
-
-### 初回セットアップ・クリーンセットアップ手順
-
-1. `npm run d:clean`
-2. `npm run db:setup`
-3. Discord ログインで最初のユーザーを作成
-4. `npm run db:admin`
-
----
-
-## プロジェクト構成
-
-FSD (Feature-Sliced Design) アーキテクチャを採用しています。
-
-```
-src/
-├── app/                  # Next.js App Router (ページ・APIルート)
-│   ├── admin/            # 管理画面
-│   │   ├── entries/      # 出走馬管理
-│   │   ├── events/       # イベント管理
-│   │   ├── horses/       # 馬管理
-│   │   ├── races/        # レース管理
-│   │   └── users/        # ユーザー管理
-│   ├── login/            # ログインページ
-├── entities/             # ビジネスエンティティ（Userなど）
-├── features/             # 機能モジュール
-│   ├── admin/            # 管理機能 (Events, Horses, Races, Entries)
-│   ├── auth/             # 認証機能
-│   └── economy/          # 経済機能
-├── shared/               # 共通コンポーネント・ユーティリティ・DB
-└── types/                # グローバル型定義
-```
-
-## コード品質
-
-型チェックとフォーマットを一括で実行します。コミット前の確認に推奨します。
-
-```bash
-npm run check
-```
+- [機能仕様書](docs/FUNCTIONAL_SPECIFICATION.md)
+- [アプリケーション設計](docs/APPLICATION_DESIGN.md)
+- [UI/UXガイドライン](docs/UI_UX_DESIGN.md)
+- [データベース設計](docs/DATABASE_DESIGN.md)
+- [馬券UI設計](docs/BETTING_UI_DESIGN.md)

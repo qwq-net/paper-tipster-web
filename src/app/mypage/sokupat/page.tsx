@@ -17,7 +17,29 @@ export default async function SokupatPage() {
   const scheduledRaces = await db.query.races.findMany({
     where: eq(races.status, 'SCHEDULED'),
     orderBy: [desc(races.date)],
+    with: {
+      event: true,
+    },
   });
+
+  const eventGroups = scheduledRaces.reduce(
+    (acc, race) => {
+      const eventId = race.event.id;
+      if (!acc[eventId]) {
+        acc[eventId] = {
+          event: race.event,
+          races: [],
+        };
+      }
+      acc[eventId].races.push(race);
+      return acc;
+    },
+    {} as Record<string, { event: (typeof scheduledRaces)[0]['event']; races: typeof scheduledRaces }>
+  );
+
+  const sortedEventGroups = Object.values(eventGroups).sort(
+    (a, b) => new Date(b.event.date).getTime() - new Date(a.event.date).getTime()
+  );
 
   return (
     <div className="flex flex-col items-center p-4">
@@ -42,38 +64,47 @@ export default async function SokupatPage() {
           </div>
         </div>
 
-        <section>
-          <div className="grid gap-4 md:grid-cols-2">
-            {scheduledRaces.map((race) => (
-              <Link key={race.id} href={`/races/${race.id}`}>
-                <Card className="hover:border-primary p-6 transition-all hover:shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="rounded bg-gray-100 px-2 py-0.5 text-[10px] font-bold tracking-wider text-gray-700 uppercase">
-                          {race.location}
-                        </span>
-                        <span className="text-xs font-medium text-gray-400">{race.date}</span>
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900">{race.name}</h3>
-                      <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
-                        <span>{race.distance}m</span>
-                        <span className="h-1 w-1 rounded-full bg-gray-300" />
-                        <span>{race.surface}</span>
-                      </div>
-                    </div>
-                    <div className="bg-primary/10 text-primary hover:bg-primary flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:text-white">
-                      <ChevronLeft size={20} className="rotate-180" />
-                    </div>
-                  </div>
-                </Card>
-              </Link>
+        {sortedEventGroups.length === 0 ? (
+          <Card className="p-12 text-center text-gray-500">現在、開催予定のレースはありません。</Card>
+        ) : (
+          <div className="space-y-8">
+            {sortedEventGroups.map(({ event, races }) => (
+              <section key={event.id}>
+                <div className="mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">{event.name}</h2>
+                  <p className="text-sm text-gray-500">{event.date}</p>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {races.map((race) => (
+                    <Link key={race.id} href={`/races/${race.id}`}>
+                      <Card className="hover:border-primary p-6 transition-all hover:shadow-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="mb-1 flex items-center gap-2">
+                              <span className="rounded bg-gray-100 px-2 py-0.5 text-[10px] font-bold tracking-wider text-gray-700 uppercase">
+                                {race.location}
+                              </span>
+                              <span className="text-xs font-medium text-gray-400">{race.date}</span>
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900">{race.name}</h3>
+                            <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
+                              <span>{race.distance}m</span>
+                              <span className="h-1 w-1 rounded-full bg-gray-300" />
+                              <span>{race.surface}</span>
+                            </div>
+                          </div>
+                          <div className="bg-primary/10 text-primary hover:bg-primary flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:text-white">
+                            <ChevronLeft size={20} className="rotate-180" />
+                          </div>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </section>
             ))}
-            {scheduledRaces.length === 0 && (
-              <Card className="p-12 text-center text-gray-500 md:col-span-2">現在、開催予定のレースはありません。</Card>
-            )}
           </div>
-        </section>
+        )}
       </div>
     </div>
   );

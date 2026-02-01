@@ -1,6 +1,7 @@
 import { LogoutButton } from '@/features/auth/ui/logout-button';
 import { auth } from '@/shared/config/auth';
-import { Calendar, Carrot, ClipboardList, ExternalLink, LayoutDashboard, Trophy, Users } from 'lucide-react';
+import { Calendar, Carrot, ClipboardList, ExternalLink, LayoutDashboard, Ticket, Trophy, Users } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -17,6 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { label: '馬管理', href: '/admin/horses', icon: Carrot },
     { label: 'レース管理', href: '/admin/races', icon: Trophy },
     { label: '出走馬管理', href: '/admin/entries', icon: ClipboardList },
+    { label: '馬券管理', href: '/admin/bets', icon: Ticket },
   ];
 
   return (
@@ -59,9 +61,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
         <div className="border-t border-gray-800 bg-black/20 p-4">
           <div className="mb-4 flex items-center gap-3">
-            <div className="bg-primary/20 text-primary border-primary/30 flex h-8 w-8 items-center justify-center rounded-full border">
-              <span className="text-xs font-bold">{session.user.name?.[0] || 'A'}</span>
-            </div>
+            {session.user.image ? (
+              <Image
+                src={session.user.image}
+                alt={session.user.name || 'User'}
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full"
+              />
+            ) : (
+              <div className="bg-primary/20 text-primary border-primary/30 flex h-8 w-8 items-center justify-center rounded-full border">
+                <span className="text-xs font-bold">{session.user.name?.[0] || 'A'}</span>
+              </div>
+            )}
             <div className="flex flex-col overflow-hidden">
               <span className="truncate text-sm leading-none font-bold text-white">{session.user.name}</span>
               <span className="mt-1 text-[10px] text-gray-400">Administrator</span>

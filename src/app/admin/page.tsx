@@ -2,7 +2,7 @@ import { db } from '@/shared/db';
 import { bets, events, horses, races, users } from '@/shared/db/schema';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
 import { count, sum } from 'drizzle-orm';
-import { ArrowRight, Calendar, Carrot, ClipboardList, Coins, TrendingUp, Trophy, Users } from 'lucide-react';
+import { ArrowRight, Calendar, Carrot, ClipboardList, Coins, Ticket, TrendingUp, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function AdminPage() {
@@ -95,94 +95,108 @@ export default async function AdminPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <h2 className="text-secondary text-xl font-bold">クイックアクション</h2>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Link
-              href="/admin/users"
-              className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-secondary font-bold">ユーザー管理</h4>
-                  <p className="text-xs text-gray-500">ユーザー一覧の確認と権限変更</p>
-                </div>
+      <Card>
+        <CardHeader>
+          <h2 className="text-secondary text-xl font-bold">クイックアクション</h2>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Link
+            href="/admin/users"
+            className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                <Users className="h-5 w-5" />
               </div>
-              <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-blue-600" />
-            </Link>
+              <div>
+                <h4 className="text-secondary font-bold">ユーザー管理</h4>
+                <p className="text-xs text-gray-500">ユーザー一覧の確認と権限変更</p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-blue-600" />
+          </Link>
 
-            <Link
-              href="/admin/events"
-              className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
-            >
-              <div className="flex items-center gap-4">
-                <div className="bg-primary/10 text-primary group-hover:bg-primary flex h-10 w-10 items-center justify-center rounded-lg transition-colors group-hover:text-white">
-                  <Calendar className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-secondary font-bold">イベント管理</h4>
-                  <p className="text-xs text-gray-500">イベントの追加・編集・確定処理</p>
-                </div>
+          <Link
+            href="/admin/events"
+            className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 text-primary group-hover:bg-primary flex h-10 w-10 items-center justify-center rounded-lg transition-colors group-hover:text-white">
+                <Calendar className="h-5 w-5" />
               </div>
-              <ArrowRight className="group-hover:text-primary h-5 w-5 text-gray-300 transition-colors" />
-            </Link>
+              <div>
+                <h4 className="text-secondary font-bold">イベント管理</h4>
+                <p className="text-xs text-gray-500">イベントの追加・編集・確定処理</p>
+              </div>
+            </div>
+            <ArrowRight className="group-hover:text-primary h-5 w-5 text-gray-300 transition-colors" />
+          </Link>
 
-            <Link
-              href="/admin/horses"
-              className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-colors group-hover:bg-amber-600 group-hover:text-white">
-                  <Carrot className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-secondary font-bold">馬管理</h4>
-                  <p className="text-xs text-gray-500">競走馬の新規登録と情報管理</p>
-                </div>
+          <Link
+            href="/admin/horses"
+            className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition-colors group-hover:bg-amber-600 group-hover:text-white">
+                <Carrot className="h-5 w-5" />
               </div>
-              <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-amber-600" />
-            </Link>
+              <div>
+                <h4 className="text-secondary font-bold">馬管理</h4>
+                <p className="text-xs text-gray-500">競走馬の新規登録と情報管理</p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-amber-600" />
+          </Link>
 
-            <Link
-              href="/admin/races"
-              className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
-                  <Trophy className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-secondary font-bold">レース管理</h4>
-                  <p className="text-xs text-gray-500">レースの作成・管理</p>
-                </div>
+          <Link
+            href="/admin/races"
+            className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
+                <Trophy className="h-5 w-5" />
               </div>
-              <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-purple-600" />
-            </Link>
+              <div>
+                <h4 className="text-secondary font-bold">レース管理</h4>
+                <p className="text-xs text-gray-500">レースの作成・管理</p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-purple-600" />
+          </Link>
 
-            <Link
-              href="/admin/entries"
-              className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600 transition-colors group-hover:bg-green-600 group-hover:text-white">
-                  <ClipboardList className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-secondary font-bold">出走馬管理</h4>
-                  <p className="text-xs text-gray-500">レースへの競走馬の割り当て</p>
-                </div>
+          <Link
+            href="/admin/entries"
+            className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600 transition-colors group-hover:bg-green-600 group-hover:text-white">
+                <ClipboardList className="h-5 w-5" />
               </div>
-              <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-green-600" />
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+              <div>
+                <h4 className="text-secondary font-bold">出走馬管理</h4>
+                <p className="text-xs text-gray-500">レースへの競走馬の割り当て</p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-green-600" />
+          </Link>
+
+          <Link
+            href="/admin/bets"
+            className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 transition-colors group-hover:bg-indigo-600 group-hover:text-white">
+                <Ticket className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-secondary font-bold">馬券管理</h4>
+                <p className="text-xs text-gray-500">購入された馬券の確認と管理</p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-indigo-600" />
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   );
 }

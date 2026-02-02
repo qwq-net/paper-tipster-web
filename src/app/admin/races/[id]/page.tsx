@@ -9,7 +9,7 @@ import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
 import { eq } from 'drizzle-orm';
-import { AlarmClock, ChevronLeft, Info, Settings2, Trophy } from 'lucide-react';
+import { ChevronLeft, Info, Settings2, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
@@ -54,17 +54,6 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
             <p>
               {race.date.replace(/-/g, '/')} @ {race.location}
             </p>
-            <div className="flex items-center gap-1 font-medium text-amber-600">
-              <AlarmClock className="h-4 w-4" />
-              <span>
-                締切:{' '}
-                {race.closingAt ? (
-                  <FormattedDate date={race.closingAt} options={{ hour: '2-digit', minute: '2-digit' }} />
-                ) : (
-                  '手動'
-                )}
-              </span>
-            </div>
           </div>
         </div>
       </div>

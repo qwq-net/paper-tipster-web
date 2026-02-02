@@ -85,6 +85,21 @@ export async function closeRace(raceId: string) {
   return { success: true };
 }
 
+export async function reopenRace(raceId: string) {
+  const session = await auth();
+  if (session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+
+  await db.update(races).set({ status: 'SCHEDULED', closingAt: null }).where(eq(races.id, raceId));
+
+  const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
+  raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
+
+  revalidatePath('/admin/races');
+  revalidatePath(`/admin/races/${raceId}`);
+  revalidatePath(`/races/${raceId}`);
+  return { success: true };
+}
+
 export async function setClosingTime(raceId: string, minutes: number) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
@@ -92,6 +107,9 @@ export async function setClosingTime(raceId: string, minutes: number) {
   const closingAt = new Date(Date.now() + minutes * 60 * 1000);
 
   await db.update(races).set({ closingAt, status: 'SCHEDULED' }).where(eq(races.id, raceId));
+
+  const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
+  raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
 
   revalidatePath('/admin/races');
   revalidatePath(`/admin/races/${raceId}`);

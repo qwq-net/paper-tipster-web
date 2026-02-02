@@ -11,6 +11,7 @@
   --color-text-sub: #64748b;
   --color-success: #22c55e;
   --color-error: #ef4444;
+  --animate-spin-slow: spin 3s linear infinite;
 }
 
 :root {

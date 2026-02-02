@@ -30,9 +30,16 @@ export async function GET(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
       };
 
+      const onRaceReopened = (data: { raceId: string }) => {
+        console.log(`[SSE] Emitting RACE_REOPENED for race: ${data.raceId}`);
+        const payload = JSON.stringify({ type: 'RACE_REOPENED', ...data });
+        controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+      };
+
       raceEventEmitter.on(RACE_EVENTS.RACE_FINALIZED, onRaceFinalized);
       raceEventEmitter.on(RACE_EVENTS.RACE_BROADCAST, onRaceBroadcast);
       raceEventEmitter.on(RACE_EVENTS.RACE_CLOSED, onRaceClosed);
+      raceEventEmitter.on(RACE_EVENTS.RACE_REOPENED, onRaceReopened);
 
       const heartbeatInterval = setInterval(() => {
         controller.enqueue(encoder.encode('data: : ping\n\n'));
@@ -44,6 +51,7 @@ export async function GET(req: NextRequest) {
         raceEventEmitter.off(RACE_EVENTS.RACE_FINALIZED, onRaceFinalized);
         raceEventEmitter.off(RACE_EVENTS.RACE_BROADCAST, onRaceBroadcast);
         raceEventEmitter.off(RACE_EVENTS.RACE_CLOSED, onRaceClosed);
+        raceEventEmitter.off(RACE_EVENTS.RACE_REOPENED, onRaceReopened);
         controller.close();
       });
     },

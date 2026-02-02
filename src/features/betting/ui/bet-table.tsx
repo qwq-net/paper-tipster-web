@@ -85,6 +85,10 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
           } else {
             toast.info('このレースの受付は終了しました');
           }
+        } else if (data.type === 'RACE_REOPENED' && data.raceId === raceId) {
+          setIsClosed(false);
+          toast.success('レースの受付が再開されました！');
+          router.refresh();
         }
       } catch {}
     };

@@ -6,7 +6,6 @@ import { ChevronDown, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { EditRaceDialog } from './edit-race-dialog';
-import { KitchenTimer } from './kitchen-timer';
 
 interface RaceAccordionProps {
   events: Array<{
@@ -118,7 +117,6 @@ export function RaceAccordion({ events, allEvents }: RaceAccordionProps) {
                         </td>
                         <td className="px-6 py-4 text-right text-sm whitespace-nowrap">
                           <div className="flex items-center justify-end gap-2">
-                            <KitchenTimer raceId={race.id} initialClosingAt={race.closingAt} status={race.status} />
                             <Link
                               href={`/admin/races/${race.id}`}
                               className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100"

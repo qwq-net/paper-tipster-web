@@ -1,8 +1,8 @@
 'use client';
 
 import { Button } from '@/shared/ui';
-import { Clock, Timer, X } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { Clock, Loader2, Timer, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { closeRace, setClosingTime } from '../actions/update';
 
@@ -16,10 +16,40 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
   const [isOpen, setIsOpen] = useState(false);
   const [closingAt, setClosingAt] = useState<Date | null>(initialClosingAt);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsInitialized(true);
+  }, []);
 
   useEffect(() => {
     setClosingAt(initialClosingAt);
   }, [initialClosingAt]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscKey);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [isOpen]);
 
   const handleAutoClose = useCallback(async () => {
     try {
@@ -36,17 +66,17 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
       return;
     }
 
-    const timer = setInterval(() => {
+    const updateTimer = () => {
       const now = Date.now();
       const diff = Math.max(0, closingAt.getTime() - now);
       setTimeLeft(diff);
-
       if (diff === 0) {
-        clearInterval(timer);
         handleAutoClose();
       }
-    }, 1000);
+    };
 
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
   }, [closingAt, status, handleAutoClose]);
 
@@ -56,6 +86,7 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
       if (result.success) {
         setClosingAt(new Date(result.closingAt));
         toast.success(`${minutes}分後の締切を設定しました`);
+        setIsOpen(false);
       }
     } catch {
       toast.error('タイマーの設定に失敗しました');
@@ -71,26 +102,34 @@ export function KitchenTimer({ raceId, initialClosingAt, status }: KitchenTimerP
 
   if (status !== 'SCHEDULED') return null;
 
+  if (!isInitialized) {
+    return (
+      <div className="flex h-10 items-center justify-center">
+        <Loader2 className="h-4 w-4 animate-spin text-gray-300" />
+      </div>
+    );
+  }
+
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
+        className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-black transition-all hover:scale-105 active:scale-95 ${
           timeLeft && timeLeft > 0
-            ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'animate-pulse border-orange-200 bg-orange-50 text-orange-600 shadow-sm shadow-orange-100'
+            : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
         }`}
       >
-        <Clock className="h-3 w-3" />
-        {timeLeft && timeLeft > 0 ? formatTime(timeLeft) : 'タイマー'}
+        <Clock className={`h-4 w-4 ${timeLeft && timeLeft > 0 ? 'animate-spin-slow' : ''}`} />
+        {timeLeft && timeLeft > 0 ? <span className="tabular-nums">{formatTime(timeLeft)}</span> : '自動タイマー設定'}
       </button>
 
       {isOpen && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 absolute right-0 bottom-full z-50 mb-2 min-w-[200px] rounded-lg border border-gray-200 bg-white p-3 shadow-xl">
+        <div className="animate-in fade-in slide-in-from-top-2 absolute top-full left-1/2 z-50 mt-2 min-w-[200px] -translate-x-1/2 rounded-lg border border-gray-200 bg-white p-3 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900">
               <Timer className="text-primary h-4 w-4" />
-              キッチンタイマー
+              タイマー
             </div>
             <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600">
               <X className="h-4 w-4" />

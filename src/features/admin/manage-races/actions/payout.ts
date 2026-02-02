@@ -19,7 +19,6 @@ export async function finalizePayout(raceId: string) {
     throw new Error('Race already finalized or not found');
   }
 
-  // 配当結果を取得
   const results = await db.select().from(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
   const resultsMap = new Map<string, Array<{ numbers: number[]; payout: number }>>();
   for (const r of results) {
@@ -35,10 +34,8 @@ export async function finalizePayout(raceId: string) {
       const betDetail = bet.details as BetDetail;
       const typeResults = resultsMap.get(betDetail.type) || [];
 
-      // 的中判定
       const hitResult = typeResults.find((r) => JSON.stringify(r.numbers) === JSON.stringify(betDetail.selections));
 
-      // 特払い判定（的中がない場合に払い戻されるケース）
       const refundResult = !hitResult ? typeResults.find((r) => r.numbers.length === 0) : null;
 
       let status: 'HIT' | 'LOST' | 'REFUNDED' = 'LOST';
@@ -55,10 +52,8 @@ export async function finalizePayout(raceId: string) {
         odds = (refundResult.payout / 100).toFixed(1);
       }
 
-      // 馬券情報の更新
       await tx.update(bets).set({ status, payout, odds }).where(eq(bets.id, bet.id));
 
-      // ウォレットへの反映
       if (payout > 0) {
         const wallet = await tx.query.wallets.findFirst({
           where: eq(wallets.id, bet.walletId),

@@ -32,16 +32,49 @@ export async function getEntries() {
 }
 
 export async function getRacesForSelect() {
-  return db
-    .select({
-      id: races.id,
-      date: races.date,
-      location: races.location,
-      name: races.name,
-    })
-    .from(races)
-    .where(eq(races.status, 'SCHEDULED'))
-    .orderBy(races.date, races.name);
+  const allRaces = await db.query.races.findMany({
+    where: eq(races.status, 'SCHEDULED'),
+    with: {
+      event: true,
+    },
+    orderBy: (races, { asc }) => [asc(races.date), asc(races.name)],
+  });
+
+  const eventsMap = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      date: string;
+      races: Array<{
+        id: string;
+        name: string;
+        raceNumber: number | null;
+        location: string;
+        date: string;
+      }>;
+    }
+  >();
+
+  for (const race of allRaces) {
+    if (!eventsMap.has(race.eventId)) {
+      eventsMap.set(race.eventId, {
+        id: race.event.id,
+        name: race.event.name,
+        date: race.event.date,
+        races: [],
+      });
+    }
+    eventsMap.get(race.eventId)!.races.push({
+      id: race.id,
+      name: race.name,
+      raceNumber: race.raceNumber,
+      location: race.location,
+      date: race.date,
+    });
+  }
+
+  return Array.from(eventsMap.values());
 }
 
 export async function getHorsesForSelect() {

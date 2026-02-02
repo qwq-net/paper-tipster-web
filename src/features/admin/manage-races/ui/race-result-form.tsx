@@ -263,7 +263,7 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, hasPayou
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      {/* 左カラム: 着順設定 */}
+      {}
       <div className="space-y-4 lg:col-span-2">
         <div className="flex items-end justify-between px-1">
           <div className="flex items-center gap-3">
@@ -342,7 +342,7 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, hasPayou
         )}
       </div>
 
-      {/* 右カラム: 設定・アクション */}
+      {}
       <div className="space-y-6">
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-6 space-y-4 text-sm">

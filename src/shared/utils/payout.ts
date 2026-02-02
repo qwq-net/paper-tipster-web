@@ -7,11 +7,6 @@ export interface Finisher {
   bracketNumber: number;
 }
 
-/**
- * 票が的中しているか判定する
- * @param detail 購入内容
- * @param finishers 着順（1着、2着、3着...の順）
- */
 export function isWinningBet(detail: BetDetail, finishers: Finisher[]): boolean {
   const { type, selections } = detail;
   const f1 = finishers[0];
@@ -70,15 +65,6 @@ export function isWinningBet(detail: BetDetail, finishers: Finisher[]): boolean 
   }
 }
 
-/**
- * 配当（オッズ）を計算する（パリミュチュエル方式）
- * @param totalPool その券種の総賭け金
- * @param winningAmount その的中馬番号（または組み合わせ）の的中金額
- * @param totalWinningAmount その券種全体の総的中金額（複勝などの分割用）
- * @param winningCount 的中した種類数（複勝なら通常3）
- * @param takeoutRate 控除率（0.0 〜 1.0）
- * @returns 払い戻し倍率（10円単位で切り捨てた倍率）
- */
 export function calculatePayoutRate(
   totalPool: number,
   winningAmount: number,
@@ -104,11 +90,6 @@ export function calculatePayoutRate(
   return Math.max(1.0, rate);
 }
 
-/**
- * 的中した組み合わせ馬番号（または枠番号）をすべて取得する
- * @param type 券種
- * @param finishers 着順（1着、2着、3着...の順）
- */
 export function getWinningCombinations(type: string, finishers: Finisher[]): number[][] {
   const f1 = finishers[0];
   const f2 = finishers[1];

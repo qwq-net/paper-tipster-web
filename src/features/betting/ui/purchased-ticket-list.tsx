@@ -59,7 +59,7 @@ export function PurchasedTicketList({ tickets }: PurchasedTicketListProps) {
             key={ticket.id}
             className="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
           >
-            {/* Status Indicator Bar */}
+            {}
             <div
               className={`absolute top-0 bottom-0 left-0 w-1.5 ${
                 ticket.status === 'HIT' ? 'bg-red-500' : ticket.status === 'LOST' ? 'bg-gray-300' : 'bg-blue-500'

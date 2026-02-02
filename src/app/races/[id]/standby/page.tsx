@@ -98,6 +98,7 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
         }}
         isFinalized={isFinalized}
         initialResults={initialResults}
+        hasTickets={tickets.length > 0}
       />
 
       <PurchasedTicketList tickets={tickets} />

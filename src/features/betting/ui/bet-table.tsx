@@ -7,10 +7,11 @@ import { Button, Input } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { getGenderAge, getGenderBadgeClass } from '@/shared/utils/gender';
 import { BET_TYPE_LABELS, BET_TYPES, BetType } from '@/types/betting';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Calculator, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { toast } from 'sonner';
+import { NumericKeypad } from './numeric-keypad';
 
 interface Entry {
   id: string;
@@ -48,6 +49,7 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
   const [selections, setSelections] = useState<Set<number>[]>([new Set(), new Set(), new Set()]);
   const [amount, setAmount] = useState<number>(100);
   const [isClosed, setIsClosed] = useState(initialStatus !== 'SCHEDULED');
+  const [showKeypad, setShowKeypad] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
   useEffect(() => {
@@ -83,12 +85,17 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
           data.raceId === raceId
         ) {
           setIsClosed(true);
-          toast.info('このレースの受付は終了しました');
+          if (data.type === 'RACE_BROADCAST') {
+            toast.success('レース結果が確定しました！結果画面へ移動します。');
+            router.push(`/races/${raceId}/standby`);
+          } else {
+            toast.info('このレースの受付は終了しました');
+          }
         }
       } catch {}
     };
     return () => eventSource.close();
-  }, [raceId]);
+  }, [raceId, router]);
 
   const columnCount = getBetTypeColumnCount(betType);
   const columnLabels = getBetTypeColumnLabels(betType);
@@ -153,8 +160,9 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
             amount,
           });
         }
-        toast.success(`${betCount}点の馬券を購入しました`);
+        toast.success(`${totalAmount.toLocaleString()}円分の馬券を購入しました`);
         setSelections([new Set(), new Set(), new Set()]);
+        setAmount(100);
         router.refresh();
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'エラーが発生しました');
@@ -312,18 +320,44 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
             <span className="text-gray-500">購入点数:</span>
             <span className="text-primary ml-2 text-xl font-bold">{betCount}点</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 whitespace-nowrap">
             <label className="text-sm text-gray-500">1点あたり:</label>
-            <Input
-              type="number"
-              min={100}
-              step={100}
-              value={amount}
-              onChange={(e) => setAmount(parseInt(e.target.value, 10) || 100)}
-              disabled={isClosed || isPending}
-              className="w-24 text-right disabled:bg-gray-100"
-            />
-            <span className="text-sm text-gray-500">円</span>
+            <div className="relative flex items-center gap-2">
+              <div className="relative flex items-center">
+                <Input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={amount / 100}
+                  onChange={(e) => setAmount((parseInt(e.target.value, 10) || 0) * 100)}
+                  disabled={isClosed || isPending}
+                  className="w-24 pr-11 text-right font-bold disabled:bg-gray-100"
+                />
+                <span className="pointer-events-none absolute right-3 text-sm font-bold text-gray-400">00円</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowKeypad(!showKeypad)}
+                disabled={isClosed || isPending}
+                className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition-all hover:bg-gray-50 hover:text-blue-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                title="キーパッドで入力"
+              >
+                <Calculator className="h-5 w-5" />
+              </button>
+
+              {showKeypad && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowKeypad(false)} />
+                  <div className="absolute bottom-12 left-0 z-50">
+                    <NumericKeypad
+                      value={amount / 100}
+                      onChange={(val: number) => setAmount(val * 100)}
+                      onClose={() => setShowKeypad(false)}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           <div className="text-sm">
             <span className="text-gray-500">合計:</span>

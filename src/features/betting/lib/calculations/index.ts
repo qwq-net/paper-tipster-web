@@ -4,10 +4,6 @@ import { filterBracketQuinella, filterQuinellaAndWide } from './quinella';
 import { filterTrifecta } from './trifecta';
 import { filterTrio } from './trio';
 
-/**
- * Generate all possible combinations from the given selections (Cartesian product).
- * NOTE: This function assumes that the input `selections` are already deduplicated.
- */
 export function generateCombinations(selections: number[][]): number[][] {
   if (selections.length === 0) return [];
   if (selections.some((s) => s.length === 0)) return [];
@@ -61,9 +57,6 @@ export function filterValidCombinations(
   }
 }
 
-/**
- * Helper to deduplicate selection arrays.
- */
 function deduplicateSelections(selections: number[][]): number[][] {
   return selections.map((row) => Array.from(new Set(row)));
 }

@@ -22,7 +22,7 @@ export async function updateRace(id: string, formData: FormData) {
     date: formData.get('date'),
     location: formData.get('location'),
     name: formData.get('name'),
-    raceNumber: formData.get('raceNumber'),
+    raceNumber: formData.get('raceNumber') || undefined,
     distance: formData.get('distance'),
     surface: formData.get('surface'),
     condition: conditionValue && conditionValue !== '' ? conditionValue : undefined,
@@ -30,6 +30,7 @@ export async function updateRace(id: string, formData: FormData) {
   });
 
   if (!parse.success) {
+    console.error('Validation Error Details:', parse.error.format());
     throw new Error('Invalid Input');
   }
 

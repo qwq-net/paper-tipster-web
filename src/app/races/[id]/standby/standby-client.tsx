@@ -17,9 +17,15 @@ interface StandbyClientProps {
   };
   initialResults?: PayoutResult[];
   isFinalized: boolean;
+  hasTickets?: boolean;
 }
 
-export function StandbyClient({ race, initialResults = [], isFinalized: initialIsFinalized }: StandbyClientProps) {
+export function StandbyClient({
+  race,
+  initialResults = [],
+  isFinalized: initialIsFinalized,
+  hasTickets,
+}: StandbyClientProps) {
   const [showModal, setShowModal] = useState(false);
 
   const { results, fetchResults } = useRaceResults(race.id, initialResults, initialIsFinalized);
@@ -37,11 +43,7 @@ export function StandbyClient({ race, initialResults = [], isFinalized: initialI
 
   return (
     <>
-      {/* 見出し横のボタンのためのコンテナ。通常は page.tsx 側で表示したいが、ステート管理の都合上こちらで表示する。
-          ここでは単純にモーダルとコネクション状況のみを返し、page.tsx 側でボタンを配置できるように検討。
-          あるいは、ポータルを使用して page.tsx の見出し横に挿入する。
-          今回はシンプルに、StandbyClient が見出しとボタンをセットで描画するように page.tsx を書き換える方針にする。
-       */}
+      {}
       <div className="mb-8 flex items-center justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -62,18 +64,37 @@ export function StandbyClient({ race, initialResults = [], isFinalized: initialI
               )}
             </span>
           </div>
-          <h1 className="text-2xl font-black text-gray-900">購入馬券確認 / 待機画面</h1>
+          <h1 className="text-2xl font-black text-gray-900">
+            {initialIsFinalized ? 'レース結果' : '結果発表を待機中'}
+          </h1>
         </div>
 
         {initialIsFinalized && (
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-blue-700 active:scale-95"
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95"
           >
-            払戻結果を表示
+            払戻結果を詳しく表示
           </button>
         )}
       </div>
+
+      {!initialIsFinalized && !hasTickets && (
+        <div className="mb-8 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 px-6 py-12 text-center">
+          <div className="mb-4 flex justify-center">
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <div className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-20"></div>
+            </div>
+          </div>
+          <h2 className="mb-2 text-xl font-bold text-gray-900">レースの確定を待っています</h2>
+          <p className="text-sm text-gray-500">
+            購入した馬券はありませんが、確定後に結果（払戻金等）の確認が可能です。
+            <br />
+            発表されるまでこの画面のままお待ちください。
+          </p>
+        </div>
+      )}
 
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-sm">
         {connectionStatus === 'CONNECTED' && (

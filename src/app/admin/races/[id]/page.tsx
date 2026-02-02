@@ -4,11 +4,12 @@ import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-for
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { horses, raceEntries } from '@/shared/db/schema';
-import { Card, CardContent, CardHeader } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
+import { cn } from '@/shared/utils/cn';
 import { eq } from 'drizzle-orm';
-import { AlarmClock, ChevronLeft } from 'lucide-react';
+import { AlarmClock, ChevronLeft, Info, Settings2, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
@@ -71,31 +72,54 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
       <div className={race.status === 'FINALIZED' ? 'grid gap-6 lg:grid-cols-3' : ''}>
         <div className={race.status === 'FINALIZED' ? 'lg:col-span-2' : ''}>
           {race.status === 'FINALIZED' ? (
-            <Card>
-              <CardHeader>
-                <h2 className="text-lg font-semibold">確定済み結果</h2>
+            <Card className="border-none shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-gray-50 pb-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
+                    <Trophy className="h-4 w-4" />
+                  </div>
+                  <h2 className="text-xl font-black text-gray-900">確定済み結果</h2>
+                </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
+              <CardContent className="pt-6">
+                <div className="space-y-3">
                   {entriesWithResult.map((entry, index) => (
                     <div
                       key={entry.id}
-                      className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50/50 p-2"
+                      className="group flex items-center gap-4 rounded-xl border border-gray-100 bg-white p-3 transition-all hover:border-gray-200 hover:shadow-sm"
                     >
-                      <div className="flex w-10 items-center justify-center text-lg font-black text-gray-300">
+                      <div
+                        className={cn(
+                          'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-xl font-black transition-colors',
+                          index === 0
+                            ? 'border-amber-200 bg-amber-100 text-amber-700'
+                            : index === 1
+                              ? 'border-slate-200 bg-slate-100 text-slate-700'
+                              : index === 2
+                                ? 'border-orange-200 bg-orange-100 text-orange-700'
+                                : 'border-gray-100 bg-gray-50 text-gray-400'
+                        )}
+                      >
                         {index + 1}
                       </div>
-                      <div className="flex items-center gap-2">
+
+                      <div className="flex items-center gap-3">
                         <span
-                          className={`flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold ${getBracketColor(entry.bracketNumber)}`}
+                          className={cn(
+                            'flex h-7 w-7 items-center justify-center rounded text-xs font-bold ring-1 ring-black/5',
+                            getBracketColor(entry.bracketNumber)
+                          )}
                         >
                           {entry.bracketNumber || '?'}
                         </span>
-                        <span className="text-primary bg-primary/10 flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold">
+                        <span className="text-primary bg-primary/10 ring-primary/10 flex h-7 w-7 items-center justify-center rounded text-xs font-bold ring-1">
                           {entry.horseNumber || '?'}
                         </span>
                       </div>
-                      <span className="flex-1 text-sm font-bold text-gray-900">{entry.horseName}</span>
+
+                      <div className="flex-1">
+                        <span className="text-base font-bold text-gray-900">{entry.horseName}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -119,19 +143,26 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 name: race.name,
                 raceNumber: race.raceNumber,
                 status: race.status,
-                surface: race.surface as '芝' | 'ダート',
+                surface: (race.surface as '芝' | 'ダート') || '芝',
                 distance: race.distance,
-                condition: race.condition as '良' | '稍重' | '重' | '不良' | null,
+                condition: (race.condition as '良' | '稍重' | '重' | '不良' | null) || null,
                 closingAt: race.closingAt ? race.closingAt.toISOString() : null,
               }}
             />
           ) : (
-            <Card>
-              <CardContent className="py-12 text-center text-gray-500">
-                出走馬が登録されていません。
-                <br />
-                <Link href="/admin/entries" className="text-primary mt-2 inline-block hover:underline">
-                  出走馬を登録する
+            <Card className="border-none shadow-sm">
+              <CardContent className="py-16 text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
+                    <Info className="h-8 w-8" />
+                  </div>
+                </div>
+                <h3 className="mb-2 text-lg font-bold text-gray-900">出走馬が登録されていません</h3>
+                <p className="text-sm text-gray-500">レース結果を確定するには、まず出走馬を登録する必要があります。</p>
+                <Link href="/admin/entries" className="mt-6 inline-block">
+                  <Button variant="outline" className="font-bold">
+                    出走馬を登録する
+                  </Button>
                 </Link>
               </CardContent>
             </Card>
@@ -140,29 +171,42 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
 
         {race.status === 'FINALIZED' && (
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <h2 className="text-lg font-semibold">レース情報</h2>
+            <Card className="border-none shadow-sm">
+              <CardHeader className="flex flex-row items-center gap-2 border-b border-gray-50 pb-4">
+                <Settings2 className="h-4 w-4 text-gray-400" />
+                <h2 className="text-sm font-bold text-gray-900">レース情報</h2>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm">
-                <div className="flex justify-between border-b pb-2">
-                  <span className="text-gray-500">ステータス</span>
-                  <span className="font-medium">{race.status}</span>
+              <CardContent className="space-y-4 pt-6 text-sm">
+                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                  <span className="font-medium text-gray-500">ステータス</span>
+                  <Badge variant="status" label={race.status} />
                 </div>
-                <div className="flex justify-between border-b pb-2">
-                  <span className="text-gray-500">コース</span>
-                  <span className="font-medium">
-                    {race.surface} {race.distance}m
+                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                  <span className="font-medium text-gray-500">コース</span>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="surface" label={race.surface} />
+                    <span className="font-bold text-gray-900">{race.distance}m</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                  <span className="font-medium text-gray-500">馬場状態</span>
+                  <Badge variant="condition" label={race.condition} />
+                </div>
+                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                  <span className="font-medium text-gray-500">確定日時</span>
+                  <span className="font-bold text-gray-900">
+                    {race.finalizedAt ? (
+                      <FormattedDate
+                        date={race.finalizedAt}
+                        options={{ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }}
+                      />
+                    ) : (
+                      '-'
+                    )}
                   </span>
-                </div>
-                <div className="flex justify-between border-b pb-2">
-                  <span className="text-gray-500">馬場状態</span>
-                  <span className="font-medium">{race.condition || '-'}</span>
                 </div>
               </CardContent>
             </Card>
-
-            {/* 通知ボタン廃止 */}
           </div>
         )}
       </div>

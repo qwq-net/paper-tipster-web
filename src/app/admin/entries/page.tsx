@@ -1,48 +1,12 @@
 import { getRacesForSelect } from '@/features/admin/manage-entries';
+import { EntryRaceAccordion } from '@/features/admin/manage-entries/ui/entry-race-accordion';
 import { Card } from '@/shared/ui';
-import { Calendar, ChevronRight, MapPin } from 'lucide-react';
-import Link from 'next/link';
 import { Suspense } from 'react';
 
 async function RaceSelectList() {
-  const races = await getRacesForSelect();
+  const events = await getRacesForSelect();
 
-  if (races.length === 0) {
-    return (
-      <div className="py-12 text-center text-gray-500">
-        登録可能なレースがありません。先にレースを登録してください。
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {races.map((race) => (
-        <Link
-          key={race.id}
-          href={`/admin/entries/${race.id}`}
-          className="group flex items-center justify-between rounded-lg border border-gray-200 p-4 transition-all hover:border-gray-300 hover:bg-gray-50"
-        >
-          <div className="flex items-center gap-4">
-            <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-lg">
-              <Calendar className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-secondary font-semibold">{race.name}</div>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <span>{race.date.replace(/-/g, '/')}</span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {race.location}
-                </span>
-              </div>
-            </div>
-          </div>
-          <ChevronRight className="h-5 w-5 text-gray-400 transition-colors group-hover:text-gray-600" />
-        </Link>
-      ))}
-    </div>
-  );
+  return <EntryRaceAccordion events={events} />;
 }
 
 export default function EntriesPage() {

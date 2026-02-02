@@ -49,7 +49,7 @@ export function PayoutResultModal({ raceName, raceDate, results, open, onOpenCha
       <Dialog.Portal>
         <Dialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/80 duration-300" />
         <Dialog.Content className="animate-in zoom-in-95 fixed top-[50%] left-[50%] z-50 w-full max-w-4xl translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-md border border-gray-700 bg-black shadow-2xl duration-300">
-          {/* Header */}
+          {}
           <div className="flex items-center justify-between bg-linear-to-b from-blue-900 to-blue-950 px-6 py-3 text-white">
             <div className="flex items-end gap-4">
               <Dialog.Title asChild>
@@ -71,19 +71,19 @@ export function PayoutResultModal({ raceName, raceDate, results, open, onOpenCha
           </div>
 
           <div className="flex flex-col gap-px bg-gray-700 p-px">
-            {/* Top Row: Win and Bracket Quinella (Half width each) */}
+            {}
             <div className="grid grid-cols-1 gap-px md:grid-cols-2">
               {renderResultBlock(results, BET_TYPES.WIN)}
               {renderResultBlock(results, BET_TYPES.BRACKET_QUINELLA)}
             </div>
 
-            {/* Middle Row: Place and Wide (Half width each, 3 rows fixed) */}
+            {}
             <div className="grid grid-cols-1 gap-px md:grid-cols-2">
               {renderResultBlock(results, BET_TYPES.PLACE, 3)}
               {renderResultBlock(results, BET_TYPES.WIDE, 3)}
             </div>
 
-            {/* Bottom Section: Full Width results */}
+            {}
             <div className="flex flex-col gap-px">
               {renderResultBlock(results, BET_TYPES.QUINELLA, 1, true)}
               {renderResultBlock(results, BET_TYPES.EXACTA, 1, true)}
@@ -108,14 +108,14 @@ function renderResultBlock(results: ResultItem[], type: BetType, minRows: number
 
   return (
     <div className={`flex min-h-12 bg-black text-white ${fullWidth ? 'w-full' : ''}`}>
-      {/* Label Box */}
+      {}
       <div
         className={`flex w-24 shrink-0 items-center justify-center text-lg font-bold tracking-widest ${TYPE_COLORS[type]} border-r border-gray-700`}
       >
         <span className="text-center leading-tight whitespace-pre-line">{TYPE_LABELS[type]}</span>
       </div>
 
-      {/* Combinations List */}
+      {}
       <div className="flex flex-1 flex-col">
         {rows.map((row, idx) => {
           const isPlaceholder = row.numbers.length === 0;

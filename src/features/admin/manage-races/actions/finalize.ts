@@ -119,7 +119,6 @@ export async function finalizeRace(
     const { getWinningCombinations: getWinningCombos } = await import('@/shared/utils/payout');
     const { BET_TYPES } = await import('@/types/betting');
 
-    // API用、および表示用データの整理
     for (const type of Object.values(BET_TYPES)) {
       const winningCombos = getWinningCombos(type, finishers);
       if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
@@ -130,16 +129,13 @@ export async function finalizeRace(
         );
 
         if (!alreadyExists) {
-          // 的中馬番号は存在するが、誰も買っていなかった場合や的中者がいなかった場合（70円特払い）
           payoutCalculationsByType[type].push({ numbers: combo, payout: 70 });
         }
       }
 
-      // 重複や不要な [] エントリがあれば排除してソート（複勝などは馬番号順にしたい）
       payoutCalculationsByType[type] = payoutCalculationsByType[type]
         .filter((p) => p.numbers.length > 0)
         .sort((a, b) => {
-          // 馬番号の文字列表現などでソート
           return a.numbers.join('-').localeCompare(b.numbers.join('-'));
         });
     }

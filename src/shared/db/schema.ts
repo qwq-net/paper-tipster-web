@@ -2,6 +2,7 @@ import type { AdapterAccount } from '@auth/core/adapters';
 import { relations } from 'drizzle-orm';
 import {
   bigint,
+  boolean,
   date,
   index,
   integer,
@@ -15,7 +16,7 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
-export const roleEnum = pgEnum('role', ['USER', 'ADMIN']);
+export const roleEnum = pgEnum('role', ['USER', 'ADMIN', 'GUEST', 'TIPSTER', 'AI_TIPSTER', 'AI_USER']);
 
 export const users = pgTable('user', {
   id: text('id')
@@ -26,6 +27,8 @@ export const users = pgTable('user', {
   emailVerified: timestamp('email_verified', { mode: 'date', withTimezone: true }),
   image: text('image'),
   role: roleEnum('role').default('USER').notNull(),
+  isOnboardingCompleted: boolean('is_onboarding_completed').default(false).notNull(),
+  disabledAt: timestamp('disabled_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .defaultNow()
@@ -56,6 +59,13 @@ export const accounts = pgTable(
     }),
   })
 );
+
+export const accountRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
+}));
 
 export const sessions = pgTable('session', {
   sessionToken: text('session_token').primaryKey(),
@@ -298,4 +308,5 @@ export const betRelations = relations(bets, ({ one }) => ({
 export const userRelations = relations(users, ({ many }) => ({
   wallets: many(wallets),
   bets: many(bets),
+  accounts: many(accounts),
 }));

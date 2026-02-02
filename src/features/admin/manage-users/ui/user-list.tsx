@@ -1,13 +1,20 @@
+import { Role } from '@/entities/user';
 import { auth } from '@/shared/config/auth';
+import clsx from 'clsx';
 import Image from 'next/image';
+import { UserActionsMenu } from './user-actions-menu';
 import { UserRoleSelect } from './user-role-select';
 
 interface User {
   id: string;
   name: string | null;
   image: string | null;
-  role: 'USER' | 'ADMIN';
+  role: Role;
+  disabledAt: Date | null;
   createdAt: Date;
+  accounts: {
+    provider: string;
+  }[];
 }
 
 interface UserListProps {
@@ -25,12 +32,20 @@ export async function UserList({ users }: UserListProps) {
           <tr className="border-b border-gray-200">
             <th className="px-6 py-3 font-medium tracking-wider uppercase">User</th>
             <th className="px-6 py-3 font-medium tracking-wider uppercase">ID</th>
-            <th className="px-6 py-3 font-medium tracking-wider uppercase">Role</th>
+            <th className="px-6 py-3 font-medium tracking-wider uppercase">登録元</th>
+            <th className="px-6 py-3 font-medium tracking-wider uppercase">役割</th>
+            <th className="px-6 py-3 font-medium tracking-wider uppercase">操作</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 bg-white">
           {users.map((user) => (
-            <tr key={user.id} className="transition-colors hover:bg-gray-50/50">
+            <tr
+              key={user.id}
+              className={clsx(
+                'transition-colors hover:bg-gray-50/50',
+                user.disabledAt && 'bg-red-50 text-gray-500 hover:bg-red-100/50'
+              )}
+            >
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                   {user.image ? (
@@ -60,7 +75,21 @@ export async function UserList({ users }: UserListProps) {
                 </div>
               </td>
               <td className="px-6 py-4">
-                <UserRoleSelect userId={user.id} currentRole={user.role as 'USER' | 'ADMIN'} />
+                <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-sm font-medium text-gray-600 ring-1 ring-gray-500/10 ring-inset">
+                  {user.accounts[0]?.provider
+                    ? user.accounts[0].provider.charAt(0).toUpperCase() + user.accounts[0].provider.slice(1)
+                    : 'NONE'}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <UserRoleSelect userId={user.id} currentRole={user.role} />
+              </td>
+              <td className="px-6 py-4">
+                <UserActionsMenu
+                  userId={user.id}
+                  isDisabled={!!user.disabledAt}
+                  isCurrentUser={user.id === session.user.id}
+                />
               </td>
             </tr>
           ))}

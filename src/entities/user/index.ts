@@ -1,1 +1,2 @@
-export { UserProfile } from './ui/user-profile';
+export * from './config/role';
+export * from './ui/user-profile';

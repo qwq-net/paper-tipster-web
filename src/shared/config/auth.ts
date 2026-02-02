@@ -24,9 +24,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
         return {
           id: profile.id,
-          name: profile.global_name ?? profile.username,
+          name: (profile.global_name ?? profile.username).replace(
+            /[^a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g,
+            ''
+          ),
           image: profile.image_url,
           role: 'USER',
+          isOnboardingCompleted: false,
         };
       },
     }),
@@ -36,6 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.role = user.role;
         session.user.id = user.id;
+        session.user.isOnboardingCompleted = user.isOnboardingCompleted;
       }
       return session;
     },

@@ -1,3 +1,4 @@
+import { Role } from '@/entities/user';
 import { RACE_CONDITIONS, RACE_SURFACES, type RaceStatus } from '@/shared/types/race';
 import { calculateBracketNumber } from '../utils/bracket';
 import { db } from './index';
@@ -5,6 +6,26 @@ import * as schema from './schema';
 
 async function main() {
   console.log('--- Starting Seeder ---');
+
+  // Create Users
+  const usersToCreate = [
+    { name: '武豊', role: Role.ADMIN, email: 'admin@example.com' },
+    { name: 'ルメール', role: Role.USER, email: 'user@example.com' },
+    { name: '川田将雅', role: Role.GUEST, email: 'guest@example.com' },
+    { name: '横山武史', role: Role.TIPSTER, email: 'tipster@example.com' },
+    { name: '[AI] 戸崎圭太', role: Role.AI_TIPSTER, email: 'ai_tipster@example.com' },
+    { name: '[AI] 福永祐一', role: Role.AI_USER, email: 'ai_user@example.com' },
+  ];
+
+  for (const userData of usersToCreate) {
+    await db.insert(schema.users).values({
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+      isOnboardingCompleted: true,
+    });
+    console.log(`User created: ${userData.name} (${userData.role})`);
+  }
 
   const eventTemplates = [
     {

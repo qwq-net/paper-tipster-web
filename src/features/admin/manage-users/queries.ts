@@ -6,6 +6,9 @@ import { desc } from 'drizzle-orm';
 
 export async function getUsers() {
   return db.query.users.findMany({
+    with: {
+      accounts: true,
+    },
     orderBy: [desc(users.createdAt)],
   });
 }

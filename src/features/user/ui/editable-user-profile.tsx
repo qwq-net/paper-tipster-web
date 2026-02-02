@@ -1,0 +1,115 @@
+'use client';
+
+import { Role, RoleColor, RoleLabel } from '@/entities/user';
+import { updateUserName } from '@/features/user/actions/user-actions';
+import { Button, Input } from '@/shared/ui';
+import { Check, Loader2, Pencil, X } from 'lucide-react';
+import type { Session } from 'next-auth';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+interface EditableUserProfileProps {
+  user: Session['user'];
+}
+
+const VALID_NAME_REGEX = /^[a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+$/;
+
+export function EditableUserProfile({ user }: EditableUserProfileProps) {
+  const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [name, setName] = useState(user.name || '');
+  const [isPending, setIsPending] = useState(false);
+
+  const handleSave = async () => {
+    if (!name || !VALID_NAME_REGEX.test(name)) {
+      toast.error('英数字、ひらがな、カタカナ、漢字のみ使用可能です。');
+      return;
+    }
+
+    setIsPending(true);
+    const formData = new FormData();
+    formData.append('name', name);
+
+    const result = await updateUserName(formData);
+    setIsPending(false);
+
+    if (result?.error) {
+      toast.error(result.error);
+    } else {
+      toast.success('ユーザー名を変更しました');
+      setIsEditing(false);
+      router.refresh();
+    }
+  };
+
+  const handleCancel = () => {
+    setName(user.name || '');
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="flex items-center gap-3">
+      {user.image ? (
+        <Image
+          src={user.image}
+          alt={user.name || 'User Avatar'}
+          width={48}
+          height={48}
+          className="rounded-full border border-gray-100 shadow-sm"
+        />
+      ) : (
+        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-100">
+          <span className="text-lg font-bold text-gray-400">?</span>
+        </div>
+      )}
+      <div className="flex flex-col">
+        <span
+          className={`mb-0.5 w-fit rounded border px-1.5 py-0.5 text-sm font-medium ${RoleColor[user.role as Role]}`}
+        >
+          {RoleLabel[user.role as Role]}
+        </span>
+        {isEditing ? (
+          <div className="flex items-center gap-2">
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-8 w-40 text-sm font-bold"
+              autoFocus
+            />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
+              onClick={handleSave}
+              disabled={isPending}
+            >
+              {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600"
+              onClick={handleCancel}
+              disabled={isPending}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="group flex items-center gap-2">
+            <span className="text-lg leading-tight font-bold text-gray-900">{user.name || 'Unknown Racer'}</span>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-gray-400 transition-colors hover:text-gray-600"
+              aria-label="名前を変更"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

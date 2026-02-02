@@ -1,5 +1,5 @@
-import { UserProfile } from '@/entities/user';
 import { LogoutButton } from '@/features/auth';
+import { EditableUserProfile } from '@/features/user/ui/editable-user-profile';
 import { auth } from '@/shared/config/auth';
 import { Button, Card, CardContent } from '@/shared/ui';
 import { Coins, History, Wallet, Zap } from 'lucide-react';
@@ -11,6 +11,10 @@ export default async function MyPage() {
 
   if (!session?.user?.id) {
     redirect('/login');
+  }
+
+  if (!session.user.isOnboardingCompleted) {
+    redirect('/onboarding/name-change');
   }
 
   const navItems = [
@@ -49,7 +53,7 @@ export default async function MyPage() {
       <div className="w-full max-w-4xl space-y-8">
         <Card className="border-none bg-white shadow-sm ring-1 ring-gray-100">
           <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row">
-            <UserProfile user={session.user} />
+            <EditableUserProfile user={session.user} />
             <div className="flex items-center gap-4">
               {session.user.role === 'ADMIN' && (
                 <Link href="/admin">

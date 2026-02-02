@@ -28,3 +28,7 @@ export function CardContent({ className, ...props }: ComponentProps<'div'>) {
 export function CardFooter({ className, ...props }: ComponentProps<'div'>) {
   return <div className={cn('p-6 pt-0', className)} {...props} />;
 }
+
+export function CardDescription({ className, ...props }: ComponentProps<'p'>) {
+  return <p className={cn('text-sm text-gray-500', className)} {...props} />;
+}

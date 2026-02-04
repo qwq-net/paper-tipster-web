@@ -92,3 +92,9 @@ src/shared/ui/button.tsx (Shared)
 - `RACE_REOPENED`: レースの受付再開（購入ボタンの再有効化）
 - `RACE_FINALIZED`: 配当の確定（結果表示の準備完了）
 - `RACE_BROADCAST`: 全ユーザーへの結果発表（自動ポップアップ表示）
+
+### UI標準化とFSDの適用
+
+- **Shared UI**: `src/shared/ui` 配下のコンポーネント（Button, Badge, Dialog等）を全機能で統一的に使用。
+- **即PAT (Sokupat)**: 即時投票に特化したカード型UIを採用し、情報を簡略化して視認性を向上。
+- **Admin UI**: Native HTML要素を排し、Shared UIコンポーネントのみで構築することでデザインの一貫性を担保。

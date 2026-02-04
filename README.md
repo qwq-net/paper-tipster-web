@@ -92,5 +92,6 @@ npm run db:admin -- --user=<username>
 - [機能仕様書](docs/FUNCTIONAL_SPECIFICATION.md)
 - [アプリケーション設計](docs/APPLICATION_DESIGN.md)
 - [UI/UXガイドライン](docs/UI_UX_DESIGN.md)
+- [UIコンポーネントガイド](docs/UI_COMPONENT_GUIDE.md)
 - [データベース設計](docs/DATABASE_DESIGN.md)
 - [馬券UI設計](docs/BETTING_UI_DESIGN.md)

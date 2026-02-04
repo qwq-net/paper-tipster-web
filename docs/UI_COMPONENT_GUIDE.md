@@ -32,15 +32,17 @@ import { FormattedDate } from '@/shared/ui/formatted-date';
 ```tsx
 import { Button } from '@/shared/ui';
 
-/* Primary Button */
-<Button>Click Me</Button>
-
-/* With Variant */
-<Button variant="destructive">Delete</Button>
-<Button variant="outline">Cancel</Button>
+/* Variants */
+<Button variant="primary">Primary (Default)</Button> {/* Uses bg-primary (Brand Blue) */}
 <Button variant="secondary">Secondary</Button>
+<Button variant="accent">Accent</Button>
+<Button variant="destructive">Destructive</Button>
+<Button variant="outline">Outline</Button>
+<Button variant="ghost">Ghost</Button>
+<Button variant="link">Link</Button>
 
 /* With Size */
+<Button size="icon">Icon Only</Button>
 <Button size="sm">Small</Button>
 <Button size="lg">Large</Button>
 ```

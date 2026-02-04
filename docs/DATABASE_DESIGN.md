@@ -165,6 +165,8 @@
 | `weight` | Integer | No | 斤量 |
 | `status` | Enum | Yes | 状態 ('ENTRANT', 'SCRATCHED', 'EXCLUDED')。デフォルトは 'ENTRANT'（出走予定）。 |
 
+> **注記**: `raceEntries` は `races` と `horses` の中間テーブルとして機能し、多くのクエリ（`getEventsWithRaces`など）で `races.entries` として結合して取得されます。
+
 ---
 
 ## リレーションシップ図 (概念)

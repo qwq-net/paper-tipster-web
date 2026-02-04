@@ -21,6 +21,17 @@ const eslintConfig = defineConfig([
           message:
             'Do not use text size smaller than 12px (text-sm). Use "text-sm" or larger for better accessibility.',
         },
+        {
+          selector: 'JSXAttribute[name.name="className"] Literal[value=/\\bfont-(bold|black|extrablack|extrabold)\\b/]',
+          message:
+            'Do not use heavy font weights (font-bold, font-black, etc.). Use "font-semibold" or "font-medium" instead.',
+        },
+        {
+          selector:
+            'JSXAttribute[name.name="className"] TemplateElement[value.raw=/\\bfont-(bold|black|extrablack|extrabold)\\b/]',
+          message:
+            'Do not use heavy font weights (font-bold, font-black, etc.). Use "font-semibold" or "font-medium" instead.',
+        },
       ],
     },
   },

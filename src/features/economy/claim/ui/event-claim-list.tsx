@@ -33,9 +33,9 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
         <Card key={event.id} className="flex flex-col transition-shadow hover:shadow-md">
           <CardHeader>
             <div className="flex items-start justify-between">
-              <h3 className="text-lg font-bold">{event.name}</h3>
+              <h3 className="text-lg font-semibold">{event.name}</h3>
               <span
-                className={`inline-flex rounded-full px-2 py-0.5 text-sm font-black ${
+                className={`inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${
                   event.isJoined
                     ? 'bg-blue-100 text-blue-700'
                     : event.status === 'ACTIVE'
@@ -51,7 +51,7 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
           <CardContent className="flex flex-1 flex-col">
             <p className="mb-4 line-clamp-2 flex-1 text-sm text-gray-500">{event.description || '説明はありません'}</p>
             <div className="mt-auto flex items-center justify-between border-t border-gray-50 pt-4">
-              <span className="text-primary font-bold">配布: {event.distributeAmount.toLocaleString()} 円</span>
+              <span className="text-primary font-semibold">配布: {event.distributeAmount.toLocaleString()} 円</span>
               <Button
                 onClick={() => handleClaim(event.id)}
                 disabled={isPending || event.status !== 'ACTIVE' || event.isJoined}

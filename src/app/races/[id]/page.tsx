@@ -33,7 +33,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
         <Card className="max-w-md">
           <CardContent className="pt-6 text-center">
             <Info className="mx-auto mb-4 h-12 w-12 text-blue-500" />
-            <h2 className="mb-2 text-xl font-bold">ウォレットが見つかりません</h2>
+            <h2 className="mb-2 text-xl font-semibold">ウォレットが見つかりません</h2>
             <p className="text-gray-500">
               馬券を購入するには、まずマイページからイベントに参加して資金を受け取ってください。
             </p>
@@ -60,17 +60,17 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
         <div className="mb-8 space-y-4">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-gray-500">{race.location}</span>
+              <span className="text-sm font-semibold text-gray-500">{race.location}</span>
               {race.raceNumber && (
-                <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-bold text-gray-600">
+                <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
                   {race.raceNumber}R
                 </span>
               )}
             </div>
             <div className="flex items-center justify-between gap-4">
-              <h1 className="text-3xl font-black text-gray-900">{race.name}</h1>
+              <h1 className="text-3xl font-semibold text-gray-900">{race.name}</h1>
               <Link href={`/races/${id}/standby`}>
-                <Button variant="outline" className="font-bold">
+                <Button variant="outline" className="font-semibold">
                   購入馬券確認・結果待機
                 </Button>
               </Link>

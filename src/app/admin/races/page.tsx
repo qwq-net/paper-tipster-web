@@ -1,6 +1,7 @@
 import { CreateRaceDialog, getEvents, getRaces } from '@/features/admin/manage-races';
 import { RaceAccordion } from '@/features/admin/manage-races/ui/race-accordion';
 import { Card } from '@/shared/ui';
+import { CircleHelp } from 'lucide-react';
 import { Suspense } from 'react';
 
 export default async function RacesPage() {
@@ -46,8 +47,14 @@ export default async function RacesPage() {
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-end justify-between px-2">
-          <h2 className="text-xl font-semibold text-gray-900">登録済みのレース</h2>
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-semibold text-gray-900">登録済みのレース</h2>
+            <div className="flex items-center gap-1.5 text-sm font-medium text-gray-500">
+              <CircleHelp className="h-4 w-4 text-gray-500" />
+              <span>レースの締め切りや払い戻し確定操作は レースタイトルのリンク先から行えます。</span>
+            </div>
+          </div>
           <CreateRaceDialog events={events} />
         </div>
 

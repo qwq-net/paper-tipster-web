@@ -13,7 +13,7 @@ export function GuestAuthTabs({ activeTab }: GuestAuthTabsProps) {
       <Link
         href="/signup/guest"
         className={cn(
-          'flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-bold transition-all',
+          'flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition-all',
           activeTab === 'signup'
             ? 'bg-white text-gray-900 shadow-sm'
             : 'bg-transparent text-gray-500 hover:bg-gray-200/50 hover:text-gray-700'
@@ -24,7 +24,7 @@ export function GuestAuthTabs({ activeTab }: GuestAuthTabsProps) {
       <Link
         href="/login/guest"
         className={cn(
-          'flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-bold transition-all',
+          'flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition-all',
           activeTab === 'login'
             ? 'bg-white text-gray-900 shadow-sm'
             : 'bg-transparent text-gray-500 hover:bg-gray-200/50 hover:text-gray-700'

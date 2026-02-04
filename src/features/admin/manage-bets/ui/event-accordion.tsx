@@ -60,7 +60,7 @@ export function EventAccordion({ events }: EventAccordionProps) {
                       className="flex items-center gap-8 px-6 py-3 pl-12 transition-colors hover:bg-gray-50"
                     >
                       <div className="flex min-w-[360px] items-center gap-3">
-                        <span className="flex h-6 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-sm font-bold text-gray-600">
+                        <span className="flex h-6 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
                           {race.raceNumber}R
                         </span>
                         <span className="text-sm font-semibold text-gray-900">{race.name}</span>

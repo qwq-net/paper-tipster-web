@@ -11,7 +11,7 @@ export default async function AdminUsersPage() {
   const allUsers = await getUsers();
 
   return (
-    <div className="w-full max-w-5xl space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">ユーザー管理</h1>
         <div className="text-sm text-gray-500">総ユーザー数: {allUsers.length}</div>

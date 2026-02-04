@@ -1,6 +1,6 @@
 import { EntryDnd, getAvailableHorses, getEntriesForRace, getRaceById } from '@/features/admin/manage-entries';
 import { Card } from '@/shared/ui';
-import { ArrowLeft, Calendar, MapPin } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -20,46 +20,31 @@ export default async function RaceEntryPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-start gap-4">
         <Link
           href="/admin/entries"
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50"
+          className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50"
         >
           <ArrowLeft className="h-5 w-5 text-gray-600" />
         </Link>
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{race.name}</h1>
-          <div className="mt-1 flex items-center gap-3 text-sm text-gray-500">
-            <span className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              {race.date.replace(/-/g, '/')}
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-500">
+            <span className="flex items-center gap-1">{race.location}</span>
+            <span className="bg-secondary/10 text-secondary rounded-sm px-1.5 py-0.5 text-sm font-semibold">
+              {race.raceNumber}R
             </span>
-            <span className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              {race.location}
-            </span>
-            <span
-              className={`rounded-full px-2 py-0.5 text-sm font-medium ${
-                race.surface === '芝' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-              }`}
-            >
-              {race.surface} {race.distance}m
-            </span>
-            {race.condition && (
-              <span
-                className={`rounded-full px-2 py-0.5 text-sm font-medium ${
-                  race.condition === '良'
-                    ? 'bg-sky-100 text-sky-800'
-                    : race.condition === '稍重'
-                      ? 'bg-cyan-100 text-cyan-800'
-                      : race.condition === '重'
-                        ? 'bg-slate-200 text-slate-800'
-                        : 'bg-gray-300 text-gray-800'
-                }`}
-              >
-                {race.condition}
-              </span>
-            )}
+            <span className="ml-1 text-gray-400">/</span>
+            <span className="truncate">{race.event.name}</span>
+          </div>
+
+          <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{race.name}</h1>
+
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span>{race.surface}</span>
+            <span className="text-gray-300">•</span>
+            <span>{race.distance}m</span>
+            <span className="text-gray-300">•</span>
+            <span>{existingEntries.length}頭</span>
           </div>
         </div>
       </div>

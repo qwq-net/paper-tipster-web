@@ -136,7 +136,7 @@ export default function GuestSignupPage() {
           <GuestAuthTabs activeTab="signup" />
 
           <div className="text-center">
-            <h2 className="text-primary text-xl font-bold tracking-tight">ゲスト登録</h2>
+            <h2 className="text-primary text-xl font-semibold tracking-tight">ゲスト登録</h2>
             <p className="mt-2 text-sm text-gray-500">招待コードと絵文字パスワードを入力</p>
           </div>
 

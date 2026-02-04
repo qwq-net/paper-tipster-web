@@ -15,7 +15,7 @@ export function LiveConnectionStatus({ status, className, showText = true }: Liv
     return (
       <div className={cn('flex items-center gap-2 text-red-500', className)}>
         <WifiOff className="h-4 w-4" />
-        {showText && <span className="text-sm font-bold">OFFLINE</span>}
+        {showText && <span className="text-sm font-semibold">OFFLINE</span>}
       </div>
     );
   }
@@ -24,7 +24,7 @@ export function LiveConnectionStatus({ status, className, showText = true }: Liv
     return (
       <div className={cn('flex items-center gap-2 text-yellow-500', className)}>
         <Loader2 className="h-4 w-4 animate-spin" />
-        {showText && <span className="text-sm font-bold">CONNECTING...</span>}
+        {showText && <span className="text-sm font-semibold">CONNECTING...</span>}
       </div>
     );
   }
@@ -35,7 +35,7 @@ export function LiveConnectionStatus({ status, className, showText = true }: Liv
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
         <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500"></span>
       </div>
-      {showText && <span className="text-sm font-bold text-green-500">LIVE</span>}
+      {showText && <span className="text-sm font-semibold text-green-500">LIVE</span>}
     </div>
   );
 }

@@ -12,6 +12,10 @@
   --color-success: #22c55e;
   --color-error: #ef4444;
   --animate-spin-slow: spin 3s linear infinite;
+
+  /* Typography Standardization: Disable ultra-heavy weights */
+  --font-weight-extrabold: 700;
+  --font-weight-black: 700;
 }
 
 :root {

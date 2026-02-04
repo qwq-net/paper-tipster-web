@@ -44,7 +44,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
                 {isExpense ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
               </div>
               <div>
-                <div className="font-bold text-gray-900">{tx.description || typeLabels[tx.type] || tx.type}</div>
+                <div className="font-semibold text-gray-900">{tx.description || typeLabels[tx.type] || tx.type}</div>
                 <div className="text-sm text-gray-400">
                   <FormattedDate
                     date={tx.createdAt}
@@ -59,7 +59,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
               </div>
             </div>
 
-            <div className={`text-lg font-black ${isExpense ? 'text-red-600' : 'text-green-600'}`}>
+            <div className={`text-lg font-semibold ${isExpense ? 'text-red-600' : 'text-green-600'}`}>
               {isExpense ? '' : '+'}
               {tx.amount.toLocaleString()}
             </div>

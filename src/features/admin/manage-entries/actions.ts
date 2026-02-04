@@ -82,8 +82,12 @@ export async function getHorsesForSelect() {
 }
 
 export async function getRaceById(raceId: string) {
-  const result = await db.select().from(races).where(eq(races.id, raceId)).limit(1);
-  return result[0] || null;
+  return db.query.races.findFirst({
+    where: eq(races.id, raceId),
+    with: {
+      event: true,
+    },
+  });
 }
 
 export async function getEntriesForRace(raceId: string) {
@@ -113,11 +117,14 @@ export async function getAvailableHorses(raceId: string) {
   const existingHorseIds = existingEntries.map((e) => e.horseId);
 
   if (existingHorseIds.length === 0) {
-    return db.select({ id: horses.id, name: horses.name, gender: horses.gender }).from(horses).orderBy(horses.name);
+    return db
+      .select({ id: horses.id, name: horses.name, gender: horses.gender, age: horses.age })
+      .from(horses)
+      .orderBy(horses.name);
   }
 
   return db
-    .select({ id: horses.id, name: horses.name, gender: horses.gender })
+    .select({ id: horses.id, name: horses.name, gender: horses.gender, age: horses.age })
     .from(horses)
     .where(notInArray(horses.id, existingHorseIds))
     .orderBy(horses.name);

@@ -39,19 +39,19 @@ export function WalletOverview({ wallets }: WalletOverviewProps) {
             </div>
 
             <div className="space-y-1">
-              <h3 className="line-clamp-1 font-bold text-gray-900" title={wallet.event.name}>
+              <h3 className="line-clamp-1 font-semibold text-gray-900" title={wallet.event.name}>
                 {wallet.event.name}
               </h3>
               <div className="flex items-baseline gap-1">
-                <span className="text-secondary text-2xl font-black">{wallet.balance.toLocaleString()}</span>
-                <span className="text-sm font-bold text-gray-500">円</span>
+                <span className="text-secondary text-2xl font-semibold">{wallet.balance.toLocaleString()}</span>
+                <span className="text-sm font-semibold text-gray-500">円</span>
               </div>
             </div>
 
             <div className="mt-6 flex items-center justify-end border-t pt-4">
               <button
                 onClick={() => setSelectedWallet({ id: wallet.id, name: wallet.event.name })}
-                className="hover:text-primary flex items-center gap-1.5 text-sm font-bold text-gray-400 transition-colors"
+                className="hover:text-primary flex items-center gap-1.5 text-sm font-semibold text-gray-400 transition-colors"
               >
                 <History size={14} />
                 履歴を見る

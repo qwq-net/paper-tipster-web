@@ -35,7 +35,7 @@ export function NumericKeypad({ value, onChange, onClose }: NumericKeypadProps) 
   return (
     <div className="animate-in fade-in zoom-in w-64 overflow-hidden rounded-2xl border border-gray-200 bg-white duration-200">
       <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/50 px-4 py-3">
-        <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
           <Calculator className="text-primary h-4 w-4" />
           <span>金額入力</span>
         </div>
@@ -53,26 +53,26 @@ export function NumericKeypad({ value, onChange, onClose }: NumericKeypadProps) 
             <button
               key={n}
               onClick={() => handleNumber(n)}
-              className="flex h-12 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-xl font-black text-gray-900 transition-all hover:bg-gray-100 active:scale-95"
+              className="flex h-12 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-xl font-semibold text-gray-900 transition-all hover:bg-gray-100 active:scale-95"
             >
               {n}
             </button>
           ))}
           <button
             onClick={handleClear}
-            className="flex h-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-sm font-bold text-red-600 transition-all hover:bg-red-100 active:scale-95"
+            className="flex h-12 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 active:scale-95"
           >
             クリア
           </button>
           <button
             onClick={() => handleNumber(0)}
-            className="flex h-12 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-xl font-black text-gray-900 transition-all hover:bg-gray-100 active:scale-95"
+            className="flex h-12 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-xl font-semibold text-gray-900 transition-all hover:bg-gray-100 active:scale-95"
           >
             0
           </button>
           <button
             onClick={onClose}
-            className="border-primary-hover bg-primary hover:bg-primary-hover flex h-12 items-center justify-center rounded-xl border text-sm font-black text-white transition-all active:scale-95"
+            className="border-primary-hover bg-primary hover:bg-primary-hover flex h-12 items-center justify-center rounded-xl border text-sm font-semibold text-white transition-all active:scale-95"
           >
             決定
           </button>

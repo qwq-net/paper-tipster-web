@@ -1,7 +1,8 @@
 'use client';
 
+import { Button } from '@/shared/ui';
 import { calculateBracketNumber, getBracketColor } from '@/shared/utils/bracket';
-import { getDisplayGender, getGenderBadgeClass } from '@/shared/utils/gender';
+import { getGenderAge, getGenderBadgeClass } from '@/shared/utils/gender';
 import {
   closestCenter,
   DndContext,
@@ -24,6 +25,7 @@ type Horse = {
   id: string;
   name: string;
   gender: string;
+  age: number | null;
 };
 
 type Entry = {
@@ -31,6 +33,7 @@ type Entry = {
   horseId: string;
   horseName: string;
   horseGender: string;
+  horseAge: number | null;
   bracketNumber: number | null;
   horseNumber: number | null;
 };
@@ -69,11 +72,13 @@ function SortableEntry({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+      {...attributes}
+      {...listeners}
+      className={`flex cursor-grab items-center gap-2 rounded-lg border border-gray-200 bg-white p-3 shadow-sm active:cursor-grabbing ${isDragging ? 'ring-primary/50 z-10 ring-2' : ''}`}
     >
-      <button type="button" {...attributes} {...listeners} className="cursor-grab text-gray-400 hover:text-gray-600">
+      <div className="text-gray-400">
         <GripVertical className="h-4 w-4" />
-      </button>
+      </div>
       <span
         className={`flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ${getBracketColor(bracketNumber)}`}
       >
@@ -84,7 +89,7 @@ function SortableEntry({
       </span>
       <span className="flex-1 font-medium text-gray-900">{horse.name}</span>
       <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(horse.gender)}`}>
-        {getDisplayGender(horse.gender)}
+        {getGenderAge(horse.gender, horse.age)}
       </span>
       <button
         type="button"
@@ -115,11 +120,11 @@ function DraggableHorse({ horse, onClick }: { horse: Horse; onClick: () => void 
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-gray-300 hover:bg-gray-50"
+      className="flex cursor-grab items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-gray-300 hover:bg-gray-50 active:cursor-grabbing"
     >
       <span className="flex-1 text-sm font-medium text-gray-900">{horse.name}</span>
       <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(horse.gender)}`}>
-        {getDisplayGender(horse.gender)}
+        {getGenderAge(horse.gender, horse.age)}
       </span>
     </div>
   );
@@ -132,6 +137,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
       id: e.horseId,
       name: e.horseName,
       gender: e.horseGender,
+      age: e.horseAge,
     }))
   );
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -191,6 +197,11 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
     }
   };
 
+  const removeAllEntries = () => {
+    setAvailable((prev) => [...prev, ...entries].sort((a, b) => a.name.localeCompare(b.name)));
+    setEntries([]);
+  };
+
   const handleSave = () => {
     startTransition(async () => {
       const promise = saveEntries(
@@ -244,7 +255,21 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
         </div>
 
         <div className="flex flex-col">
-          <h3 className="mb-3 font-semibold text-gray-900">出走馬一覧 ({entries.length}頭)</h3>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="font-semibold text-gray-900">出走馬一覧 ({entries.length}頭)</h3>
+            {entries.length > 0 && (
+              <Button
+                type="button"
+                variant="destructive-outline"
+                size="sm"
+                onClick={removeAllEntries}
+                className="h-8 gap-1.5"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                一括削除
+              </Button>
+            )}
+          </div>
           <div
             ref={setEntriesRef}
             id="entries-list"
@@ -274,7 +299,7 @@ export function EntryDnd({ raceId, availableHorses: initialAvailable, existingEn
           <div className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white p-3 shadow-lg">
             <span className="font-medium text-gray-900">{activeHorse.name}</span>
             <span className={`rounded-full px-2 py-0.5 text-sm font-medium ${getGenderBadgeClass(activeHorse.gender)}`}>
-              {getDisplayGender(activeHorse.gender)}
+              {getGenderAge(activeHorse.gender, activeHorse.age)}
             </span>
           </div>
         )}

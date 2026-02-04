@@ -57,7 +57,7 @@ export default async function MyPage() {
             <div className="flex shrink-0 items-center gap-4">
               {session.user.role === 'ADMIN' && (
                 <Link href="/admin">
-                  <Button variant="outline" className="border-blue-600 font-bold text-blue-600 hover:bg-blue-50">
+                  <Button variant="outline" className="border-blue-600 font-semibold text-blue-600 hover:bg-blue-50">
                     管理者パネル
                   </Button>
                 </Link>
@@ -77,8 +77,8 @@ export default async function MyPage() {
                   >
                     {item.icon}
                   </div>
-                  <h3 className="text-2xl leading-tight font-black text-gray-900">{item.title}</h3>
-                  <p className="mt-3 text-sm font-bold text-gray-400">{item.description}</p>
+                  <h3 className="text-2xl leading-tight font-semibold text-gray-900">{item.title}</h3>
+                  <p className="mt-3 text-sm font-semibold text-gray-400">{item.description}</p>
                 </CardContent>
               </Card>
             </Link>

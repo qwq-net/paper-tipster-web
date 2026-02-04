@@ -15,14 +15,17 @@ export default async function ResultsPage() {
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-5xl space-y-8">
         <div className="flex items-center gap-4">
-          <Link href="/mypage" className="flex items-center gap-1 text-sm font-black text-gray-500 hover:text-gray-900">
+          <Link
+            href="/mypage"
+            className="flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-gray-900"
+          >
             <ChevronLeft size={16} />
             マイページへ戻る
           </Link>
         </div>
 
         <div className="text-center md:text-left">
-          <h1 className="text-3xl font-black text-gray-900">過去の戦績確認</h1>
+          <h1 className="text-3xl font-semibold text-gray-900">過去の戦績確認</h1>
           <p className="mt-2 text-gray-500">これまでの的中実績や回収率を確認できます。</p>
         </div>
 
@@ -31,7 +34,7 @@ export default async function ResultsPage() {
             <div className="mb-4 rounded-full bg-gray-100 p-6 text-gray-300">
               <Trophy size={48} />
             </div>
-            <p className="text-xl font-black text-gray-400">現在、戦績の集計機能は準備中です</p>
+            <p className="text-xl font-semibold text-gray-400">現在、戦績の集計機能は準備中です</p>
             <p className="mt-2 text-sm text-gray-400">今後のアップデートをお楽しみに！</p>
           </CardContent>
         </Card>

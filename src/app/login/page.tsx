@@ -14,7 +14,7 @@ export default async function LoginPage() {
     <div className="flex flex-1 flex-col items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
         <div className="text-center">
-          <h1 className="text-primary text-2xl font-bold tracking-tight">JRRA</h1>
+          <h1 className="text-primary text-2xl font-semibold tracking-tight">JRRA</h1>
           <p className="mt-2 mb-8 text-sm text-gray-500">Japan Ranranru Racing Association</p>
           <LoginButton />
         </div>

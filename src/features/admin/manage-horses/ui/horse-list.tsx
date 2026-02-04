@@ -1,5 +1,5 @@
 import { Badge } from '@/shared/ui';
-import { getDisplayGender } from '@/shared/utils/gender';
+import { getGenderAge } from '@/shared/utils/gender';
 import { getHorses } from '../actions';
 import { DeleteHorseButton } from './delete-horse-button';
 import { EditHorseDialog } from './edit-horse-dialog';
@@ -29,10 +29,7 @@ export async function HorseList() {
               産地
             </th>
             <th className="px-6 py-4 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
-              性別
-            </th>
-            <th className="px-6 py-4 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
-              年齢
+              性齢
             </th>
             <th className="px-6 py-4 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
               備考
@@ -50,10 +47,7 @@ export async function HorseList() {
                 <Badge label={originLabels[horse.origin] || '不明'} variant="origin" />
               </td>
               <td className="px-6 py-4 text-sm whitespace-nowrap">
-                <Badge label={getDisplayGender(horse.gender)} variant="gender" />
-              </td>
-              <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-600">
-                {horse.age ? `${horse.age}歳` : '-'}
+                <Badge label={getGenderAge(horse.gender, horse.age)} variant="gender" />
               </td>
               <td
                 className="max-w-[200px] truncate px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-500"

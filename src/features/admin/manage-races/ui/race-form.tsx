@@ -2,7 +2,7 @@
 
 import { Button, Input, Label, Select } from '@/shared/ui';
 import { toJSTString } from '@/shared/utils/date';
-import { Calendar, MapPin } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createRace, updateRace } from '../actions';
@@ -89,7 +89,6 @@ export function RaceForm({ initialData, events, onSuccess, showClosingAt = false
         <div>
           <Label>開催場所</Label>
           <div className="relative">
-            <MapPin className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
               name="location"
               type="text"

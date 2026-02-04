@@ -51,14 +51,14 @@ export function PayoutResultModal({ raceName, raceDate, results, open, onOpenCha
           <div className="flex items-end gap-4">
             <DialogTitle asChild>
               <div className="flex items-end gap-4">
-                <span className="text-xl font-bold tracking-widest">{raceDate}</span>
-                <span className="text-2xl font-black">{raceName}</span>
+                <span className="text-xl font-semibold tracking-widest">{raceDate}</span>
+                <span className="text-2xl font-semibold">{raceName}</span>
               </div>
             </DialogTitle>
             <DialogDescription className="sr-only">{raceName}の払戻金結果を表示しています。</DialogDescription>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-xl font-bold tracking-widest">払戻金</span>
+            <span className="text-xl font-semibold tracking-widest">払戻金</span>
             <DialogClose asChild>
               <button className="text-gray-400 hover:text-white">
                 <X size={28} />
@@ -103,7 +103,7 @@ function renderResultBlock(results: ResultItem[], type: BetType, minRows: number
     <div className={`flex min-h-12 bg-black text-white ${fullWidth ? 'w-full' : ''}`}>
       {}
       <div
-        className={`flex w-24 shrink-0 items-center justify-center text-lg font-bold tracking-widest ${TYPE_COLORS[type]} border-r border-gray-700`}
+        className={`flex w-24 shrink-0 items-center justify-center text-lg font-semibold tracking-widest ${TYPE_COLORS[type]} border-r border-gray-700`}
       >
         <span className="text-center leading-tight whitespace-pre-line">{TYPE_LABELS[type]}</span>
       </div>
@@ -117,10 +117,10 @@ function renderResultBlock(results: ResultItem[], type: BetType, minRows: number
               key={idx}
               className="flex min-h-12 flex-1 items-center justify-between border-b border-gray-800 px-4 py-2 last:border-0"
             >
-              <div className="font-mono text-2xl font-bold tracking-wider">
+              <div className="font-mono text-2xl font-semibold tracking-wider">
                 {isPlaceholder ? '-' : row.numbers.join(' - ')}
               </div>
-              <div className="w-32 text-right font-mono text-xl font-bold">{row.payout.toLocaleString()}円</div>
+              <div className="w-32 text-right font-mono text-xl font-semibold">{row.payout.toLocaleString()}円</div>
             </div>
           );
         })}

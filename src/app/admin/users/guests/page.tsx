@@ -16,7 +16,7 @@ export default async function GuestCodesPage() {
           <ChevronLeft className="mr-1 h-4 w-4" />
           ユーザー一覧に戻る
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">ゲストコード管理</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">ゲストコード管理</h1>
         <p className="mt-1 text-gray-500">ゲストユーザー用のアクセスコードの発行と管理を行います。</p>
       </div>
 

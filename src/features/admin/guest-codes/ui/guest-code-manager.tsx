@@ -124,7 +124,9 @@ export function GuestCodeManager({ codes }: { codes: GuestCode[] }) {
             <tbody className="divide-y divide-gray-200 bg-white">
               {codes.map((code) => (
                 <tr key={code.code} className="transition-colors hover:bg-gray-50/50">
-                  <td className="px-6 py-4 font-mono text-sm font-bold whitespace-nowrap text-gray-900">{code.code}</td>
+                  <td className="px-6 py-4 font-mono text-sm font-semibold whitespace-nowrap text-gray-900">
+                    {code.code}
+                  </td>
                   <td className="max-w-[200px] truncate px-6 py-4 text-sm text-gray-900" title={code.title}>
                     {code.title}
                   </td>

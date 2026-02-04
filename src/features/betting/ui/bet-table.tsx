@@ -191,7 +191,7 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
         <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
       </div>
       {isClosed && (
-        <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-bold text-red-600 ring-1 ring-red-100">
+        <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-600 ring-1 ring-red-100">
           <AlertCircle className="h-4 w-4" />
           このレースは受付を終了しました。現在、馬券を購入することはできません。
         </div>
@@ -217,12 +217,12 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50">
             <tr className="border-b border-gray-200">
-              <th className="px-2 py-2 text-sm font-bold">枠番</th>
-              <th className="px-2 py-2 text-sm font-bold">馬番</th>
-              <th className="px-2 py-2 text-sm font-bold">馬名</th>
-              <th className="px-2 py-2 text-sm font-bold">性齢</th>
+              <th className="px-2 py-2 text-sm font-semibold">枠番</th>
+              <th className="px-2 py-2 text-sm font-semibold">馬番</th>
+              <th className="px-2 py-2 text-sm font-semibold">馬名</th>
+              <th className="px-2 py-2 text-sm font-semibold">性齢</th>
               {columnLabels.map((label, i) => (
-                <th key={i} className="px-2 py-2 text-center text-sm font-bold">
+                <th key={i} className="px-2 py-2 text-center text-sm font-semibold">
                   {label}
                 </th>
               ))}
@@ -239,18 +239,16 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
                       {idx === 0 && (
                         <td className="px-2 align-middle" rowSpan={bracketEntries.length}>
                           <span
-                            className={`inline-flex h-6 w-6 items-center justify-center rounded text-sm font-bold ${getBracketColor(Number(bracket))}`}
+                            className={`inline-flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ${getBracketColor(Number(bracket))}`}
                           >
                             {bracket}
                           </span>
                         </td>
                       )}
-                      <td className="px-2 py-2 text-sm font-bold">{entry.horseNumber}</td>
-                      <td className="px-2 py-2 text-sm font-bold">{entry.horseName}</td>
+                      <td className="px-2 py-2 text-sm font-semibold">{entry.horseNumber}</td>
+                      <td className="px-2 py-2 text-sm font-semibold">{entry.horseName}</td>
                       <td className="px-2 py-2">
-                        <Badge variant="gender" label={entry.horseGender}>
-                          {getGenderAge(entry.horseGender, entry.horseAge)}
-                        </Badge>
+                        <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                       </td>
                       {idx === 0 &&
                         Array.from({ length: columnCount }).map((_, colIdx) => (
@@ -274,17 +272,15 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
                   >
                     <td className="px-2 py-2">
                       <span
-                        className={`inline-flex h-6 w-6 items-center justify-center rounded text-sm font-bold ${getBracketColor(entry.bracketNumber!)}`}
+                        className={`inline-flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ${getBracketColor(entry.bracketNumber!)}`}
                       >
                         {entry.bracketNumber}
                       </span>
                     </td>
-                    <td className="px-2 py-2 text-sm font-bold">{entry.horseNumber}</td>
-                    <td className="px-2 py-2 text-sm font-bold">{entry.horseName}</td>
+                    <td className="px-2 py-2 text-sm font-semibold">{entry.horseNumber}</td>
+                    <td className="px-2 py-2 text-sm font-semibold">{entry.horseName}</td>
                     <td className="px-2 py-2">
-                      <Badge variant="gender" label={entry.horseGender}>
-                        {getGenderAge(entry.horseGender, entry.horseAge)}
-                      </Badge>
+                      <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                     </td>
                     {Array.from({ length: columnCount }).map((_, colIdx) => (
                       <td key={colIdx} className="px-2 py-2 text-center">
@@ -307,15 +303,15 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4 lg:flex lg:items-center lg:gap-8 lg:border-none lg:pb-0">
             <div className="flex flex-col gap-1 lg:items-start">
-              <span className="text-sm font-bold text-gray-500">購入点数</span>
-              <span className="text-primary text-xl font-black">{betCount}点</span>
+              <span className="text-sm font-semibold text-gray-500">購入点数</span>
+              <span className="text-primary text-xl font-semibold">{betCount}点</span>
             </div>
             <div className="flex flex-col gap-1 lg:items-start">
-              <span className="text-sm font-bold text-gray-500">合計金額</span>
-              <span className="text-xl font-black text-gray-900">{totalAmount.toLocaleString()}円</span>
+              <span className="text-sm font-semibold text-gray-500">合計金額</span>
+              <span className="text-xl font-semibold text-gray-900">{totalAmount.toLocaleString()}円</span>
             </div>
             <div className="col-span-2 flex flex-col gap-2 lg:col-auto lg:flex-row lg:items-center lg:gap-3">
-              <label className="text-sm font-bold text-gray-500">1点あたり</label>
+              <label className="text-sm font-semibold text-gray-500">1点あたり</label>
               <div className="flex items-center gap-2">
                 <div className="relative flex items-center">
                   <Input
@@ -325,9 +321,9 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
                     value={amount / 100}
                     onChange={(e) => setAmount((parseInt(e.target.value, 10) || 0) * 100)}
                     disabled={isClosed || isPending}
-                    className="w-24 pr-11 text-right font-black disabled:bg-gray-100"
+                    className="w-24 pr-11 text-right font-semibold disabled:bg-gray-100"
                   />
-                  <span className="pointer-events-none absolute right-3 text-sm font-bold text-gray-400">00円</span>
+                  <span className="pointer-events-none absolute right-3 text-sm font-semibold text-gray-400">00円</span>
                 </div>
                 <button
                   type="button"
@@ -356,14 +352,14 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between lg:justify-end">
             <div className="flex flex-col items-center gap-1 sm:items-end">
-              <span className="text-sm font-bold text-gray-400">投票可能残高</span>
-              <span className="text-sm font-bold text-gray-600">{balance.toLocaleString()}円</span>
+              <span className="text-sm font-semibold text-gray-400">投票可能残高</span>
+              <span className="text-sm font-semibold text-gray-600">{balance.toLocaleString()}円</span>
             </div>
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={isClosed || isPending || betCount === 0 || totalAmount > balance}
-              className="h-12 w-full font-black sm:w-48"
+              className="h-12 w-full font-semibold sm:w-48"
             >
               {isPending ? (
                 <>

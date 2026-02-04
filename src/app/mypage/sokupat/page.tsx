@@ -78,7 +78,7 @@ export default async function SokupatPage() {
             <Zap size={28} />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-gray-900">即PAT</h1>
+            <h1 className="text-3xl font-semibold text-gray-900">即PAT</h1>
             <p className="text-gray-500">開催中のレースを選択して、馬券を購入しましょう。</p>
           </div>
         </div>
@@ -91,15 +91,15 @@ export default async function SokupatPage() {
               <section key={event.id}>
                 <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <h2 className="text-xl font-black text-gray-900 sm:text-2xl">{event.name}</h2>
-                    <p className="mt-1 text-sm font-bold text-gray-400">{event.date}</p>
+                    <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">{event.name}</h2>
+                    <p className="mt-1 text-sm font-semibold text-gray-400">{event.date}</p>
                   </div>
                   <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
                     <Wallet size={16} className="text-gray-400" />
-                    <span className="text-sm font-bold text-nowrap text-gray-500">投票可能残高</span>
-                    <span className="flex-1 text-right text-lg font-black text-gray-900 sm:flex-none">
+                    <span className="text-sm font-semibold text-nowrap text-gray-500">投票可能残高</span>
+                    <span className="flex-1 text-right text-lg font-semibold text-gray-900 sm:flex-none">
                       {Math.floor(balance).toLocaleString()}
-                      <span className="ml-0.5 text-sm font-bold text-gray-400">円</span>
+                      <span className="ml-0.5 text-sm font-semibold text-gray-400">円</span>
                     </span>
                   </div>
                 </div>
@@ -110,15 +110,15 @@ export default async function SokupatPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="mb-1 flex items-center gap-2">
-                              <span className="text-sm font-bold text-gray-500">{race.location}</span>
+                              <span className="text-sm font-semibold text-gray-500">{race.location}</span>
                               {race.raceNumber && (
-                                <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-bold text-gray-600">
+                                <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
                                   {race.raceNumber}R
                                 </span>
                               )}
                               <Badge variant="status" label={STATUS_LABELS[race.status] || race.status} />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900">{race.name}</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">{race.name}</h3>
                             <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
                               <span>{race.surface}</span>
                               <span className="h-1 w-1 rounded-full bg-gray-300" />

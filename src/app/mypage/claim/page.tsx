@@ -3,7 +3,7 @@ import { getEventWallets } from '@/features/economy/wallet';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events } from '@/shared/db/schema';
-import { desc, eq, not } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -16,7 +16,7 @@ export default async function ClaimPage() {
   }
 
   const availableEvents = await db.query.events.findMany({
-    where: not(eq(events.status, 'COMPLETED')),
+    where: eq(events.status, 'ACTIVE'),
     orderBy: [desc(events.date)],
   });
 
@@ -42,8 +42,8 @@ export default async function ClaimPage() {
         </div>
 
         <div>
-          <h1 className="text-3xl font-black text-gray-900">お小遣いを貰う</h1>
-          <p className="font-bold text-gray-500">開催中のイベントに参加して、軍資金を受け取りましょう。</p>
+          <h1 className="text-3xl font-semibold text-gray-900">お小遣いを貰う</h1>
+          <p className="font-semibold text-gray-500">開催中のイベントに参加して、軍資金を受け取りましょう。</p>
         </div>
 
         <section>

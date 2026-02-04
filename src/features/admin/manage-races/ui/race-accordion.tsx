@@ -1,9 +1,10 @@
 'use client';
 
 import { useIsMounted } from '@/shared/hooks/use-is-mounted';
+import { RaceCondition, RaceSurface } from '@/shared/types/race';
 import { Badge } from '@/shared/ui';
 import * as Accordion from '@radix-ui/react-accordion';
-import { ChevronDown, Eye } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { EditRaceDialog } from './edit-race-dialog';
@@ -101,8 +102,8 @@ export function RaceAccordion({ events, allEvents }: RaceAccordionProps) {
                       <th className="px-6 py-3 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
                         状態
                       </th>
-                      <th className="w-24 px-6 py-3 text-right text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                        操作
+                      <th className="w-20 px-6 py-3 text-right text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
+                        編集
                       </th>
                     </tr>
                   </thead>
@@ -110,9 +111,16 @@ export function RaceAccordion({ events, allEvents }: RaceAccordionProps) {
                     {event.races.map((race) => (
                       <tr key={race.id} className="transition-colors hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
-                          {race.raceNumber ? `第${race.raceNumber}R` : '-'}
+                          {race.raceNumber ? `${race.raceNumber}R` : '-'}
                         </td>
-                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">{race.name}</td>
+                        <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
+                          <Link
+                            href={`/admin/races/${race.id}`}
+                            className="text-primary hover:text-primary-hover font-semibold hover:underline"
+                          >
+                            {race.name}
+                          </Link>
+                        </td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{race.location}</td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{race.distance}m</td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
@@ -122,29 +130,20 @@ export function RaceAccordion({ events, allEvents }: RaceAccordionProps) {
                           <Badge variant="status" label={race.status} />
                         </td>
                         <td className="px-6 py-4 text-right text-sm whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-2">
-                            <Link
-                              href={`/admin/races/${race.id}`}
-                              className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
-                            >
-                              <Eye className="h-3 w-3" />
-                              詳細
-                            </Link>
-                            <EditRaceDialog
-                              race={{
-                                id: race.id,
-                                eventId: event.id,
-                                date: event.date,
-                                location: race.location,
-                                name: race.name,
-                                raceNumber: race.raceNumber,
-                                distance: race.distance,
-                                surface: race.surface as '芝' | 'ダート',
-                                condition: race.condition as '良' | '稍重' | '重' | '不良' | null,
-                              }}
-                              events={allEvents}
-                            />
-                          </div>
+                          <EditRaceDialog
+                            race={{
+                              id: race.id,
+                              eventId: event.id,
+                              date: event.date,
+                              location: race.location,
+                              name: race.name,
+                              raceNumber: race.raceNumber,
+                              distance: race.distance,
+                              surface: race.surface as RaceSurface,
+                              condition: race.condition as RaceCondition | null,
+                            }}
+                            events={allEvents}
+                          />
                         </td>
                       </tr>
                     ))}

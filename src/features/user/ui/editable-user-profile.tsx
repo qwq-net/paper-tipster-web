@@ -61,7 +61,7 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
         />
       ) : (
         <div className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-100">
-          <span className="text-lg font-bold text-gray-400">?</span>
+          <span className="text-lg font-semibold text-gray-400">?</span>
         </div>
       )}
       <div className="flex flex-col">
@@ -75,7 +75,7 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-8 w-40 text-sm font-bold"
+              className="h-8 w-40 text-sm font-semibold"
               autoFocus
             />
             <Button
@@ -99,7 +99,7 @@ export function EditableUserProfile({ user }: EditableUserProfileProps) {
           </div>
         ) : (
           <div className="group flex items-center gap-2">
-            <span className="text-lg leading-tight font-bold text-gray-900">{user.name || 'Unknown Racer'}</span>
+            <span className="text-lg leading-tight font-semibold text-gray-900">{user.name || 'Unknown Racer'}</span>
             <button
               onClick={() => setIsEditing(true)}
               className="text-gray-400 transition-colors hover:text-gray-600"

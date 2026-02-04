@@ -8,13 +8,13 @@ import { revalidatePath } from 'next/cache';
 
 export async function resetRaceResults(raceId: string) {
   const session = await auth();
-  if (session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+  if (session?.user?.role !== 'ADMIN') throw new Error('認証されていません');
 
   const race = await db.query.races.findFirst({
     where: eq(races.id, raceId),
   });
 
-  if (!race) throw new Error('Race not found');
+  if (!race) throw new Error('レースが見つかりませんでした');
   if (race.status === 'FINALIZED') {
     throw new Error('確定済みのレースはリセットできません');
   }

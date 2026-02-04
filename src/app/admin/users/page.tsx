@@ -1,6 +1,5 @@
 import { UserList, getUsers } from '@/features/admin/manage-users';
 import { auth } from '@/shared/config/auth';
-import { Card } from '@/shared/ui';
 import { redirect } from 'next/navigation';
 
 export default async function AdminUsersPage() {
@@ -18,9 +17,7 @@ export default async function AdminUsersPage() {
         <div className="text-sm text-gray-500">総ユーザー数: {allUsers.length}</div>
       </div>
 
-      <Card className="overflow-hidden border border-gray-200 shadow-sm">
-        <UserList users={allUsers} />
-      </Card>
+      <UserList users={allUsers} currentUserId={session.user.id!} />
     </div>
   );
 }

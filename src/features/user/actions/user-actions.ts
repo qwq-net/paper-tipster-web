@@ -12,13 +12,13 @@ const VALID_NAME_REGEX = /^[a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+$/
 export async function updateUserOnboarding(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   const name = formData.get('name') as string;
 
   if (!name || !VALID_NAME_REGEX.test(name)) {
-    return { error: 'Invalid name. Only alphanumeric, Hiragana, Katakana, and Kanji are allowed.' };
+    return { error: '無効な名前です。英数字、ひらがな、カタカナ、漢字のみ使用可能です。' };
   }
 
   try {
@@ -31,7 +31,7 @@ export async function updateUserOnboarding(formData: FormData) {
       .where(eq(users.id, session.user.id));
   } catch (error) {
     console.error('Failed to update user:', error);
-    return { error: 'Failed to update user. Please try again.' };
+    return { error: 'ユーザーの更新に失敗しました。もう一度お試しください。' };
   }
 
   revalidatePath('/mypage');
@@ -41,13 +41,21 @@ export async function updateUserOnboarding(formData: FormData) {
 export async function updateUserName(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   const name = formData.get('name') as string;
 
   if (!name || !VALID_NAME_REGEX.test(name)) {
-    return { error: 'Invalid name. Only alphanumeric, Hiragana, Katakana, and Kanji are allowed.' };
+    return { error: '無効な名前です。英数字、ひらがな、カタカナ、漢字のみ使用可能です。' };
+  }
+
+  const existingUser = await db.query.users.findFirst({
+    where: eq(users.name, name),
+  });
+
+  if (existingUser && existingUser.id !== session.user.id) {
+    return { error: 'この名前は既に使用されています。' };
   }
 
   try {
@@ -59,7 +67,7 @@ export async function updateUserName(formData: FormData) {
       .where(eq(users.id, session.user.id));
   } catch (error) {
     console.error('Failed to update user:', error);
-    return { error: 'Failed to update user. Please try again.' };
+    return { error: 'ユーザーの更新に失敗しました。もう一度お試しください。' };
   }
 
   revalidatePath('/mypage');

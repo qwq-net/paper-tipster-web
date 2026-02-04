@@ -1,0 +1,45 @@
+'use client';
+
+type EmojiKeypadProps = {
+  onEmojiClick: (emoji: string) => void;
+  onBackspace: () => void;
+  onClear: () => void;
+};
+
+const EMOJIS = ['🐶', '🐱', '🐮', '🐰', '🍔', '🍙', '🍖', '🍣', '🍎', '🍌', '🍇', '🍓'];
+
+export function EmojiKeypad({ onEmojiClick, onBackspace, onClear }: EmojiKeypadProps) {
+  return (
+    <div className="mx-auto w-full max-w-sm">
+      <div className="mb-4 grid grid-cols-4 gap-4">
+        {EMOJIS.map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            onClick={() => onEmojiClick(emoji)}
+            className="flex aspect-square items-center justify-center rounded-xl text-3xl transition-colors hover:bg-gray-100 active:scale-95"
+            aria-label={`Type ${emoji}`}
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <button
+          type="button"
+          onClick={onClear}
+          className="rounded-lg py-3 font-medium text-red-600 transition-colors hover:bg-red-50"
+        >
+          Clear
+        </button>
+        <button
+          type="button"
+          onClick={onBackspace}
+          className="rounded-lg border border-gray-200 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-100"
+        >
+          ⌫ Backspace
+        </button>
+      </div>
+    </div>
+  );
+}

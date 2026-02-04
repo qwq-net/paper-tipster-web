@@ -11,7 +11,7 @@ import { raceSchema } from '../model/schema';
 export async function createRace(formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   const conditionValue = formData.get('condition');
@@ -31,7 +31,7 @@ export async function createRace(formData: FormData) {
 
   if (!parse.success) {
     console.error('Validation Error Details:', parse.error.format());
-    throw new Error('Invalid Input');
+    throw new Error('入力内容が無効です');
   }
 
   let raceNumber = parse.data.raceNumber;

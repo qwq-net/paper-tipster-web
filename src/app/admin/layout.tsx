@@ -1,6 +1,16 @@
 import { LogoutButton } from '@/features/auth/ui/logout-button';
 import { auth } from '@/shared/config/auth';
-import { Calendar, Carrot, ClipboardList, ExternalLink, LayoutDashboard, Ticket, Trophy, Users } from 'lucide-react';
+import {
+  Calendar,
+  Carrot,
+  ClipboardList,
+  ExternalLink,
+  Key,
+  LayoutDashboard,
+  Ticket,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -14,6 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const navItems = [
     { label: 'ダッシュボード', href: '/admin', icon: LayoutDashboard },
     { label: 'ユーザー管理', href: '/admin/users', icon: Users },
+    { label: 'ゲストコード管理', href: '/admin/users/guests', icon: Key },
     { label: 'イベント管理', href: '/admin/events', icon: Calendar },
     { label: '馬管理', href: '/admin/horses', icon: Carrot },
     { label: 'レース管理', href: '/admin/races', icon: Trophy },

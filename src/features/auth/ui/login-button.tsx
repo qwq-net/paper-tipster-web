@@ -9,7 +9,9 @@ export function LoginButton() {
         await signIn('discord', { redirectTo: '/mypage' });
       }}
     >
-      <Button type="submit">Login with Discord</Button>
+      <Button type="submit" className="bg-[#5865F2] text-white hover:bg-[#4752C4]">
+        Login with Discord
+      </Button>
     </form>
   );
 }

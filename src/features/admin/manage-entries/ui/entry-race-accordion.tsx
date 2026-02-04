@@ -32,7 +32,6 @@ export function EntryRaceAccordion({ events }: EntryRaceAccordionProps) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Defer state update to avoid synchronous render warning
         setTimeout(() => setOpenItems(parsed), 0);
       } catch (e) {
         console.error('Failed to parse saved accordion state', e);

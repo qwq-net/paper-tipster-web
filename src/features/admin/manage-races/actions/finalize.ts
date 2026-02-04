@@ -18,7 +18,7 @@ export async function finalizeRace(
 ) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   await db.transaction(async (tx) => {
@@ -42,7 +42,7 @@ export async function finalizeRace(
         bracketNumber: e.bracketNumber!,
       }));
 
-    if (finishers.length === 0) throw new Error('No results provided');
+    if (finishers.length === 0) throw new Error('着順が指定されていません');
 
     const allBets = await tx.query.bets.findMany({
       where: eq(bets.raceId, raceId),

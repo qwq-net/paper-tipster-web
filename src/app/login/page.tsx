@@ -36,6 +36,11 @@ export default async function LoginPage() {
             </div>
           </div>
         </div>
+        <div className="mt-6 text-center">
+          <a href="/login/guest" className="text-sm font-medium text-blue-600 hover:text-blue-500 hover:underline">
+            ゲストログインページへ
+          </a>
+        </div>
       </div>
     </div>
   );

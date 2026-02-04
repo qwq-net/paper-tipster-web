@@ -11,7 +11,7 @@ import { raceSchema } from '../model/schema';
 export async function updateRace(id: string, formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   const conditionValue = formData.get('condition');
@@ -31,7 +31,7 @@ export async function updateRace(id: string, formData: FormData) {
 
   if (!parse.success) {
     console.error('Validation Error Details:', parse.error.format());
-    throw new Error('Invalid Input');
+    throw new Error('入力内容が無効です');
   }
 
   const now = new Date();
@@ -42,7 +42,7 @@ export async function updateRace(id: string, formData: FormData) {
       where: eq(races.id, id),
     });
 
-    if (!race) throw new Error('Race not found');
+    if (!race) throw new Error('レースが見つかりませんでした');
 
     let newStatus = race.status;
     if (race.status === 'CLOSED' && newClosingAt && newClosingAt > now) {

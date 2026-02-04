@@ -18,7 +18,7 @@ const horseSchema = z.object({
 export async function createHorse(formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   const ageValue = formData.get('age');
@@ -33,7 +33,7 @@ export async function createHorse(formData: FormData) {
 
   if (!parse.success) {
     console.error(parse.error);
-    throw new Error('Invalid Input');
+    throw new Error('入力内容が無効です');
   }
 
   await db.insert(horses).values({
@@ -50,7 +50,7 @@ export async function createHorse(formData: FormData) {
 export async function updateHorse(id: string, formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   const ageValue = formData.get('age');
@@ -65,7 +65,7 @@ export async function updateHorse(id: string, formData: FormData) {
 
   if (!parse.success) {
     console.error(parse.error);
-    throw new Error('Invalid Input');
+    throw new Error('入力内容が無効です');
   }
 
   await db
@@ -89,7 +89,7 @@ export async function getHorses() {
 export async function deleteHorse(id: string) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   await db.delete(horses).where(eq(horses.id, id));

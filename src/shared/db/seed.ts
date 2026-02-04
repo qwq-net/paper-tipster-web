@@ -7,7 +7,8 @@ import * as schema from './schema';
 async function main() {
   console.log('--- Starting Seeder ---');
 
-  // Create Users
+  console.log('--- Starting Seeder ---');
+
   const usersToCreate = [
     { name: '武豊', role: Role.ADMIN, email: 'admin@example.com' },
     { name: 'ルメール', role: Role.USER, email: 'user@example.com' },

@@ -9,14 +9,14 @@ import { revalidatePath } from 'next/cache';
 
 export async function finalizePayout(raceId: string) {
   const session = await auth();
-  if (session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+  if (session?.user?.role !== 'ADMIN') throw new Error('認証されていません');
 
   const race = await db.query.races.findFirst({
     where: eq(races.id, raceId),
   });
 
   if (!race || race.status === 'FINALIZED') {
-    throw new Error('Race already finalized or not found');
+    throw new Error('レースは既に確定しているか、見つかりません');
   }
 
   const results = await db.select().from(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));

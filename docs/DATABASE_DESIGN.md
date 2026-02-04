@@ -24,9 +24,11 @@
 | カラム名 | 型 | 必須 | 説明 |
 | :--- | :--- | :--- | :--- |
 | `id` | Text (UUID) | Yes | 主キー |
-| `name` | Text | No | 表示名 (Discordから取得) |
+| `name` | Text | No | 表示名 (Discordから取得、またはゲスト名) |
 | `image` | Text | No | アバター画像のURL |
-| `role` | Enum ('USER', 'ADMIN') | Yes | アプリケーションの権限レベル。デフォルト: 'USER' |
+| `role` | Enum | Yes | 権限。'USER', 'ADMIN', 'GUEST', 'TIPSTER', 'AI_TIPSTER', 'AI_USER' |
+| `guestCodeId` | Text | No | 登録に使用したゲストコード (`guest_codes.code`) への外部キー |
+| `password` | Text | No | パスワードハッシュ（ゲストログイン用） |
 | `createdAt` | Timestamp | Yes | 作成日時 |
 | `updatedAt` | Timestamp | Yes | 更新日時 |
 
@@ -43,6 +45,17 @@
 | `refresh_token` | Text | No | OAuth Refresh Token |
 
 > **注記**: `session` および `verificationToken` テーブルもAuth.jsの互換性のために存在しますが、DBセッションを使用しない設定の場合は使用されません。
+
+### `guest_codes` テーブル
+
+ゲストアカウント登録用の共有コードを管理します。1つのコードで複数のゲストユーザーが登録可能です。
+| カラム名 | 型 | 必須 | 説明 |
+| :--- | :--- | :--- | :--- |
+| `code` | Text | Yes | 主キー。登録に使用する16桁のコード。 |
+| `title` | Text | Yes | 発行目的などのメモ（例: "XXオフ会用"） |
+| `createdBy` | Text | Yes | 発行した管理者 (`user.id`) への外部キー |
+| `disabledAt` | Timestamp | No | 無効化日時（値がある場合は新規登録不可） |
+| `createdAt` | Timestamp | Yes | 発行日時 |
 
 ---
 

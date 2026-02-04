@@ -16,6 +16,14 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
+export const loginAttempts = pgTable('login_attempt', {
+  identifier: text('identifier').primaryKey(),
+  attempts: integer('attempts').default(0).notNull(),
+  lockedUntil: timestamp('locked_until', { withTimezone: true }),
+  lastAttemptAt: timestamp('last_attempt_at', { withTimezone: true }).defaultNow(),
+  blockLevel: integer('block_level').default(0).notNull(),
+});
+
 export const roleEnum = pgEnum('role', ['USER', 'ADMIN', 'GUEST', 'TIPSTER', 'AI_TIPSTER', 'AI_USER']);
 
 export const users = pgTable('user', {
@@ -27,6 +35,8 @@ export const users = pgTable('user', {
   emailVerified: timestamp('email_verified', { mode: 'date', withTimezone: true }),
   image: text('image'),
   role: roleEnum('role').default('USER').notNull(),
+  guestCodeId: text('guest_code_id'),
+  password: text('password'),
   isOnboardingCompleted: boolean('is_onboarding_completed').default(false).notNull(),
   disabledAt: timestamp('disabled_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -88,6 +98,16 @@ export const verificationTokens = pgTable(
     }),
   })
 );
+
+export const guestCodes = pgTable('guest_code', {
+  code: text('code').primaryKey(),
+  title: text('title').notNull(),
+  createdBy: text('created_by')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  disabledAt: timestamp('disabled_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const eventStatusEnum = pgEnum('event_status', ['SCHEDULED', 'ACTIVE', 'COMPLETED']);
 
@@ -309,4 +329,13 @@ export const userRelations = relations(users, ({ many }) => ({
   wallets: many(wallets),
   bets: many(bets),
   accounts: many(accounts),
+  createdGuestCodes: many(guestCodes, { relationName: 'creator' }),
+}));
+
+export const guestCodeRelations = relations(guestCodes, ({ one }) => ({
+  creator: one(users, {
+    fields: [guestCodes.createdBy],
+    references: [users.id],
+    relationName: 'creator',
+  }),
 }));

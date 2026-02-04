@@ -9,16 +9,16 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
 const eventSchema = z.object({
-  name: z.string().min(1, 'Event name is required'),
+  name: z.string().min(1, 'イベント名は必須です'),
   description: z.string().optional(),
-  distributeAmount: z.coerce.number().min(0, 'Amount must be positive'),
+  distributeAmount: z.coerce.number().min(0, '金額は0以上である必要があります'),
   date: z.string(),
 });
 
 export async function createEvent(formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   const parse = eventSchema.safeParse({
@@ -29,7 +29,7 @@ export async function createEvent(formData: FormData) {
   });
 
   if (!parse.success) {
-    throw new Error('Invalid Input: ' + JSON.stringify(parse.error.flatten()));
+    throw new Error('無効な入力です: ' + JSON.stringify(parse.error.flatten()));
   }
 
   await db.insert(events).values({
@@ -46,7 +46,7 @@ export async function createEvent(formData: FormData) {
 export async function updateEvent(id: string, formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   const parse = eventSchema.safeParse({
@@ -57,7 +57,7 @@ export async function updateEvent(id: string, formData: FormData) {
   });
 
   if (!parse.success) {
-    throw new Error('Invalid Input: ' + JSON.stringify(parse.error.flatten()));
+    throw new Error('無効な入力です: ' + JSON.stringify(parse.error.flatten()));
   }
 
   await db
@@ -76,7 +76,7 @@ export async function updateEvent(id: string, formData: FormData) {
 export async function updateEventStatus(eventId: string, newStatus: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED') {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
+    throw new Error('認証されていません');
   }
 
   await db.update(events).set({ status: newStatus }).where(eq(events.id, eventId));

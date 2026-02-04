@@ -57,7 +57,11 @@ export default async function MyPage() {
             <div className="flex items-center gap-4">
               {session.user.role === 'ADMIN' && (
                 <Link href="/admin">
-                  <Button variant="outline" size="sm" className="font-black">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-600 font-bold text-blue-600 hover:bg-blue-50"
+                  >
                     管理者パネル
                   </Button>
                 </Link>

@@ -26,6 +26,7 @@ export default async function SokupatPage() {
       orderBy: [desc(races.date)],
       with: {
         event: true,
+        entries: true,
       },
     }),
     db.query.wallets.findMany({
@@ -60,8 +61,8 @@ export default async function SokupatPage() {
     }));
 
   return (
-    <div className="flex flex-col items-center p-4">
-      <div className="w-full max-w-4xl space-y-8">
+    <div className="flex flex-col items-center p-4 lg:p-8">
+      <div className="w-full max-w-5xl space-y-8">
         <div className="flex items-center gap-4">
           <Link
             href="/mypage"
@@ -88,17 +89,17 @@ export default async function SokupatPage() {
           <div className="space-y-8">
             {sortedEventGroups.map(({ event, races, balance }) => (
               <section key={event.id}>
-                <div className="mb-4 flex items-end justify-between">
+                <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{event.name}</h2>
-                    <p className="text-sm text-gray-500">{event.date}</p>
+                    <h2 className="text-xl font-black text-gray-900 sm:text-2xl">{event.name}</h2>
+                    <p className="mt-1 text-sm font-bold text-gray-400">{event.date}</p>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-4 py-2 ring-1 ring-gray-200 ring-inset">
+                  <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">
                     <Wallet size={16} className="text-gray-400" />
-                    <span className="text-sm font-medium text-nowrap text-gray-500">投票可能残高</span>
-                    <span className="text-lg font-black text-gray-900">
+                    <span className="text-sm font-bold text-nowrap text-gray-500">投票可能残高</span>
+                    <span className="flex-1 text-right text-lg font-black text-gray-900 sm:flex-none">
                       {Math.floor(balance).toLocaleString()}
-                      <span className="ml-0.5 text-sm font-bold text-gray-500">円</span>
+                      <span className="ml-0.5 text-sm font-bold text-gray-400">円</span>
                     </span>
                   </div>
                 </div>
@@ -122,6 +123,8 @@ export default async function SokupatPage() {
                               <span>{race.surface}</span>
                               <span className="h-1 w-1 rounded-full bg-gray-300" />
                               <span>{race.distance}m</span>
+                              <span className="h-1 w-1 rounded-full bg-gray-300" />
+                              <span>{race.entries?.length || 0}頭</span>
                             </div>
                           </div>
                           <div className="bg-primary/10 text-primary hover:bg-primary flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:text-white">

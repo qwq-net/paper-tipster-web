@@ -1,0 +1,150 @@
+'use client';
+
+import { LogoutButton } from '@/features/auth/ui/logout-button';
+import { cn } from '@/shared/utils/cn';
+import {
+  Calendar,
+  Carrot,
+  ClipboardList,
+  ExternalLink,
+  Key,
+  LayoutDashboard,
+  Menu,
+  Ticket,
+  Trophy,
+  Users,
+  X,
+} from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+interface AdminSidebarProps {
+  user: {
+    name?: string | null;
+    image?: string | null;
+  };
+}
+
+const NAV_ITEMS = [
+  { label: 'ダッシュボード', href: '/admin', icon: LayoutDashboard },
+  { label: 'ユーザー管理', href: '/admin/users', icon: Users },
+  { label: 'ゲストコード管理', href: '/admin/users/guests', icon: Key },
+  { label: 'イベント管理', href: '/admin/events', icon: Calendar },
+  { label: '馬管理', href: '/admin/horses', icon: Carrot },
+  { label: 'レース管理', href: '/admin/races', icon: Trophy },
+  { label: '出走馬管理', href: '/admin/entries', icon: ClipboardList },
+  { label: '馬券管理', href: '/admin/bets', icon: Ticket },
+];
+
+export function AdminSidebar({ user }: AdminSidebarProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isOpen]);
+
+  return (
+    <>
+      <div className="fixed top-0 right-0 left-0 z-40 border-b border-gray-200 bg-white p-4 md:hidden">
+        <div className="flex items-center justify-between">
+          <div className="text-secondary flex items-center gap-2">
+            <LayoutDashboard className="h-6 w-6" />
+            <span className="text-lg font-bold">JRRA Admin</span>
+          </div>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100"
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setIsOpen(false)} />
+      )}
+
+      <aside
+        className={cn(
+          'bg-secondary fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-800 text-white md:translate-x-0',
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <div className="border-b border-gray-800 p-6">
+          <div className="text-primary flex items-center gap-2">
+            <LayoutDashboard className="h-6 w-6" />
+            <h1 className="text-xl font-semibold tracking-tight text-white">JRRA Admin</h1>
+          </div>
+          <p className="mt-2 text-sm font-medium tracking-wider text-gray-400 uppercase">
+            Japan Ranranru Racing Association
+          </p>
+        </div>
+
+        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className={cn(
+                  'flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium transition-colors',
+                  isActive ? 'bg-white/15 text-white shadow-sm' : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                )}
+              >
+                <Icon className={cn('h-5 w-5', isActive ? 'opacity-100' : 'opacity-70')} />
+                {item.label}
+              </Link>
+            );
+          })}
+          <div className="mt-4 border-t border-gray-700 pt-4">
+            <Link
+              href="/mypage"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <ExternalLink className="h-5 w-5 opacity-70" />
+              Mypage
+            </Link>
+          </div>
+        </nav>
+
+        <div className="pb-safe border-t border-gray-800 bg-black/20 p-4">
+          <div className="mb-4 flex items-center gap-3">
+            {user.image ? (
+              <Image
+                src={user.image}
+                alt={user.name || 'User'}
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full"
+              />
+            ) : (
+              <div className="bg-primary/20 text-primary border-primary/30 flex h-8 w-8 items-center justify-center rounded-full border">
+                <span className="text-sm font-semibold">{user.name?.[0] || 'A'}</span>
+              </div>
+            )}
+            <div className="flex flex-col overflow-hidden">
+              <span className="truncate text-sm leading-none font-semibold text-white">{user.name}</span>
+              <span className="mt-1 text-sm text-gray-400">Administrator</span>
+            </div>
+          </div>
+          <LogoutButton
+            className="w-full border-gray-600 bg-transparent text-gray-300 hover:bg-white/10 hover:text-white"
+            variant="outline"
+          />
+        </div>
+      </aside>
+    </>
+  );
+}

@@ -25,7 +25,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
     notFound();
   }
 
-  const wallet = wallets[0];
+  const wallet = wallets.find((w) => w.eventId === race.eventId);
 
   if (!wallet) {
     return (
@@ -47,42 +47,53 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
   }
 
   return (
-    <div className="mx-auto max-w-5xl p-4 lg:p-8">
-      <Link
-        href="/mypage/sokupat"
-        className="mb-6 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-      >
-        <ChevronLeft size={16} />
-        即PATトップへ戻る
-      </Link>
+    <div className="flex flex-col items-center p-4 lg:p-8">
+      <div className="w-full max-w-5xl space-y-8">
+        <Link
+          href="/mypage/sokupat"
+          className="mb-6 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
+        >
+          <ChevronLeft size={16} />
+          即PATトップへ戻る
+        </Link>
 
-      <div className="mb-8 space-y-2">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div className="flex items-center gap-3">
-            <span className="rounded bg-gray-100 px-2 py-0.5 text-sm font-bold text-gray-700">
-              {race.location} {race.distance}m ({race.surface})
-            </span>
-            <span className="text-sm font-medium text-gray-400">{race.date}</span>
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-500">{race.location}</span>
+              {race.raceNumber && (
+                <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-bold text-gray-600">
+                  {race.raceNumber}R
+                </span>
+              )}
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <h1 className="text-3xl font-black text-gray-900">{race.name}</h1>
+              <Link href={`/races/${id}/standby`}>
+                <Button variant="outline" className="font-bold">
+                  購入馬券確認・結果待機
+                </Button>
+              </Link>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-gray-500">
+              <span>{race.surface}</span>
+              <span className="h-1 w-1 rounded-full bg-gray-300" />
+              <span>{race.distance}m</span>
+              <span className="h-1 w-1 rounded-full bg-gray-300" />
+              <span>{entries.length}頭</span>
+            </div>
           </div>
         </div>
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="text-3xl font-black text-gray-900">{race.name}</h1>
-          <Link href={`/races/${id}/standby`}>
-            <Button variant="outline" className="font-bold">
-              購入馬券確認・結果待機
-            </Button>
-          </Link>
-        </div>
-      </div>
 
-      <BetTable
-        raceId={race.id}
-        walletId={wallet.id}
-        balance={wallet.balance}
-        entries={entries}
-        initialStatus={race.status}
-        closingAt={race.closingAt ? race.closingAt.toISOString() : null}
-      />
+        <BetTable
+          raceId={race.id}
+          walletId={wallet.id}
+          balance={wallet.balance}
+          entries={entries}
+          initialStatus={race.status}
+          closingAt={race.closingAt ? race.closingAt.toISOString() : null}
+        />
+      </div>
     </div>
   );
 }

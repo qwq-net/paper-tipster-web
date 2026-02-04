@@ -46,7 +46,7 @@ const TYPE_LABELS: Record<BetType, string> = {
 export function PayoutResultModal({ raceName, raceDate, results, open, onOpenChange }: PayoutResultModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl border-gray-700 bg-black p-0 shadow-2xl">
+      <DialogContent className="max-w-4xl gap-0 border-gray-700 bg-black p-0 shadow-2xl">
         <div className="flex items-center justify-between bg-linear-to-b from-blue-900 to-blue-950 px-6 py-3 text-white">
           <div className="flex items-end gap-4">
             <DialogTitle asChild>

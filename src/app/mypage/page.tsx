@@ -49,8 +49,8 @@ export default async function MyPage() {
   ];
 
   return (
-    <div className="flex flex-col items-center p-4">
-      <div className="w-full max-w-4xl space-y-8">
+    <div className="flex flex-col items-center p-4 lg:p-8">
+      <div className="w-full max-w-5xl space-y-8">
         <Card className="border-none bg-white shadow-sm ring-1 ring-gray-100">
           <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row">
             <EditableUserProfile user={session.user} />

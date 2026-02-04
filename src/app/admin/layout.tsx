@@ -1,18 +1,5 @@
-import { LogoutButton } from '@/features/auth/ui/logout-button';
+import { AdminSidebar } from '@/features/admin/ui/admin-sidebar';
 import { auth } from '@/shared/config/auth';
-import {
-  Calendar,
-  Carrot,
-  ClipboardList,
-  ExternalLink,
-  Key,
-  LayoutDashboard,
-  Ticket,
-  Trophy,
-  Users,
-} from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -21,83 +8,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/');
   }
 
-  const navItems = [
-    { label: 'ダッシュボード', href: '/admin', icon: LayoutDashboard },
-    { label: 'ユーザー管理', href: '/admin/users', icon: Users },
-    { label: 'ゲストコード管理', href: '/admin/users/guests', icon: Key },
-    { label: 'イベント管理', href: '/admin/events', icon: Calendar },
-    { label: '馬管理', href: '/admin/horses', icon: Carrot },
-    { label: 'レース管理', href: '/admin/races', icon: Trophy },
-    { label: '出走馬管理', href: '/admin/entries', icon: ClipboardList },
-    { label: '馬券管理', href: '/admin/bets', icon: Ticket },
-  ];
-
   return (
     <div className="flex h-screen bg-gray-50">
-      <aside className="bg-secondary flex w-64 flex-col border-r border-gray-800 text-white">
-        <div className="border-b border-gray-800 p-6">
-          <div className="text-primary flex items-center gap-2">
-            <LayoutDashboard className="h-6 w-6" />
-            <h1 className="text-xl font-semibold tracking-tight text-white">JRRA Admin</h1>
-          </div>
-          <p className="mt-2 text-sm font-medium tracking-wider text-gray-400 uppercase">
-            Japan Ranranru Racing Association
-          </p>
-        </div>
-
-        <nav className="flex-1 space-y-1 p-4">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
-              >
-                <Icon className="h-5 w-5 opacity-70" />
-                {item.label}
-              </Link>
-            );
-          })}
-          <div className="mt-4 border-t border-gray-700 pt-4">
-            <Link
-              href="/mypage"
-              className="flex items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
-            >
-              <ExternalLink className="h-5 w-5 opacity-70" />
-              Mypage
-            </Link>
-          </div>
-        </nav>
-
-        <div className="border-t border-gray-800 bg-black/20 p-4">
-          <div className="mb-4 flex items-center gap-3">
-            {session.user.image ? (
-              <Image
-                src={session.user.image}
-                alt={session.user.name || 'User'}
-                width={32}
-                height={32}
-                className="h-8 w-8 rounded-full"
-              />
-            ) : (
-              <div className="bg-primary/20 text-primary border-primary/30 flex h-8 w-8 items-center justify-center rounded-full border">
-                <span className="text-sm font-semibold">{session.user.name?.[0] || 'A'}</span>
-              </div>
-            )}
-            <div className="flex flex-col overflow-hidden">
-              <span className="truncate text-sm leading-none font-semibold text-white">{session.user.name}</span>
-              <span className="mt-1 text-sm text-gray-400">Administrator</span>
-            </div>
-          </div>
-          <LogoutButton
-            className="w-full border-gray-600 bg-transparent text-gray-300 hover:bg-white/10 hover:text-white"
-            variant="outline"
-          />
-        </div>
-      </aside>
-
-      <main className="flex-1 overflow-y-auto p-8">{children}</main>
+      <AdminSidebar user={session.user} />
+      <main className="flex-1 overflow-y-auto p-6 pt-16 sm:p-8 md:pt-8 md:pl-72">{children}</main>
     </div>
   );
 }

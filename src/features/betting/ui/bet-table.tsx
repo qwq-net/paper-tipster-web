@@ -3,13 +3,14 @@
 import { placeBet } from '@/features/betting/actions';
 import { calculateBetCount, getValidBetCombinations } from '@/features/betting/lib/calculations';
 import { getBetTypeColumnCount, getBetTypeColumnLabels } from '@/features/betting/model/bet-types';
-import { Badge, Button, Input } from '@/shared/ui';
+import { SSEMessage, useSSE } from '@/shared/hooks/use-sse';
+import { Badge, Button, Input, LiveConnectionStatus } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { getGenderAge } from '@/shared/utils/gender';
 import { BET_TYPE_LABELS, BET_TYPES, BetType } from '@/types/betting';
 import { AlertCircle, Calculator, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
+import { useCallback, useEffect, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { NumericKeypad } from './numeric-keypad';
 
@@ -69,31 +70,31 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
     return () => clearInterval(timer);
   }, [closingAt, isClosed]);
 
-  useEffect(() => {
-    const eventSource = new EventSource('/api/events/race-status');
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (
-          (data.type === 'RACE_CLOSED' || data.type === 'RACE_FINALIZED' || data.type === 'RACE_BROADCAST') &&
-          data.raceId === raceId
-        ) {
-          setIsClosed(true);
-          if (data.type === 'RACE_BROADCAST') {
-            toast.success('レース結果が確定しました！結果画面へ移動します。');
-            router.push(`/races/${raceId}/standby`);
-          } else {
-            toast.info('このレースの受付は終了しました');
-          }
-        } else if (data.type === 'RACE_REOPENED' && data.raceId === raceId) {
-          setIsClosed(false);
-          toast.success('レースの受付が再開されました！');
-          router.refresh();
+  const handleSSEMessage = useCallback(
+    (data: SSEMessage) => {
+      if (data.raceId !== raceId) return;
+
+      if (data.type === 'RACE_CLOSED' || data.type === 'RACE_FINALIZED' || data.type === 'RACE_BROADCAST') {
+        setIsClosed(true);
+        if (data.type === 'RACE_BROADCAST') {
+          toast.success('レース結果が確定しました！結果画面へ移動します。');
+          router.push(`/races/${raceId}/standby`);
+        } else {
+          toast.info('このレースの受付は終了しました');
         }
-      } catch {}
-    };
-    return () => eventSource.close();
-  }, [raceId, router]);
+      } else if (data.type === 'RACE_REOPENED') {
+        setIsClosed(false);
+        toast.success('レースの受付が再開されました！');
+        router.refresh();
+      }
+    },
+    [raceId, router]
+  );
+
+  const { connectionStatus } = useSSE({
+    url: '/api/events/race-status',
+    onMessage: handleSSEMessage,
+  });
 
   const columnCount = getBetTypeColumnCount(betType);
   const columnLabels = getBetTypeColumnLabels(betType);
@@ -186,6 +187,9 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
 
   return (
     <div className="space-y-6">
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
+        <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
+      </div>
       {isClosed && (
         <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm font-bold text-red-600 ring-1 ring-red-100">
           <AlertCircle className="h-4 w-4" />
@@ -193,7 +197,7 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2 rounded-lg bg-gray-100 p-2">
+      <div className="flex flex-wrap gap-2 rounded-xl bg-gray-100 p-2">
         {BET_TYPE_ORDER.map((type) => (
           <Button
             key={type}
@@ -209,7 +213,7 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-gray-200">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-50">
             <tr className="border-b border-gray-200">
@@ -299,73 +303,78 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-gray-50 p-4">
-        <div className="flex items-center gap-6">
-          <div className="text-sm">
-            <span className="text-gray-500">購入点数:</span>
-            <span className="text-primary ml-2 text-xl font-bold">{betCount}点</span>
-          </div>
-          <div className="flex items-center gap-2 whitespace-nowrap">
-            <label className="text-sm text-gray-500">1点あたり:</label>
-            <div className="relative flex items-center gap-2">
-              <div className="relative flex items-center">
-                <Input
-                  type="number"
-                  min={1}
-                  step={1}
-                  value={amount / 100}
-                  onChange={(e) => setAmount((parseInt(e.target.value, 10) || 0) * 100)}
+      <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 shadow-sm md:p-6">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4 lg:flex lg:items-center lg:gap-8 lg:border-none lg:pb-0">
+            <div className="flex flex-col gap-1 lg:items-start">
+              <span className="text-sm font-bold text-gray-500">購入点数</span>
+              <span className="text-primary text-xl font-black">{betCount}点</span>
+            </div>
+            <div className="flex flex-col gap-1 lg:items-start">
+              <span className="text-sm font-bold text-gray-500">合計金額</span>
+              <span className="text-xl font-black text-gray-900">{totalAmount.toLocaleString()}円</span>
+            </div>
+            <div className="col-span-2 flex flex-col gap-2 lg:col-auto lg:flex-row lg:items-center lg:gap-3">
+              <label className="text-sm font-bold text-gray-500">1点あたり</label>
+              <div className="flex items-center gap-2">
+                <div className="relative flex items-center">
+                  <Input
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={amount / 100}
+                    onChange={(e) => setAmount((parseInt(e.target.value, 10) || 0) * 100)}
+                    disabled={isClosed || isPending}
+                    className="w-24 pr-11 text-right font-black disabled:bg-gray-100"
+                  />
+                  <span className="pointer-events-none absolute right-3 text-sm font-bold text-gray-400">00円</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowKeypad(!showKeypad)}
                   disabled={isClosed || isPending}
-                  className="w-24 pr-11 text-right font-bold disabled:bg-gray-100"
-                />
-                <span className="pointer-events-none absolute right-3 text-sm font-bold text-gray-400">00円</span>
+                  className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition-all hover:bg-gray-50 hover:text-blue-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  title="キーパッドで入力"
+                >
+                  <Calculator className="h-5 w-5" />
+                </button>
+                {showKeypad && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setShowKeypad(false)} />
+                    <div className="absolute bottom-12 left-0 z-50">
+                      <NumericKeypad
+                        value={amount / 100}
+                        onChange={(val: number) => setAmount(val * 100)}
+                        onClose={() => setShowKeypad(false)}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
-              <button
-                type="button"
-                onClick={() => setShowKeypad(!showKeypad)}
-                disabled={isClosed || isPending}
-                className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow-sm transition-all hover:bg-gray-50 hover:text-blue-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-                title="キーパッドで入力"
-              >
-                <Calculator className="h-5 w-5" />
-              </button>
-
-              {showKeypad && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowKeypad(false)} />
-                  <div className="absolute bottom-12 left-0 z-50">
-                    <NumericKeypad
-                      value={amount / 100}
-                      onChange={(val: number) => setAmount(val * 100)}
-                      onClose={() => setShowKeypad(false)}
-                    />
-                  </div>
-                </>
-              )}
             </div>
           </div>
-          <div className="text-sm">
-            <span className="text-gray-500">合計:</span>
-            <span className="ml-2 text-xl font-bold">{totalAmount.toLocaleString()}円</span>
+
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between lg:justify-end">
+            <div className="flex flex-col items-center gap-1 sm:items-end">
+              <span className="text-sm font-bold text-gray-400">投票可能残高</span>
+              <span className="text-sm font-bold text-gray-600">{balance.toLocaleString()}円</span>
+            </div>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isClosed || isPending || betCount === 0 || totalAmount > balance}
+              className="h-12 w-full font-black sm:w-48"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  購入中...
+                </>
+              ) : (
+                '購入確定'
+              )}
+            </Button>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400">残高: {balance.toLocaleString()}円</span>
-          <Button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isClosed || isPending || betCount === 0 || totalAmount > balance}
-            className="w-40 font-bold"
-          >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 inline h-4 w-4 animate-spin" />
-                購入中...
-              </>
-            ) : (
-              '購入確定'
-            )}
-          </Button>
         </div>
       </div>
     </div>

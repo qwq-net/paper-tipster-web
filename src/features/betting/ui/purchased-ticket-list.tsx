@@ -27,8 +27,11 @@ interface PurchasedTicketListProps {
 export function PurchasedTicketList({ tickets }: PurchasedTicketListProps) {
   if (tickets.length === 0) {
     return (
-      <div className="py-10 text-center text-gray-500">
-        <p>購入した馬券はありません</p>
+      <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/30 py-12 text-center shadow-sm">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+          <span className="text-xl">🎫</span>
+        </div>
+        <p className="text-sm font-bold text-gray-400">購入した馬券はありません</p>
       </div>
     );
   }
@@ -53,7 +56,7 @@ export function PurchasedTicketList({ tickets }: PurchasedTicketListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div>
           <div className="mb-1 text-sm font-bold text-gray-500">購入合計</div>
           <div className="text-xl font-black text-gray-900">{totalAmount.toLocaleString()}円</div>
@@ -72,7 +75,7 @@ export function PurchasedTicketList({ tickets }: PurchasedTicketListProps) {
         {tickets.map((ticket) => (
           <div
             key={ticket.id}
-            className="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+            className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
           >
             <div
               className={`absolute top-0 bottom-0 left-0 w-1.5 ${

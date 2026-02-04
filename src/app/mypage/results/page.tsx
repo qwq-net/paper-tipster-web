@@ -12,8 +12,8 @@ export default async function ResultsPage() {
   }
 
   return (
-    <div className="flex flex-col items-center p-4">
-      <div className="w-full max-w-4xl space-y-8">
+    <div className="flex flex-col items-center p-4 lg:p-8">
+      <div className="w-full max-w-5xl space-y-8">
         <div className="flex items-center gap-4">
           <Link href="/mypage" className="flex items-center gap-1 text-sm font-black text-gray-500 hover:text-gray-900">
             <ChevronLeft size={16} />

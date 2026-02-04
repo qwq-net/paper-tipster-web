@@ -3,7 +3,8 @@
 import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
 import { PayoutResult, useRaceResults } from '@/features/betting/lib/hooks/use-race-results';
 import { PayoutResultModal } from '@/features/betting/ui/payout-result-modal';
-import { Loader2, WifiOff } from 'lucide-react';
+import { Badge, Button, LiveConnectionStatus } from '@/shared/ui';
+import { Loader2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 interface StandbyClientProps {
@@ -13,10 +14,14 @@ interface StandbyClientProps {
     location: string;
     date: string;
     closingAt: Date | null;
+    raceNumber?: number | null;
+    surface: string;
+    distance: number;
   };
   initialResults?: PayoutResult[];
   isFinalized: boolean;
   hasTickets?: boolean;
+  entryCount: number;
 }
 
 export function StandbyClient({
@@ -24,6 +29,7 @@ export function StandbyClient({
   initialResults = [],
   isFinalized: initialIsFinalized,
   hasTickets,
+  entryCount,
 }: StandbyClientProps) {
   const [showModal, setShowModal] = useState(false);
 
@@ -42,9 +48,8 @@ export function StandbyClient({
 
   return (
     <>
-      {}
-      <div className="mb-8 flex items-center justify-between">
-        <div className="space-y-2">
+      <div className="mb-8 flex items-center justify-between border-b border-gray-100 pb-8">
+        <div className="space-y-4">
           <div className="flex items-center gap-3">
             <span
               className={`rounded px-2 py-0.5 text-sm font-bold text-white ${
@@ -53,65 +58,76 @@ export function StandbyClient({
             >
               {initialIsFinalized ? '確定済み' : '待機中'}
             </span>
-            <span className="text-sm font-medium text-gray-400">
-              {race.location} {race.name}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-500">{race.location}</span>
+              {race.raceNumber && (
+                <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-bold text-gray-600">
+                  {race.raceNumber}R
+                </span>
+              )}
+            </div>
           </div>
-          <h1 className="text-2xl font-black text-gray-900">
-            {initialIsFinalized ? 'レース結果' : '結果発表を待機中'}
-          </h1>
+          <div>
+            <h1 className="text-3xl font-black text-gray-900">{initialIsFinalized ? race.name : '結果発表を待機中'}</h1>
+            <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
+              <span>{race.surface}</span>
+              <span className="h-1 w-1 rounded-full bg-gray-300" />
+              <span>{race.distance}m</span>
+              <span className="h-1 w-1 rounded-full bg-gray-300" />
+              <span>{entryCount}頭</span>
+            </div>
+          </div>
         </div>
 
-        {initialIsFinalized && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-blue-700 active:scale-95"
-          >
-            払戻結果を詳しく表示
-          </button>
+        {initialIsFinalized && hasTickets && (
+          <Button onClick={() => setShowModal(true)} variant="primary" className="px-6 font-bold">
+            払戻結果を確認
+          </Button>
         )}
       </div>
 
       {!initialIsFinalized && !hasTickets && (
-        <div className="mb-8 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 px-6 py-12 text-center">
-          <div className="mb-4 flex justify-center">
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-              <Loader2 className="h-8 w-8 animate-spin" />
-              <div className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-20"></div>
+        <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-100 bg-linear-to-r from-blue-50 to-white px-6 py-4">
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+              <span className="text-sm font-bold text-blue-600">確定待ち</span>
             </div>
           </div>
-          <h2 className="mb-2 text-xl font-bold text-gray-900">レースの確定を待っています</h2>
-          <p className="text-sm text-gray-500">
-            購入した馬券はありませんが、確定後に結果（払戻金等）の確認が可能です。
-            <br />
-            発表されるまでこの画面のままお待ちください。
-          </p>
+          <div className="p-6">
+            <h2 className="mb-2 text-lg font-bold text-gray-900">レースの確定を待っています</h2>
+            <p className="text-sm leading-relaxed text-gray-600">
+              購入した馬券はありませんが、発表されるまでこの画面のままお待ちください。
+              確定後に結果（払戻金等）の確認が可能です。
+            </p>
+          </div>
         </div>
       )}
 
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-sm">
-        {connectionStatus === 'CONNECTED' && (
-          <>
-            <div className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500"></span>
+      {initialIsFinalized && !hasTickets && (
+        <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white px-6 py-4">
+            <div className="flex items-center gap-2 text-gray-500">
+              <Badge variant="status" label="情報" className="bg-gray-100 text-gray-600" />
+              <span className="text-sm font-bold">結果発表済み</span>
             </div>
-            <span className="text-green-400">LIVE CONNECTION</span>
-          </>
-        )}
-        {connectionStatus === 'CONNECTING' && (
-          <>
-            <Loader2 className="h-3 w-3 animate-spin text-yellow-500" />
-            <span className="text-yellow-500">CONNECTING...</span>
-          </>
-        )}
-        {connectionStatus === 'DISCONNECTED' && !initialIsFinalized && (
-          <>
-            <WifiOff className="h-3 w-3 text-red-500" />
-            <span className="text-red-500">CONNECTION LOST</span>
-          </>
-        )}
-        {initialIsFinalized && <span className="text-gray-400">RACE FINISHED</span>}
+          </div>
+          <div className="p-6">
+            <h2 className="mb-2 text-lg font-bold text-gray-900">このレースの結果が発表されました</h2>
+            <p className="text-sm leading-relaxed text-gray-600">
+              購入した馬券はありませんが、下のボタンから払戻結果のなどの詳細情報を確認いただけます。
+            </p>
+            <div className="mt-6 flex justify-center">
+              <Button onClick={() => setShowModal(true)} variant="primary" className="w-full px-8 font-bold sm:w-auto">
+                払戻結果を確認する
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
+        <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
       </div>
 
       <PayoutResultModal

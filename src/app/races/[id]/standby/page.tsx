@@ -82,26 +82,29 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
   });
 
   return (
-    <div className="mx-auto max-w-3xl p-4 lg:p-8">
-      <Link
-        href={`/races/${id}`}
-        className="mb-6 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-      >
-        <ChevronLeft size={16} />
-        レース画面へ戻る
-      </Link>
+    <div className="flex flex-col items-center p-4 lg:p-8">
+      <div className="w-full max-w-5xl space-y-8">
+        <Link
+          href={`/races/${id}`}
+          className="mb-6 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
+        >
+          <ChevronLeft size={16} />
+          レース画面へ戻る
+        </Link>
 
-      <StandbyClient
-        race={{
-          ...race,
-          closingAt: race.closingAt,
-        }}
-        isFinalized={isFinalized}
-        initialResults={initialResults}
-        hasTickets={tickets.length > 0}
-      />
+        <StandbyClient
+          race={{
+            ...race,
+            closingAt: race.closingAt,
+          }}
+          isFinalized={isFinalized}
+          initialResults={initialResults}
+          hasTickets={tickets.length > 0}
+          entryCount={entries.length}
+        />
 
-      <PurchasedTicketList tickets={tickets} />
+        <PurchasedTicketList tickets={tickets} />
+      </div>
     </div>
   );
 }

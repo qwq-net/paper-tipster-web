@@ -1,5 +1,6 @@
 'use server';
 
+import { signOut } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { guestCodes, users } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
@@ -50,4 +51,8 @@ export async function validateGuestRegistration(code: string, username: string) 
   }
 
   return { success: true };
+}
+
+export async function logout() {
+  await signOut({ redirectTo: '/login' });
 }

@@ -1,5 +1,6 @@
-export const HORSE_GENDERS = ['牡', '牝', 'セン'] as const;
-export type HorseGender = (typeof HORSE_GENDERS)[number];
+import { HORSE_GENDERS, HORSE_ORIGINS, HORSE_TAG_TYPES, HORSE_TYPES } from '../constants/horse';
 
-export const HORSE_ORIGINS = ['DOMESTIC', 'FOREIGN_BRED', 'FOREIGN_TRAINED'] as const;
+export type HorseGender = (typeof HORSE_GENDERS)[number];
 export type HorseOrigin = (typeof HORSE_ORIGINS)[number];
+export type HorseType = (typeof HORSE_TYPES)[number];
+export type HorseTagType = (typeof HORSE_TAG_TYPES)[number];

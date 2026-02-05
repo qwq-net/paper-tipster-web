@@ -1,6 +1,6 @@
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { races, wallets } from '@/shared/db/schema';
+import { raceInstances, wallets } from '@/shared/db/schema';
 import { Badge, Card } from '@/shared/ui';
 import { desc, eq } from 'drizzle-orm';
 import { ChevronLeft, Wallet, Zap } from 'lucide-react';
@@ -22,8 +22,8 @@ export default async function SokupatPage() {
   }
 
   const [allRaces, userWallets] = await Promise.all([
-    db.query.races.findMany({
-      orderBy: [desc(races.date)],
+    db.query.raceInstances.findMany({
+      orderBy: [desc(raceInstances.date)],
       with: {
         event: true,
         entries: true,
@@ -78,7 +78,7 @@ export default async function SokupatPage() {
             <Zap size={28} />
           </div>
           <div>
-            <h1 className="text-3xl font-semibold text-gray-900">即PAT</h1>
+            <h1 className="text-3xl font-semibold text-gray-900">即BET</h1>
             <p className="text-gray-500">開催中のレースを選択して、馬券を購入しましょう。</p>
           </div>
         </div>

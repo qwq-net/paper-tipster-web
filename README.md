@@ -1,11 +1,11 @@
-# Japan Ranranru Racing Association (JRRA)
+# Paper Tipster
 
 ## 概要
 
 Winning Post等のプレイデータを元に、仲間内で仮想的な競馬・馬券遊びを行うためのWebアプリケーションです。
-Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js + PostgreSQLで構築されています。
+Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構築されています。
 
-## 機能
+## 主要機能
 
 - **ユーザー**: Discordログイン、イベント参加、馬券購入（単勝〜3連単）、リアルタイム結果確認
 - **管理者**: イベント・レース・馬の管理、レース進行（着順・配当確定）
@@ -15,6 +15,7 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js + Postgr
 - **Framework**: Next.js 15+ (App Router)
 - **Database**: PostgreSQL
 - **ORM**: Drizzle ORM
+- **Session**: Redis
 - **Styling**: Tailwind CSS v4
 - **Auth**: Auth.js (Discord OAuth)
 - **Infrastructure**: Docker Compose

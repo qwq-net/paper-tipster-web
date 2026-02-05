@@ -1,5 +1,6 @@
 'use client';
 
+import { VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
 import { toJSTString } from '@/shared/utils/date';
 import { Calendar } from 'lucide-react';
@@ -12,26 +13,89 @@ interface RaceFormProps {
     id: string;
     eventId: string;
     date: string;
-    location: string;
     name: string;
     raceNumber?: number | null;
     distance: number;
     surface: '芝' | 'ダート';
     condition: '良' | '稍重' | '重' | '不良' | null;
     closingAt?: Date | string | null;
+    venueId?: string;
+    raceDefinitionId?: string | null;
+    direction?: string | null;
   };
   events: Array<{ id: string; name: string; date: string }>;
+  raceDefinitions?: Array<{
+    id: string;
+    name: string;
+    grade: string;
+    defaultDistance: number;
+    defaultSurface: string;
+    defaultVenueId: string;
+    defaultDirection: string;
+  }>;
+  venues?: Array<{ id: string; name: string; defaultDirection: string }>;
   onSuccess?: () => void;
   showClosingAt?: boolean;
 }
 
-export function RaceForm({ initialData, events, onSuccess, showClosingAt = false }: RaceFormProps) {
+const DIRECTION_LABELS: Record<string, string> = {
+  LEFT: '左回り',
+  RIGHT: '右回り',
+  STRAIGHT: '直線',
+  OTHER: 'その他',
+};
+
+export function RaceForm({
+  initialData,
+  events,
+  raceDefinitions = [],
+  venues = [],
+  onSuccess,
+  showClosingAt = false,
+}: RaceFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [eventId, setEventId] = useState(initialData?.eventId || events[0]?.id || '');
   const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
   const [surface, setSurface] = useState(initialData?.surface || '芝');
   const [condition, setCondition] = useState(initialData?.condition || '良');
   const [closingAt, setClosingAt] = useState(toJSTString(initialData?.closingAt));
+
+  const [raceDefinitionId, setRaceDefinitionId] = useState(initialData?.raceDefinitionId || '');
+  const [venueId, setVenueId] = useState(initialData?.venueId || '');
+  const [direction, setDirection] = useState(initialData?.direction || '');
+  const [name, setName] = useState(initialData?.name || '');
+  const [distance, setDistance] = useState(initialData?.distance || 2400);
+
+  const handleDefinitionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const defId = e.target.value;
+    setRaceDefinitionId(defId);
+
+    const def = raceDefinitions.find((d) => d.id === defId);
+    if (def) {
+      setName(def.name);
+      setDistance(def.defaultDistance);
+      setSurface(def.defaultSurface as '芝' | 'ダート');
+
+      if (def.defaultVenueId) {
+        setVenueId(def.defaultVenueId);
+        if (def.defaultDirection) {
+          setDirection(def.defaultDirection);
+        } else {
+          const venue = venues.find((v) => v.id === def.defaultVenueId);
+          if (venue) setDirection(venue.defaultDirection);
+        }
+      }
+    }
+  };
+
+  const handleVenueChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const vId = e.target.value;
+    setVenueId(vId);
+    if (!direction || !initialData) {
+      const venue = venues.find((v) => v.id === vId);
+      if (venue) setDirection(venue.defaultDirection);
+    }
+  };
 
   async function handleSubmit(formData: FormData) {
     try {
@@ -45,6 +109,12 @@ export function RaceForm({ initialData, events, onSuccess, showClosingAt = false
         setDate(new Date().toISOString().split('T')[0]);
         setSurface('芝');
         setCondition('良');
+        setRaceDefinitionId('');
+        setVenueId('');
+        setDirection('');
+        setName('');
+        setDistance(2400);
+
         toast.success('レースを登録しました');
       }
       onSuccess?.();
@@ -87,23 +157,66 @@ export function RaceForm({ initialData, events, onSuccess, showClosingAt = false
         </div>
 
         <div>
-          <Label>開催場所</Label>
-          <div className="relative">
-            <Input
-              name="location"
-              type="text"
-              required
-              defaultValue={initialData?.location}
-              className="pl-9"
-              placeholder="例: 東京"
-            />
-          </div>
+          <Label>レース定義 (マスタから選択)</Label>
+          <Select name="raceDefinitionId" value={raceDefinitionId} onChange={handleDefinitionChange}>
+            <option value="">選択なし (手動入力)</option>
+            {raceDefinitions.map((def) => (
+              <option key={def.id} value={def.id}>
+                {def.name} ({def.grade})
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>開催会場</Label>
+          <Select name="venueId" required value={venueId} onChange={handleVenueChange}>
+            <option value="" disabled>
+              会場を選択
+            </option>
+            {venues.map((venue) => (
+              <option key={venue.id} value={venue.id}>
+                {venue.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <div>
+          <Label>方向</Label>
+          <Select name="direction" required value={direction} onChange={(e) => setDirection(e.target.value)}>
+            <option value="" disabled>
+              方向を選択
+            </option>
+            {VENUE_DIRECTIONS.map((dir) => (
+              <option key={dir} value={dir}>
+                {DIRECTION_LABELS[dir]}
+              </option>
+            ))}
+          </Select>
+          <p className="mt-1 text-sm text-gray-500">
+            {venueId
+              ? '会場のデフォルト: ' +
+                (venues.find((v) => v.id === venueId)?.defaultDirection
+                  ? DIRECTION_LABELS[venues.find((v) => v.id === venueId)!.defaultDirection]
+                  : '-')
+              : '会場を選択してください'}
+          </p>
         </div>
       </div>
 
       <div>
         <Label>レース名</Label>
-        <Input name="name" type="text" required defaultValue={initialData?.name} placeholder="例: ジャパンカップ" />
+        <Input
+          name="name"
+          type="text"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="例: ジャパンカップ"
+        />
       </div>
 
       <div>
@@ -126,7 +239,8 @@ export function RaceForm({ initialData, events, onSuccess, showClosingAt = false
             type="number"
             min="100"
             required
-            defaultValue={initialData?.distance}
+            value={distance}
+            onChange={(e) => setDistance(Number(e.target.value))}
             placeholder="2400"
           />
         </div>

@@ -3,12 +3,14 @@
 import { LogoutButton } from '@/features/auth/ui/logout-button';
 import { cn } from '@/shared/utils/cn';
 import {
+  BookOpen,
   Calendar,
   Carrot,
   ClipboardList,
   ExternalLink,
   Key,
   LayoutDashboard,
+  MapPin,
   Menu,
   Ticket,
   Trophy,
@@ -29,12 +31,15 @@ interface AdminSidebarProps {
 
 const NAV_ITEMS = [
   { label: 'ダッシュボード', href: '/admin', icon: LayoutDashboard },
-  { label: 'ユーザー管理', href: '/admin/users', icon: Users },
-  { label: 'ゲストコード管理', href: '/admin/users/guests', icon: Key },
-  { label: 'イベント管理', href: '/admin/events', icon: Calendar },
+  { label: '競馬場管理', href: '/admin/venues', icon: MapPin },
+  { label: '馬タグ管理', href: '/admin/horse-tags', icon: ClipboardList },
   { label: '馬管理', href: '/admin/horses', icon: Carrot },
+  { label: 'レース定義管理', href: '/admin/race-definitions', icon: BookOpen },
+  { label: 'イベント管理', href: '/admin/events', icon: Calendar },
   { label: 'レース管理', href: '/admin/races', icon: Trophy },
   { label: '出走馬管理', href: '/admin/entries', icon: ClipboardList },
+  { label: 'ユーザー管理', href: '/admin/users', icon: Users },
+  { label: 'ゲストコード管理', href: '/admin/users/guests', icon: Key },
   { label: '馬券管理', href: '/admin/bets', icon: Ticket },
 ];
 
@@ -56,7 +61,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         <div className="flex items-center justify-between">
           <div className="text-secondary flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6" />
-            <span className="text-lg font-semibold">JRRA Admin</span>
+            <span className="text-lg font-semibold">Paper Tipster Admin</span>
           </div>
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -81,11 +86,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         <div className="border-b border-gray-800 p-6">
           <div className="text-primary flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6" />
-            <h1 className="text-xl font-semibold tracking-tight text-white">JRRA Admin</h1>
+            <h1 className="text-xl font-semibold tracking-tight text-white">PT Admin</h1>
           </div>
-          <p className="mt-2 text-sm font-medium tracking-wider text-gray-400 uppercase">
-            Japan Ranranru Racing Association
-          </p>
+          <p className="mt-2 text-sm font-medium tracking-wider text-gray-400 uppercase">Paper Tipster Admin</p>
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-4">
@@ -136,7 +139,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             )}
             <div className="flex flex-col overflow-hidden">
               <span className="truncate text-sm leading-none font-semibold text-white">{user.name}</span>
-              <span className="mt-1 text-sm text-gray-400">Administrator</span>
+              <span className="mt-1 text-sm text-gray-400">管理者</span>
             </div>
           </div>
           <LogoutButton

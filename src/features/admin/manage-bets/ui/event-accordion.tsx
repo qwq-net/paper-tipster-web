@@ -8,7 +8,7 @@ interface Race {
   id: string;
   name: string;
   raceNumber: number | null;
-  location: string;
+  location: string | null;
   distance: number;
   surface: string;
   date: string;

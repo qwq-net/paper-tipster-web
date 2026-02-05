@@ -18,9 +18,9 @@ FSDは、アプリケーションを「レイヤー（Layers）」、「スラ�
     - _依存ルール_: すべての下位レイヤーを使用可能。
 2.  **(Pages)**: Next.js App Routerでは `src/app` がこの役割を兼ねます。各ページごとの構成。
 3.  **Widgets (`src/widgets`)**: 複数のFeatureやEntityを組み合わせた独立したUIブロック（例: Header, Sidebar）。
-4.  **Features (`src/features`)**: ユーザーにとって価値のある**機能・アクション**（例: ログイン、いいね、カート追加）。
-5.  **Entities (`src/entities`)**: ビジネスドメインの**データモデル・表示**（例: User, Product, Order）。
-6.  **Shared (`src/shared`)**: 特定のドメインに依存しない共通コード（UIキット、APIクライアント、設定）。
+4.  **Features (`src/features`)**: ユーザーにとって価値のある**機能・アクション**（例: ログイン、馬券購入、管理者による着順確定）。
+5.  **Entities (`src/entities`)**: ビジネスドメインの**データモデル・表示**（例: ユーザー、競走馬、競馬場、レース）。
+6.  **Shared (`src/shared`)**: 特定のドメインに依存しない共通コード（UIキット、APIクライアント、設定、DB接続）。
     - _依存ルール_: どのレイヤーにも依存してはいけない（最下層）。
 
 ---
@@ -34,51 +34,48 @@ FSDは、アプリケーションを「レイヤー（Layers）」、「スラ�
 Next.jsのApp Router規約に基づくディレクトリです。FSDの「App」と「Pages」の役割を担います。
 
 - **役割**: ルーティング定義、レイアウト、ページ全体の組み立て。
-- **設計意図**: ここには「複雑なロジック」を書かず、下位レイヤー（Features/Entities）から部品をインポートして配置するだけに留めます。これにより、フレームワーク（Next.js）への依存をこの層だけに閉じ込めやすくなります。
-- **例**: `layout.tsx`, `login/page.tsx`
+- **設計意図**: ここには「複雑なロジック」を書かず、下位レイヤー（Features/Entities）から部品をインポートして配置するだけに留めます。
+- **例**: `admin/venues/page.tsx` (競馬場管理ページ)
 
 ### 2. `src/widgets` (Widgets Layer)
 
 - **役割**: ページ内で使われる大きなUIブロック。
-- **現状**: まだ空ですが、将来的に「ヘッダー（ロゴ＋ナビ＋ログアウトボタン）」のようなコンポーネントが出来たらここに配置します。
+- **現状**: `AdminSidebar` のように、複数の機能やEntityを横断して管理画面を構成する共通パーツ。
 
 ### 3. `src/features` (Features Layer)
 
 - **役割**: **「ユーザーが実行するアクション」** を伴う機能モジュール。
 - **配置したもの**:
-  - **Auth**: `login-button`, `logout-button`
-- **なぜここか？**: 「ログインする」「ログアウトする」というのは、単なる表示ではなく**機能（アクション）**だからです。ボタンの見た目だけでなく、クリック時の振る舞い（Server Action呼び出しなど）を含めてカプセル化します。
+  - `auth`: ログイン・ログアウト処理
+  - `betting`: 馬券購入ロジックと購入アクション
+  - `admin/manage-venues`: 競馬場マスタの編集・登録アクション
+  - `admin/manage-races`: レースの作成・着順確定アクション
+  - `admin/manage-users`: ユーザー・ゲスト・権限管理
+  - `admin/guest-codes`: ゲストコード発行・管理
+  - `admin/manage-events`: イベント管理
+  - `admin/manage-horses`: 競走馬管理
+  - `admin/manage-horse-tags`: 馬タグ管理
+  - `admin/manage-entries`: 出走登録・枠順管理
+  - `admin/manage-bets`: 馬券管理（全馬券の参照）
+- **なぜここか？**: これらのアクションはビジネスロジックの中核であり、単なるデータの表示を超えた「振る舞い」をカプセル化するためです。
 
 ### 4. `src/entities` (Entities Layer)
 
 - **役割**: ビジネスデータの**「表示」** やデータの型定義。
 - **配置したもの**:
-  - **User**: `user-profile`
-- **なぜここか？**: 「ユーザー情報」はビジネスの中心となる実体（Entity）です。ここでは「ユーザーがどう表示されるか（UI）」や「ユーザーデータの型」を管理します。アクション（更新など）はFeatureに移譲することが多いですが、単なる表示はEntityの責務です。
+  - `user`: ユーザープロフィール表示
+  - `horse`: 競走馬のステータス表示
+  - `race`: レース情報の表示用コンポーネント
+- **なぜここか？**: 競馬システムにおいて「馬」や「レース」は中心的な実体（Entity）です。ここではそれらがUI上でどのように表現されるかを管理します。
 
 ### 5. `src/shared` (Shared Layer)
 
 - **役割**: プロジェクト全体で使われる、再利用性の高い部品や設定。
 - **配置したもの**:
-  - `ui/button.tsx`: 特定の機能（ログインなど）に紐付かない、汎用的なボタン。
-  - `config/auth.ts`: NextAuthの設定。これはアプリの「インフラ」設定なのでSharedです。
-  - `db/*`: データベース接続。これもインフラ層なのでSharedです。
-- **なぜここか？**: これらは `features/auth` や `entities/user` など、あらゆる場所から呼ばれる可能性があるため、最下層のSharedに置く必要があります。
-
----
-
-## 具体的なコードの流れ（依存関係）
-
-```
-src/app/login/page.tsx (Page)
-  ↓ imports
-src/features/auth/index.ts (Feature)
-  ↓ imports
-src/shared/ui/button.tsx (Shared)
-```
-
-このように、常に **App -> Feature -> Shared** という一方向の流れを守ることで、コードがスパゲッティ化するのを防ぎます。
-仮に `src/shared` から `src/features` をimportしようとすると、それはアーキテクチャ違反（循環参照の元）となります。
+  - `ui/`: shadcn/uiベースの共通コンポーネント
+  - `db/schema.ts`: データベーススキーマ定義
+  - `constants/`: 競馬場（Venue）や格付け（Grade）の定数
+- **なぜここか？**: これらはあらゆる場所から呼ばれる可能性があるため、最下層のSharedに置く必要があります。
 
 ---
 
@@ -95,6 +92,6 @@ src/shared/ui/button.tsx (Shared)
 
 ### UI標準化とFSDの適用
 
-- **Shared UI**: `src/shared/ui` 配下のコンポーネント（Button, Badge, Dialog等）を全機能で統一的に使用。
-- **即PAT (Sokupat)**: 即時投票に特化したカード型UIを採用し、情報を簡略化して視認性を向上。
-- **Admin UI**: Native HTML要素を排し、Shared UIコンポーネントのみで構築することでデザインの一貫性を担保。
+- **Shared UI**: `src/shared/ui` 配下のコンポーネントのみで構築することでデザインの一貫性を担保。
+- **即BET (Soku-BET)**: 即時投票に特化したカード型UIを採用し、競馬場・レース番号・条件を高い視認性で表示。
+- **Terminology Sync**: 「会場」という一般的・曖昧な表現を「競馬場」という競馬専門用語に統一し、プロダクトの専門性を向上。

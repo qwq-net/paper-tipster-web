@@ -9,7 +9,7 @@ export async function getEventsWithRaces() {
     orderBy: (events, { desc }) => [desc(events.date)],
     with: {
       races: {
-        orderBy: (races, { asc }) => [asc(races.raceNumber)],
+        orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber)],
         with: {
           entries: true,
         },
@@ -29,8 +29,8 @@ export async function getBetsByRace(raceId: string) {
 }
 
 export async function getRaceWithBets(raceId: string) {
-  return db.query.races.findFirst({
-    where: (races, { eq }) => eq(races.id, raceId),
+  return db.query.raceInstances.findFirst({
+    where: (raceInstances, { eq }) => eq(raceInstances.id, raceId),
     with: {
       event: true,
     },

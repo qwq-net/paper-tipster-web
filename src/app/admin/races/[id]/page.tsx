@@ -128,7 +128,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 id: race.id,
                 eventId: race.eventId,
                 date: race.date,
-                location: race.location,
+                location: race.location ?? '',
                 name: race.name,
                 raceNumber: race.raceNumber,
                 status: race.status,

@@ -1,12 +1,15 @@
+import { Role } from '@/entities/user';
 import { DefaultSession, DefaultUser } from 'next-auth';
 
 declare module 'next-auth' {
-  interface Session {
-    user: {
-      id: string;
-      role: Role;
-      isOnboardingCompleted: boolean;
-    } & DefaultSession['user'];
+  interface Session extends DefaultSession {
+    user:
+      | ({
+          id: string;
+          role: Role;
+          isOnboardingCompleted: boolean;
+        } & DefaultSession['user'])
+      | null;
   }
 
   interface User extends DefaultUser {

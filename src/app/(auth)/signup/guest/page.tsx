@@ -12,14 +12,12 @@ import { useState } from 'react';
 
 export default function GuestSignupPage() {
   const router = useRouter();
-  // ... (useState hooks remain same)
   const [username, setUsername] = useState('');
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // ... (handlers remain same)
   const handleEmojiClick = (emoji: string) => {
     if ([...password].length >= 6) return;
     setPassword((prev) => prev + emoji);
@@ -36,7 +34,6 @@ export default function GuestSignupPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    // ... (handleSubmit content remains same)
     e.preventDefault();
     if (!username || !code || !password) {
       setError('すべての項目を入力してください');

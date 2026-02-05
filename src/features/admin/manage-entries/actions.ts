@@ -2,7 +2,7 @@
 
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { horses, raceEntries, races } from '@/shared/db/schema';
+import { horses, raceEntries, raceInstances } from '@/shared/db/schema';
 import { calculateBracketNumber } from '@/shared/utils/bracket';
 import { eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -16,28 +16,28 @@ export async function getEntries() {
       jockey: raceEntries.jockey,
       weight: raceEntries.weight,
       status: raceEntries.status,
-      raceId: races.id,
-      raceDate: races.date,
-      raceLocation: races.location,
-      raceName: races.name,
+      raceId: raceInstances.id,
+      raceDate: raceInstances.date,
+      raceLocation: raceInstances.location,
+      raceName: raceInstances.name,
       horseName: horses.name,
       horseGender: horses.gender,
     })
     .from(raceEntries)
-    .innerJoin(races, eq(raceEntries.raceId, races.id))
+    .innerJoin(raceInstances, eq(raceEntries.raceId, raceInstances.id))
     .innerJoin(horses, eq(raceEntries.horseId, horses.id))
-    .orderBy(races.date, races.name, raceEntries.horseNumber);
+    .orderBy(raceInstances.date, raceInstances.name, raceEntries.horseNumber);
 
   return entries;
 }
 
 export async function getRacesForSelect() {
-  const allRaces = await db.query.races.findMany({
-    where: eq(races.status, 'SCHEDULED'),
+  const allRaces = await db.query.raceInstances.findMany({
+    where: eq(raceInstances.status, 'SCHEDULED'),
     with: {
       event: true,
     },
-    orderBy: (races, { asc }) => [asc(races.date), asc(races.name)],
+    orderBy: (raceInstances, { asc }) => [asc(raceInstances.date), asc(raceInstances.name)],
   });
 
   const eventsMap = new Map<
@@ -50,7 +50,7 @@ export async function getRacesForSelect() {
         id: string;
         name: string;
         raceNumber: number | null;
-        location: string;
+        location: string | null;
         date: string;
       }>;
     }
@@ -82,8 +82,8 @@ export async function getHorsesForSelect() {
 }
 
 export async function getRaceById(raceId: string) {
-  return db.query.races.findFirst({
-    where: eq(races.id, raceId),
+  return db.query.raceInstances.findFirst({
+    where: eq(raceInstances.id, raceId),
     with: {
       event: true,
     },

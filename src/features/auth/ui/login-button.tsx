@@ -10,7 +10,7 @@ export function LoginButton() {
       }}
     >
       <Button type="submit" className="bg-[#5865F2] text-white hover:bg-[#4752C4]">
-        Login with Discord
+        Discordでログイン
       </Button>
     </form>
   );

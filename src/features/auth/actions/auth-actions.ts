@@ -32,7 +32,6 @@ export async function validateGuestRegistration(code: string, username: string) 
   const ipLock = await checkIpLockStatus();
   if (ipLock.isLocked) return { error: 'RateLimitExceeded', remainingMinutes: ipLock.remainingMinutes };
 
-  // Check code
   const guestCode = await db.query.guestCodes.findFirst({
     where: eq(guestCodes.code, code),
   });
@@ -41,7 +40,6 @@ export async function validateGuestRegistration(code: string, username: string) 
     return { error: 'InvalidGuestCode' };
   }
 
-  // Check username
   const existingUser = await db.query.users.findFirst({
     where: eq(users.name, username),
   });

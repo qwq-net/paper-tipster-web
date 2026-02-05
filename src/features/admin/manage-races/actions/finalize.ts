@@ -2,7 +2,7 @@
 
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { bets, raceEntries, races } from '@/shared/db/schema';
+import { bets, raceEntries, raceInstances } from '@/shared/db/schema';
 import { calculatePayoutRate, Finisher, isWinningBet } from '@/shared/utils/payout';
 import { BetDetail } from '@/types/betting';
 import { eq } from 'drizzle-orm';
@@ -154,11 +154,11 @@ export async function finalizeRace(
     }
 
     await tx
-      .update(races)
+      .update(raceInstances)
       .set({
         status: 'CLOSED',
       })
-      .where(eq(races.id, raceId));
+      .where(eq(raceInstances.id, raceId));
   });
 
   revalidatePath('/admin/races');

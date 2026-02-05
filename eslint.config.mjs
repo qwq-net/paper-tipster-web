@@ -35,6 +35,46 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  {
+    plugins: {
+      local: {
+        rules: {
+          'no-comments': {
+            create(context) {
+              const sourceCode = context.getSourceCode();
+              return {
+                Program() {
+                  const comments = sourceCode.getAllComments();
+                  comments.forEach((comment) => {
+                    const text = comment.value.trim();
+                    if (
+                      !text.startsWith('@ts-expect-error') &&
+                      !text.startsWith('@ts-ignore') &&
+                      !text.startsWith('@ts-nocheck') &&
+                      !text.startsWith('@ts-check') &&
+                      !text.startsWith('eslint-disable') &&
+                      !text.startsWith('eslint-enable') &&
+                      !text.startsWith('eslint-env') &&
+                      !text.startsWith('prettier-ignore') &&
+                      !text.includes('id:')
+                    ) {
+                      context.report({
+                        node: comment,
+                        message: 'Comments are not allowed. Please remove this comment.',
+                      });
+                    }
+                  });
+                },
+              };
+            },
+          },
+        },
+      },
+    },
+    rules: {
+      'local/no-comments': 'error',
+    },
+  },
 ]);
 
 export default eslintConfig;

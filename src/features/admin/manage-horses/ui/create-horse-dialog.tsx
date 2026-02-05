@@ -1,5 +1,6 @@
 'use client';
 
+import { HorseTagType } from '@/shared/constants/horse-tags';
 import {
   Button,
   Dialog,
@@ -13,7 +14,11 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { HorseForm } from './horse-form';
 
-export function CreateHorseDialog() {
+export function CreateHorseDialog({
+  tagOptions,
+}: {
+  tagOptions: Array<{ id: string; type: HorseTagType; content: string }>;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -31,7 +36,7 @@ export function CreateHorseDialog() {
         </DialogHeader>
 
         <div className="mt-2">
-          <HorseForm onSuccess={() => setOpen(false)} />
+          <HorseForm tagOptions={tagOptions} onSuccess={() => setOpen(false)} />
         </div>
       </DialogContent>
     </Dialog>

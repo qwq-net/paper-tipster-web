@@ -244,8 +244,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
 
           if (!freshUser || freshUser.disabledAt) {
-            // @ts-expect-error Session user can be null if validation fails
-            session.user = null;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (session as any).user = null;
             return session;
           }
 

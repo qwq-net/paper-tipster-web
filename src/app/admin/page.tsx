@@ -1,8 +1,19 @@
 import { db } from '@/shared/db';
-import { bets, events, horses, races, users } from '@/shared/db/schema';
+import { bets, events, horses, raceInstances, users } from '@/shared/db/schema';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
 import { count, sum } from 'drizzle-orm';
-import { ArrowRight, Calendar, Carrot, ClipboardList, Coins, Ticket, TrendingUp, Trophy, Users } from 'lucide-react';
+import {
+  ArrowRight,
+  Calendar,
+  Carrot,
+  ClipboardList,
+  Coins,
+  MapPin,
+  Ticket,
+  TrendingUp,
+  Trophy,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 
 export default async function AdminPage() {
@@ -17,7 +28,7 @@ export default async function AdminPage() {
     db.select({ value: count() }).from(users),
     db.select({ value: count() }).from(events),
     db.select({ value: count() }).from(horses),
-    db.select({ value: count() }).from(races),
+    db.select({ value: count() }).from(raceInstances),
     db.select({ value: sum(bets.amount) }).from(bets),
     db.select({ value: sum(bets.payout) }).from(bets),
   ]);
@@ -100,38 +111,40 @@ export default async function AdminPage() {
           <h2 className="text-secondary text-xl font-semibold">クイックアクション</h2>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Base Masters */}
           <Link
-            href="/admin/users"
+            href="/admin/venues"
             className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
           >
             <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
-                <Users className="h-5 w-5" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 transition-colors group-hover:bg-slate-600 group-hover:text-white">
+                <MapPin className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-secondary font-semibold">ユーザー管理</h4>
-                <p className="text-sm text-gray-500">ユーザー一覧の確認と権限変更</p>
+                <h4 className="text-secondary font-semibold">競馬場管理</h4>
+                <p className="text-sm text-gray-500">競馬場の場所・設定</p>
               </div>
             </div>
-            <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-blue-600" />
+            <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-slate-600" />
           </Link>
 
           <Link
-            href="/admin/events"
+            href="/admin/horse-tags"
             className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
           >
             <div className="flex items-center gap-4">
-              <div className="bg-primary/10 text-primary group-hover:bg-primary flex h-10 w-10 items-center justify-center rounded-lg transition-colors group-hover:text-white">
-                <Calendar className="h-5 w-5" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+                <ClipboardList className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-secondary font-semibold">イベント管理</h4>
-                <p className="text-sm text-gray-500">イベントの追加・編集・確定処理</p>
+                <h4 className="text-secondary font-semibold">馬タグ管理</h4>
+                <p className="text-sm text-gray-500">脚質・特性マスタ</p>
               </div>
             </div>
-            <ArrowRight className="group-hover:text-primary h-5 w-5 text-gray-300 transition-colors" />
+            <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-emerald-600" />
           </Link>
 
+          {/* Core Entities */}
           <Link
             href="/admin/horses"
             className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
@@ -146,6 +159,39 @@ export default async function AdminPage() {
               </div>
             </div>
             <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-amber-600" />
+          </Link>
+
+          <Link
+            href="/admin/race-definitions"
+            className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 text-primary group-hover:bg-primary flex h-10 w-10 items-center justify-center rounded-lg transition-colors group-hover:text-white">
+                <ClipboardList className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-secondary font-semibold">レース定義</h4>
+                <p className="text-sm text-gray-500">重賞名・条件マスタ</p>
+              </div>
+            </div>
+            <ArrowRight className="group-hover:text-primary h-5 w-5 text-gray-300 transition-colors" />
+          </Link>
+
+          {/* Operations */}
+          <Link
+            href="/admin/events"
+            className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 text-primary group-hover:bg-primary flex h-10 w-10 items-center justify-center rounded-lg transition-colors group-hover:text-white">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-secondary font-semibold">イベント管理</h4>
+                <p className="text-sm text-gray-500">イベントの追加・編集・確定処理</p>
+              </div>
+            </div>
+            <ArrowRight className="group-hover:text-primary h-5 w-5 text-gray-300 transition-colors" />
           </Link>
 
           <Link
@@ -178,6 +224,23 @@ export default async function AdminPage() {
               </div>
             </div>
             <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-green-600" />
+          </Link>
+
+          {/* User Management */}
+          <Link
+            href="/admin/users"
+            className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                <Users className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-secondary font-semibold">ユーザー管理</h4>
+                <p className="text-sm text-gray-500">ユーザー一覧の確認と権限変更</p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-blue-600" />
           </Link>
 
           <Link

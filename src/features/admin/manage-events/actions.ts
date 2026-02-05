@@ -83,3 +83,15 @@ export async function updateEventStatus(eventId: string, newStatus: 'SCHEDULED' 
 
   revalidatePath('/admin/events');
 }
+
+export async function deleteEvent(id: string) {
+  const session = await auth();
+  if (session?.user?.role !== 'ADMIN') {
+    throw new Error('認証されていません');
+  }
+
+  // ON DELETE CASCADEの設定により、関連するwallets, racesなども削除される
+  await db.delete(events).where(eq(events.id, id));
+
+  revalidatePath('/admin/events');
+}

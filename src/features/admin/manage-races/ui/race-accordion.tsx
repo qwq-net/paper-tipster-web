@@ -1,7 +1,7 @@
 'use client';
 
 import { useIsMounted } from '@/shared/hooks/use-is-mounted';
-import { RaceCondition, RaceSurface } from '@/shared/types/race';
+import { RaceCondition, RaceDefinition, RaceSurface, Venue } from '@/shared/types/race';
 import { Badge } from '@/shared/ui';
 import * as Accordion from '@radix-ui/react-accordion';
 import { ChevronDown } from 'lucide-react';
@@ -19,20 +19,25 @@ interface RaceAccordionProps {
       id: string;
       name: string;
       raceNumber: number | null;
-      location: string;
+      location: string | null;
       distance: number;
       surface: string;
       condition: string | null;
       status: string;
       closingAt: Date | null;
+      venueId?: string;
+      raceDefinitionId?: string | null;
+      direction?: string | null;
     }>;
   }>;
   allEvents: Array<{ id: string; name: string; date: string }>;
+  raceDefinitions: Array<RaceDefinition>;
+  venues: Array<Venue>;
 }
 
 const STORAGE_KEY = 'race-accordion-open-items';
 
-export function RaceAccordion({ events, allEvents }: RaceAccordionProps) {
+export function RaceAccordion({ events, allEvents, raceDefinitions, venues }: RaceAccordionProps) {
   const isMounted = useIsMounted();
   const [openItems, setOpenItems] = useState<string[]>([]);
 
@@ -135,14 +140,20 @@ export function RaceAccordion({ events, allEvents }: RaceAccordionProps) {
                               id: race.id,
                               eventId: event.id,
                               date: event.date,
-                              location: race.location,
+                              location: race.location ?? '',
                               name: race.name,
                               raceNumber: race.raceNumber,
                               distance: race.distance,
                               surface: race.surface as RaceSurface,
                               condition: race.condition as RaceCondition | null,
+
+                              venueId: race.venueId ?? undefined,
+                              raceDefinitionId: race.raceDefinitionId,
+                              direction: race.direction,
                             }}
                             events={allEvents}
+                            raceDefinitions={raceDefinitions}
+                            venues={venues}
                           />
                         </td>
                       </tr>

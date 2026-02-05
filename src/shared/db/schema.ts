@@ -15,8 +15,15 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { HORSE_TAG_TYPES, HORSE_TYPES } from '../constants/horse';
+import { RACE_GRADES, RACE_TYPES, VENUE_DIRECTIONS } from '../constants/race';
 
 export const roleEnum = pgEnum('role', ['USER', 'ADMIN', 'GUEST', 'TIPSTER', 'AI_TIPSTER', 'AI_USER']);
+export const horseTypeEnum = pgEnum('horse_type', HORSE_TYPES);
+export const raceTypeEnum = pgEnum('race_type', RACE_TYPES);
+export const raceGradeEnum = pgEnum('race_grade', RACE_GRADES);
+export const venueDirectionEnum = pgEnum('venue_direction', VENUE_DIRECTIONS);
+export const horseTagTypeEnum = pgEnum('horse_tag_type', HORSE_TAG_TYPES);
 
 export const users = pgTable('user', {
   id: text('id')
@@ -101,6 +108,18 @@ export const guestCodes = pgTable('guest_code', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const venueAreaEnum = pgEnum('venue_area', ['EAST_JAPAN', 'WEST_JAPAN', 'OVERSEAS']);
+
+export const venues = pgTable('venue', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  shortName: text('short_name').notNull(),
+  code: text('code'),
+  defaultDirection: venueDirectionEnum('default_direction').notNull(),
+  area: venueAreaEnum('area').default('EAST_JAPAN').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const eventStatusEnum = pgEnum('event_status', ['SCHEDULED', 'ACTIVE', 'COMPLETED']);
 
 export const events = pgTable('event', {
@@ -156,11 +175,29 @@ export const transactions = pgTable(
 
 export const horseOriginEnum = pgEnum('horse_origin', ['DOMESTIC', 'FOREIGN_BRED', 'FOREIGN_TRAINED']);
 
+export const horseTags = pgTable('horse_tag', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  horseId: uuid('horse_id')
+    .notNull()
+    .references(() => horses.id, { onDelete: 'cascade' }),
+  type: horseTagTypeEnum('type').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const horseTagMaster = pgTable('horse_tag_master', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  type: horseTagTypeEnum('type').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const horses = pgTable('horse', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   gender: text('gender').notNull(),
   age: integer('age'),
+  type: horseTypeEnum('type').default('REAL').notNull(),
   origin: horseOriginEnum('origin').default('DOMESTIC').notNull(),
   notes: text('notes'),
   sireId: uuid('sire_id'),
@@ -174,18 +211,40 @@ export const horses = pgTable('horse', {
 
 export const raceStatusEnum = pgEnum('race_status', ['SCHEDULED', 'CLOSED', 'FINALIZED', 'CANCELLED']);
 
-export const races = pgTable('race', {
+export const raceDefinitions = pgTable('race_definition', {
   id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  code: text('code'),
+  grade: raceGradeEnum('grade').notNull(),
+  type: raceTypeEnum('type').default('REAL').notNull(),
+  defaultDirection: venueDirectionEnum('default_direction').notNull(),
+  defaultDistance: integer('default_distance').notNull(),
+  defaultVenueId: uuid('default_venue_id')
+    .notNull()
+    .references(() => venues.id),
+  defaultSurface: text('default_surface').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const raceInstances = pgTable('race_instance', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  raceDefinitionId: uuid('race_definition_id').references(() => raceDefinitions.id),
   eventId: uuid('event_id')
     .notNull()
     .references(() => events.id, { onDelete: 'cascade' }),
   date: date('date').notNull(),
-  location: text('location').notNull(),
+  venueId: uuid('venue_id')
+    .references(() => venues.id)
+    .notNull(),
+  location: text('location'),
   name: text('name').notNull(),
   raceNumber: integer('race_number'),
   distance: integer('distance').notNull(),
   surface: text('surface').notNull(),
   condition: text('condition'),
+  grade: raceGradeEnum('grade'),
+  direction: venueDirectionEnum('direction'),
+  type: raceTypeEnum('type').default('REAL').notNull(),
   status: raceStatusEnum('status').default('SCHEDULED').notNull(),
   closingAt: timestamp('closing_at', { withTimezone: true }),
   finalizedAt: timestamp('finalized_at', { withTimezone: true }),
@@ -205,7 +264,7 @@ export const bets = pgTable('bet', {
     .references(() => users.id, { onDelete: 'cascade' }),
   raceId: uuid('race_id')
     .notNull()
-    .references(() => races.id, { onDelete: 'cascade' }),
+    .references(() => raceInstances.id, { onDelete: 'cascade' }),
   walletId: uuid('wallet_id')
     .notNull()
     .references(() => wallets.id, { onDelete: 'cascade' }),
@@ -223,7 +282,7 @@ export const raceEntries = pgTable('race_entry', {
   id: uuid('id').defaultRandom().primaryKey(),
   raceId: uuid('race_id')
     .notNull()
-    .references(() => races.id, { onDelete: 'cascade' }),
+    .references(() => raceInstances.id, { onDelete: 'cascade' }),
   horseId: uuid('horse_id')
     .notNull()
     .references(() => horses.id, { onDelete: 'cascade' }),
@@ -244,7 +303,7 @@ export const payoutResults = pgTable('payout_result', {
   id: uuid('id').defaultRandom().primaryKey(),
   raceId: uuid('race_id')
     .notNull()
-    .references(() => races.id, { onDelete: 'cascade' }),
+    .references(() => raceInstances.id, { onDelete: 'cascade' }),
   type: text('type').notNull(),
   combinations: jsonb('combinations').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -264,22 +323,44 @@ export const walletRelations = relations(wallets, ({ one, many }) => ({
 
 export const eventRelations = relations(events, ({ many }) => ({
   wallets: many(wallets),
-  races: many(races),
+  races: many(raceInstances),
 }));
 
-export const raceRelations = relations(races, ({ one, many }) => ({
+export const raceInstanceRelations = relations(raceInstances, ({ one, many }) => ({
+  definition: one(raceDefinitions, {
+    fields: [raceInstances.raceDefinitionId],
+    references: [raceDefinitions.id],
+  }),
   event: one(events, {
-    fields: [races.eventId],
+    fields: [raceInstances.eventId],
     references: [events.id],
+  }),
+  venue: one(venues, {
+    fields: [raceInstances.venueId],
+    references: [venues.id],
   }),
   entries: many(raceEntries),
   bets: many(bets),
 }));
 
+export const horseWins = pgTable('horse_win', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  horseId: uuid('horse_id')
+    .notNull()
+    .references(() => horses.id, { onDelete: 'cascade' }),
+  raceInstanceId: uuid('race_instance_id').references(() => raceInstances.id, { onDelete: 'set null' }),
+  raceDefinitionId: uuid('race_definition_id').references(() => raceDefinitions.id, {
+    onDelete: 'set null',
+  }),
+  title: text('title').notNull(),
+  date: date('date'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const raceEntryRelations = relations(raceEntries, ({ one }) => ({
-  race: one(races, {
+  race: one(raceInstances, {
     fields: [raceEntries.raceId],
-    references: [races.id],
+    references: [raceInstances.id],
   }),
   horse: one(horses, {
     fields: [raceEntries.horseId],
@@ -307,9 +388,9 @@ export const betRelations = relations(bets, ({ one }) => ({
     fields: [bets.userId],
     references: [users.id],
   }),
-  race: one(races, {
+  race: one(raceInstances, {
     fields: [bets.raceId],
-    references: [races.id],
+    references: [raceInstances.id],
   }),
   wallet: one(wallets, {
     fields: [bets.walletId],
@@ -322,6 +403,7 @@ export const userRelations = relations(users, ({ many }) => ({
   bets: many(bets),
   accounts: many(accounts),
   createdGuestCodes: many(guestCodes, { relationName: 'creator' }),
+  createdRaces: many(raceInstances),
 }));
 
 export const guestCodeRelations = relations(guestCodes, ({ one }) => ({
@@ -330,4 +412,45 @@ export const guestCodeRelations = relations(guestCodes, ({ one }) => ({
     references: [users.id],
     relationName: 'creator',
   }),
+}));
+
+export const horseRelations = relations(horses, ({ many }) => ({
+  tags: many(horseTags),
+  entries: many(raceEntries),
+  wins: many(horseWins),
+}));
+
+export const horseTagRelations = relations(horseTags, ({ one }) => ({
+  horse: one(horses, {
+    fields: [horseTags.horseId],
+    references: [horses.id],
+  }),
+}));
+
+export const venuesRelations = relations(venues, ({ many }) => ({
+  raceDefinitions: many(raceDefinitions),
+  races: many(raceInstances),
+}));
+
+export const raceDefinitionsRelations = relations(raceDefinitions, ({ one }) => ({
+  defaultVenue: one(venues, {
+    fields: [raceDefinitions.defaultVenueId],
+    references: [venues.id],
+  }),
+}));
+
+export const raceInstancesRelations = relations(raceInstances, ({ one, many }) => ({
+  event: one(events, {
+    fields: [raceInstances.eventId],
+    references: [events.id],
+  }),
+  venue: one(venues, {
+    fields: [raceInstances.venueId],
+    references: [venues.id],
+  }),
+  definition: one(raceDefinitions, {
+    fields: [raceInstances.raceDefinitionId],
+    references: [raceDefinitions.id],
+  }),
+  entries: many(raceEntries),
 }));

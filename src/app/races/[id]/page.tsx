@@ -50,11 +50,11 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-5xl space-y-8">
         <Link
-          href="/mypage/sokupat"
+          href="/mypage/sokubet"
           className="mb-6 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
         >
           <ChevronLeft size={16} />
-          即PATトップへ戻る
+          即BETトップへ戻る
         </Link>
 
         <div className="mb-8 space-y-4">

@@ -2,7 +2,7 @@
 
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { bets, payoutResults as payoutResultsTable, races, transactions, wallets } from '@/shared/db/schema';
+import { bets, payoutResults as payoutResultsTable, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { BetDetail } from '@/types/betting';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -11,8 +11,8 @@ export async function finalizePayout(raceId: string) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') throw new Error('認証されていません');
 
-  const race = await db.query.races.findFirst({
-    where: eq(races.id, raceId),
+  const race = await db.query.raceInstances.findFirst({
+    where: eq(raceInstances.id, raceId),
   });
 
   if (!race || race.status === 'FINALIZED') {
@@ -75,12 +75,12 @@ export async function finalizePayout(raceId: string) {
     }
 
     await tx
-      .update(races)
+      .update(raceInstances)
       .set({
         status: 'FINALIZED',
         finalizedAt: new Date(),
       })
-      .where(eq(races.id, raceId));
+      .where(eq(raceInstances.id, raceId));
   });
 
   const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');

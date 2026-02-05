@@ -2,7 +2,7 @@
 
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { bets, races, transactions, wallets } from '@/shared/db/schema';
+import { bets, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { BetDetail } from '@/types/betting';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -23,8 +23,8 @@ export async function placeBet({
     throw new Error('Unauthorized');
   }
 
-  const race = await db.query.races.findFirst({
-    where: eq(races.id, raceId),
+  const race = await db.query.raceInstances.findFirst({
+    where: eq(raceInstances.id, raceId),
   });
 
   if (!race) {

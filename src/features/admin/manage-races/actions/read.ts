@@ -5,8 +5,12 @@ import { events } from '@/shared/db/schema';
 import { desc } from 'drizzle-orm';
 
 export async function getRaces() {
-  return db.query.races.findMany({
-    orderBy: (races, { asc, desc }) => [asc(races.raceNumber), desc(races.date), races.name],
+  return db.query.raceInstances.findMany({
+    orderBy: (raceInstances, { asc, desc }) => [
+      asc(raceInstances.raceNumber),
+      desc(raceInstances.date),
+      raceInstances.name,
+    ],
     with: {
       event: true,
     },

@@ -1,12 +1,18 @@
+import { getRaceDefinitions } from '@/features/admin/manage-race-definitions/actions';
 import { CreateRaceDialog, getEvents, getRaces } from '@/features/admin/manage-races';
 import { RaceAccordion } from '@/features/admin/manage-races/ui/race-accordion';
+import { getVenues } from '@/features/admin/manage-venues/actions';
 import { Card } from '@/shared/ui';
 import { CircleHelp } from 'lucide-react';
 import { Suspense } from 'react';
 
 export default async function RacesPage() {
-  const events = await getEvents();
-  const races = await getRaces();
+  const [events, races, raceDefinitions, venues] = await Promise.all([
+    getEvents(),
+    getRaces(),
+    getRaceDefinitions(),
+    getVenues(),
+  ]);
 
   const eventGroups = races.reduce(
     (acc, race) => {
@@ -55,12 +61,17 @@ export default async function RacesPage() {
               <span>レースの締め切りや払い戻し確定操作は レースタイトルのリンク先から行えます。</span>
             </div>
           </div>
-          <CreateRaceDialog events={events} />
+          <CreateRaceDialog events={events} raceDefinitions={raceDefinitions} venues={venues} />
         </div>
 
         <Suspense fallback={<Card className="py-12 text-center text-gray-500">読み込み中...</Card>}>
           <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm">
-            <RaceAccordion events={sortedEventGroups} allEvents={events} />
+            <RaceAccordion
+              events={sortedEventGroups}
+              allEvents={events}
+              raceDefinitions={raceDefinitions}
+              venues={venues}
+            />
           </div>
         </Suspense>
       </div>

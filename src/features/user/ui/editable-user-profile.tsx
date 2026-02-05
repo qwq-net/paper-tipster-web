@@ -19,8 +19,10 @@ const VALID_NAME_REGEX = /^[a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+$/
 export function EditableUserProfile({ user }: EditableUserProfileProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(user.name || '');
+  const [name, setName] = useState(user?.name || '');
   const [isPending, setIsPending] = useState(false);
+
+  if (!user) return null;
 
   const handleSave = async () => {
     if (!name || !VALID_NAME_REGEX.test(name)) {

@@ -15,9 +15,19 @@ import { RaceForm } from './race-form';
 
 interface CreateRaceDialogProps {
   events: Array<{ id: string; name: string; date: string }>;
+  raceDefinitions: Array<{
+    id: string;
+    name: string;
+    grade: string;
+    defaultDistance: number;
+    defaultSurface: string;
+    defaultVenueId: string;
+    defaultDirection: string;
+  }>;
+  venues: Array<{ id: string; name: string; defaultDirection: string }>;
 }
 
-export function CreateRaceDialog({ events }: CreateRaceDialogProps) {
+export function CreateRaceDialog({ events, raceDefinitions, venues }: CreateRaceDialogProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -35,7 +45,13 @@ export function CreateRaceDialog({ events }: CreateRaceDialogProps) {
         </DialogHeader>
 
         <div className="mt-2">
-          <RaceForm events={events} showClosingAt={false} onSuccess={() => setOpen(false)} />
+          <RaceForm
+            events={events}
+            raceDefinitions={raceDefinitions}
+            venues={venues}
+            showClosingAt={false}
+            onSuccess={() => setOpen(false)}
+          />
         </div>
       </DialogContent>
     </Dialog>

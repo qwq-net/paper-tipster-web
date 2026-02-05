@@ -1,3 +1,6 @@
+import { getRaceDefinitions } from '@/features/admin/manage-race-definitions/actions';
+import { getVenues } from '@/features/admin/manage-venues/actions';
+import { RaceCondition } from '@/shared/types/race';
 import { Badge, Button } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { Eye } from 'lucide-react';
@@ -10,7 +13,7 @@ interface RaceListProps {
 }
 
 export async function RaceList({ events }: RaceListProps) {
-  const races = await getRaces();
+  const [races, raceDefinitions, venues] = await Promise.all([getRaces(), getRaceDefinitions(), getVenues()]);
 
   if (races.length === 0) {
     return <div className="py-12 text-center text-gray-500">登録されているレースはありません</div>;
@@ -81,10 +84,16 @@ export async function RaceList({ events }: RaceListProps) {
                     events={events}
                     race={{
                       ...race,
+                      location: race.location ?? '',
                       surface: race.surface as '芝' | 'ダート',
-                      condition: race.condition as '良' | '稍重' | '重' | '不良' | null,
+                      condition: race.condition as RaceCondition | null,
                       closingAt: race.closingAt,
+                      venueId: race.venueId ?? undefined,
+                      raceDefinitionId: race.raceDefinitionId,
+                      direction: race.direction,
                     }}
+                    raceDefinitions={raceDefinitions}
+                    venues={venues}
                   />
                 </div>
               </td>

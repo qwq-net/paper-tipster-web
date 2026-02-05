@@ -2,11 +2,11 @@
 
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { races } from '@/shared/db/schema';
+import { raceInstances } from '@/shared/db/schema';
 import { parseJSTToUTC } from '@/shared/utils/date';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { raceSchema } from '../model/schema';
+import { raceSchema } from '../model/validation';
 
 export async function updateRace(id: string, formData: FormData) {
   const session = await auth();
@@ -20,7 +20,9 @@ export async function updateRace(id: string, formData: FormData) {
   const parse = raceSchema.safeParse({
     eventId: formData.get('eventId'),
     date: formData.get('date'),
-    location: formData.get('location'),
+    venueId: formData.get('venueId'),
+    raceDefinitionId: formData.get('raceDefinitionId') || undefined,
+    direction: formData.get('direction') || undefined,
     name: formData.get('name'),
     raceNumber: formData.get('raceNumber') || undefined,
     distance: formData.get('distance'),
@@ -38,8 +40,8 @@ export async function updateRace(id: string, formData: FormData) {
   const newClosingAt = parse.data.closingAt ? parseJSTToUTC(parse.data.closingAt) : null;
 
   await db.transaction(async (tx) => {
-    const race = await tx.query.races.findFirst({
-      where: eq(races.id, id),
+    const race = await tx.query.raceInstances.findFirst({
+      where: eq(raceInstances.id, id),
     });
 
     if (!race) throw new Error('レースが見つかりませんでした');
@@ -50,11 +52,13 @@ export async function updateRace(id: string, formData: FormData) {
     }
 
     await tx
-      .update(races)
+      .update(raceInstances)
       .set({
         eventId: parse.data.eventId,
         date: parse.data.date,
-        location: parse.data.location,
+        venueId: parse.data.venueId,
+        raceDefinitionId: parse.data.raceDefinitionId,
+        direction: parse.data.direction,
         name: parse.data.name,
         raceNumber: parse.data.raceNumber,
         distance: parse.data.distance,
@@ -63,7 +67,7 @@ export async function updateRace(id: string, formData: FormData) {
         closingAt: newClosingAt,
         status: newStatus,
       })
-      .where(eq(races.id, id));
+      .where(eq(raceInstances.id, id));
   });
 
   revalidatePath('/admin/races');
@@ -74,7 +78,7 @@ export async function closeRace(raceId: string) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
 
-  await db.update(races).set({ status: 'CLOSED' }).where(eq(races.id, raceId));
+  await db.update(raceInstances).set({ status: 'CLOSED' }).where(eq(raceInstances.id, raceId));
 
   const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_CLOSED, { raceId, timestamp: Date.now() });
@@ -89,7 +93,7 @@ export async function reopenRace(raceId: string) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
 
-  await db.update(races).set({ status: 'SCHEDULED', closingAt: null }).where(eq(races.id, raceId));
+  await db.update(raceInstances).set({ status: 'SCHEDULED', closingAt: null }).where(eq(raceInstances.id, raceId));
 
   const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
@@ -106,7 +110,7 @@ export async function setClosingTime(raceId: string, minutes: number) {
 
   const closingAt = new Date(Date.now() + minutes * 60 * 1000);
 
-  await db.update(races).set({ closingAt, status: 'SCHEDULED' }).where(eq(races.id, raceId));
+  await db.update(raceInstances).set({ closingAt, status: 'SCHEDULED' }).where(eq(raceInstances.id, raceId));
 
   const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });

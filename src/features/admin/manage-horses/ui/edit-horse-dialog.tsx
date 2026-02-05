@@ -1,5 +1,6 @@
 'use client';
 
+import { HorseTagType } from '@/shared/constants/horse-tags';
 import { Button } from '@/shared/ui';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { Pencil } from 'lucide-react';
@@ -14,10 +15,13 @@ interface EditHorseDialogProps {
     age: number | null;
     origin: 'DOMESTIC' | 'FOREIGN_BRED' | 'FOREIGN_TRAINED';
     notes: string | null;
+    type: 'REAL' | 'FICTIONAL';
+    tags: Array<{ type: string; content: string }>;
   };
+  tagOptions: Array<{ id: string; type: HorseTagType; content: string }>;
 }
 
-export function EditHorseDialog({ horse }: EditHorseDialogProps) {
+export function EditHorseDialog({ horse, tagOptions }: EditHorseDialogProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -43,7 +47,7 @@ export function EditHorseDialog({ horse }: EditHorseDialogProps) {
           </div>
 
           <div className="mt-2">
-            <HorseForm initialData={horse} onSuccess={() => setOpen(false)} />
+            <HorseForm initialData={horse} tagOptions={tagOptions} onSuccess={() => setOpen(false)} />
           </div>
 
           <div className="mt-4 flex justify-end">

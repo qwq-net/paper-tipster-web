@@ -7,6 +7,7 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ user }: UserProfileProps) {
+  if (!user) return null;
   return (
     <div className="flex items-center gap-3">
       {user.image ? (

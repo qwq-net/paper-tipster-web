@@ -19,8 +19,8 @@ export default async function MyPage() {
 
   const navItems = [
     {
-      href: '/mypage/sokupat',
-      title: '即PAT',
+      href: '/mypage/sokubet',
+      title: '即BET',
       description: '開催中のレースへ投票（馬券購入）',
       icon: <Zap size={32} />,
       color: 'bg-yellow-100 text-yellow-600',

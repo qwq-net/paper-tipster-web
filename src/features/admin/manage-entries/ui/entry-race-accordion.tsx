@@ -15,7 +15,7 @@ interface EntryRaceAccordionProps {
       id: string;
       name: string;
       raceNumber: number | null;
-      location: string;
+      location: string | null;
       date: string;
     }>;
   }>;

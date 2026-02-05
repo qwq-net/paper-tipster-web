@@ -1,33 +1,9 @@
 'use client';
 
 import { cn } from '@/shared/utils/cn';
-import * as DialogPrimitive from '@radix-ui/react-dialog'; // Note: Assuming standard dialog primitive or compatible API
-// fallback to alert-dialog if standard dialog package is missing,
-// BUT plan said install radix-ui/react-dialog OR use alert-dialog pattern.
-// Checking package.json... previously checked, only alert-dialog was present.
-// Implementing using Alert Dialog as base BUT Aliasing it as Dialog for generic use
-// OR implementing a custom simple dialog if only alert-dialog is present to avoid confusion.
-// Let's assume we install the primitive or use a custom one.
-// Actually, to be safe and immediate, let's use the pattern found in `create-event-dialog.tsx`
-// which imports `* as AlertDialog from '@radix-ui/react-alert-dialog'`.
-// However, Semantically "Dialog" and "Alert Dialog" are different.
-// Since I can't easily install new packages without user permission/workflow (though I can with run_command),
-// I will implement a generic Modal using native <dialog> or standard fixed positioning with Tailwind
-// to avoid dependency issues if `@radix-ui/react-dialog` is missing.
-// WAIT, the plan says "Install @radix-ui/react-dialog".
-// I should try to install it.
-//
-// Let's Auto-run the install command as it is standard practice.
-//
-// For now, I will write the file assuming it exists, and run the install command in parallel/next.
-
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import * as React from 'react';
-
-/*
-  NOTE: This component requires @radix-ui/react-dialog
-  Run: npm install @radix-ui/react-dialog
-*/
 
 const Dialog = DialogPrimitive.Root;
 

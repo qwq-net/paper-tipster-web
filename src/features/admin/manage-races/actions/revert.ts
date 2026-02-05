@@ -2,7 +2,7 @@
 
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { payoutResults, raceEntries, races } from '@/shared/db/schema';
+import { payoutResults, raceEntries, raceInstances } from '@/shared/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -10,8 +10,8 @@ export async function resetRaceResults(raceId: string) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') throw new Error('認証されていません');
 
-  const race = await db.query.races.findFirst({
-    where: eq(races.id, raceId),
+  const race = await db.query.raceInstances.findFirst({
+    where: eq(raceInstances.id, raceId),
   });
 
   if (!race) throw new Error('レースが見つかりませんでした');

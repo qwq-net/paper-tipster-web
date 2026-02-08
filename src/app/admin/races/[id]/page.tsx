@@ -1,5 +1,4 @@
-import { getRaceById } from '@/features/admin/manage-entries/actions';
-import { getPayoutResults } from '@/features/admin/manage-races/actions';
+import { getPayoutResults, getRaceById } from '@/features/admin/manage-races/actions';
 import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
@@ -53,13 +52,21 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
         >
           <ChevronLeft className="h-5 w-5 text-gray-600" />
         </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-semibold text-gray-900">{race.name}</h1>
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            <p>
-              {race.date.replace(/-/g, '/')} @ {race.location}
-            </p>
+        <div className="flex flex-1 items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">{race.name}</h1>
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <p>
+                {race.date.replace(/-/g, '/')} @ {race.venue?.name || race.location}
+              </p>
+            </div>
           </div>
+          <Button variant="outline" asChild>
+            <Link href={`/admin/races/${race.id}/edit`}>
+              <Settings2 className="mr-2 h-4 w-4" />
+              レース情報を編集
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -133,7 +140,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 id: race.id,
                 eventId: race.eventId,
                 date: race.date,
-                location: race.location ?? '',
+                location: race.venue?.name || race.location || '',
                 name: race.name,
                 raceNumber: race.raceNumber,
                 status: race.status,

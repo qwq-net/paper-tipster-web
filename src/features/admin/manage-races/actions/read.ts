@@ -13,6 +13,7 @@ export async function getRaces() {
     ],
     with: {
       event: true,
+      venue: true,
     },
   });
 }
@@ -24,5 +25,8 @@ export async function getEvents() {
 export async function getRaceById(id: string) {
   return db.query.raceInstances.findFirst({
     where: (raceInstances, { eq }) => eq(raceInstances.id, id),
+    with: {
+      venue: true,
+    },
   });
 }

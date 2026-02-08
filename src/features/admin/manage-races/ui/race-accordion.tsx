@@ -26,6 +26,9 @@ interface RaceAccordionProps {
       venueId?: string;
       raceDefinitionId?: string | null;
       direction?: string | null;
+      venue?: {
+        name: string;
+      };
     }>;
   }>;
 }
@@ -112,13 +115,15 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
                         </td>
                         <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                           <Link
-                            href={`/admin/races/${race.id}/edit`}
+                            href={`/admin/races/${race.id}`}
                             className="text-primary hover:text-primary-hover font-semibold hover:underline"
                           >
                             {race.name}
                           </Link>
                         </td>
-                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{race.location}</td>
+                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+                          {race.venue?.name || race.location}
+                        </td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{race.distance}m</td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                           {race.surface} {race.condition || ''}

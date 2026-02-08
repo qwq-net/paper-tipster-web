@@ -22,18 +22,18 @@ export default async function EditRacePage({ params }: { params: Promise<{ id: s
 
   async function onSuccess() {
     'use server';
-    redirect('/admin/races');
+    redirect(`/admin/races/${id}`);
   }
 
   return (
     <div className="mx-auto max-w-2xl py-8">
       <div className="mb-6 flex items-center gap-4">
         <Link
-          href="/admin/races"
+          href={`/admin/races/${id}`}
           className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
         >
           <ChevronLeft size={16} />
-          レース一覧へ戻る
+          レース確定画面へ戻る
         </Link>
       </div>
 

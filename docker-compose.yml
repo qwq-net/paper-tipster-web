@@ -40,6 +40,15 @@ services:
     volumes:
       - redis-data:/data
 
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: 'on-failure:5'
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    profiles:
+      - prod
+
 volumes:
   db-data:
   redis-data:

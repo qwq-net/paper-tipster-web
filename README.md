@@ -64,6 +64,22 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 | `npm run check`       | 型チェックとフォーマッタの実行              |
 | `npm test`            | テストの実行 (Vitest)                       |
 
+## 本番環境での実行
+
+本番環境で Cloudflare Tunnel を含めて起動する場合は、以下の手順で行います。
+
+1. **環境変数の設定**
+   `.env` ファイルに `TUNNEL_TOKEN` を設定してください。
+
+2. **プロファイルを指定して起動**
+   Docker Profiles 機能を使用して、`prod` プロファイルを有効にします。
+
+   ```bash
+   docker compose --profile prod up -d
+   ```
+
+   これにより、通常のサービス（app, db, redis）に加えて `tunnel` コンテナが起動します。
+
 ### 管理者権限の設定
 
 以下のコマンドで、Userテーブルの最初のユーザーにADMIN権限を付与します。

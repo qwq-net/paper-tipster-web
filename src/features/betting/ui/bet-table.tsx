@@ -132,10 +132,10 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
         </div>
       )}
 
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <BetTypeSelector betType={betType} onBetTypeChange={handleBetTypeChange} />
         {odds?.updatedAt && (
-          <span className="text-xs text-gray-500">
+          <span className="w-full text-right text-sm text-gray-500 sm:w-auto">
             オッズ最終更新:{' '}
             <FormattedDate date={odds.updatedAt} options={{ hour: '2-digit', minute: '2-digit', second: '2-digit' }} />
           </span>

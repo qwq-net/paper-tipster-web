@@ -63,7 +63,7 @@ export function EventAccordion({ events }: EventAccordionProps) {
                         <span className="flex h-6 w-8 shrink-0 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
                           {race.raceNumber}R
                         </span>
-                        <span className="text-sm font-semibold text-gray-900">{race.name}</span>
+                        <span className="text-sm font-semibold text-blue-600 hover:underline">{race.name}</span>
                       </div>
                       <div className="min-w-[120px]">
                         <span className="text-sm text-gray-600">{race.location}</span>
@@ -77,6 +77,9 @@ export function EventAccordion({ events }: EventAccordionProps) {
                         <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-sm font-medium text-blue-700">
                           {race.entries.length}頭
                         </span>
+                      </div>
+                      <div className="ml-auto">
+                        <ChevronDown className="h-4 w-4 -rotate-90 text-gray-300" />
                       </div>
                     </Link>
                   ))}

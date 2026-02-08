@@ -1,8 +1,8 @@
-import { CreateRaceDefinitionDialog } from '@/features/admin/manage-race-definitions/ui/create-race-definition-dialog';
 import { RaceDefinitionList } from '@/features/admin/manage-race-definitions/ui/race-definition-list';
-import { getVenues } from '@/features/admin/manage-venues/actions';
-import { BookOpen } from 'lucide-react';
+import { Button } from '@/shared/ui';
+import { BookOpen, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
@@ -10,8 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default async function RaceDefinitionsPage() {
-  const venues = await getVenues();
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -22,9 +20,15 @@ export default async function RaceDefinitionsPage() {
           </h1>
           <p className="mt-2 text-sm text-gray-500">毎年開催されるレースの基本情報（マスタデータ）を管理します。</p>
         </div>
-        <CreateRaceDefinitionDialog
-          venues={venues.map((v) => ({ id: v.id, name: v.name, defaultDirection: v.defaultDirection }))}
-        />
+        <Button
+          asChild
+          className="from-primary to-primary/80 hover:to-primary bg-linear-to-r shadow-md transition-all hover:shadow-lg"
+        >
+          <Link href="/admin/race-definitions/new">
+            <Plus className="mr-2 -ml-1 h-4 w-4" />
+            新規登録
+          </Link>
+        </Button>
       </div>
 
       <Suspense fallback={<div className="py-12 text-center text-gray-500">読み込み中...</div>}>

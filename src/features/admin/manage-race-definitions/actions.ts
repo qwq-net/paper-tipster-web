@@ -104,6 +104,21 @@ export async function deleteRaceDefinition(id: string) {
   revalidatePath('/admin/race-definitions');
 }
 
+export async function getRaceDefinition(id: string) {
+  const definition = await db.query.raceDefinitions.findFirst({
+    where: eq(raceDefinitions.id, id),
+    with: {
+      defaultVenue: true,
+    },
+  });
+
+  if (!definition) {
+    throw new Error('指定されたレース定義が見つかりません');
+  }
+
+  return definition;
+}
+
 export async function getRaceDefinitions() {
   return db.query.raceDefinitions.findMany({
     orderBy: (raceDefinitions, { asc }) => [asc(raceDefinitions.code), asc(raceDefinitions.name)],

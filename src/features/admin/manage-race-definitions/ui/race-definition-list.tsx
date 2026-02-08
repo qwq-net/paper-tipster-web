@@ -1,7 +1,6 @@
-import { getVenues } from '@/features/admin/manage-venues/actions';
+import Link from 'next/link';
 import { getRaceDefinitions } from '../actions';
 import { DeleteRaceDefinitionButton } from './delete-race-definition-button';
-import { EditRaceDefinitionDialog } from './edit-race-definition-dialog';
 
 const GRADE_LABELS: Record<string, string> = {
   G1: 'G1',
@@ -23,7 +22,7 @@ const DIRECTION_LABELS: Record<string, string> = {
 };
 
 export async function RaceDefinitionList() {
-  const [definitions, venues] = await Promise.all([getRaceDefinitions(), getVenues()]);
+  const definitions = await getRaceDefinitions();
 
   if (definitions.length === 0) {
     return <div className="py-12 text-center text-gray-500">登録されているレース定義はありません</div>;
@@ -57,7 +56,14 @@ export async function RaceDefinitionList() {
         <tbody className="divide-y divide-gray-200 bg-white">
           {definitions.map((def) => (
             <tr key={def.id} className="transition-colors hover:bg-gray-50">
-              <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900">{def.name}</td>
+              <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap">
+                <Link
+                  href={`/admin/race-definitions/${def.id}`}
+                  className="text-blue-600 transition-colors hover:text-blue-800 hover:underline"
+                >
+                  {def.name}
+                </Link>
+              </td>
               <td className="px-6 py-4 text-sm whitespace-nowrap">
                 <span
                   className={`inline-flex items-center rounded-md px-2 py-1 text-sm font-medium ring-1 ring-inset ${
@@ -88,19 +94,6 @@ export async function RaceDefinitionList() {
               </td>
               <td className="px-6 py-4 text-right whitespace-nowrap">
                 <div className="flex justify-end gap-2">
-                  <EditRaceDefinitionDialog
-                    raceDefinition={{
-                      ...def,
-                      code: def.code,
-                      grade: def.grade,
-                      type: def.type,
-                      defaultDirection: def.defaultDirection,
-                      defaultDistance: def.defaultDistance,
-                      defaultVenueId: def.defaultVenueId,
-                      defaultSurface: def.defaultSurface,
-                    }}
-                    venues={venues.map((v) => ({ id: v.id, name: v.name, defaultDirection: v.defaultDirection }))}
-                  />
                   <DeleteRaceDefinitionButton id={def.id} name={def.name} />
                 </div>
               </td>

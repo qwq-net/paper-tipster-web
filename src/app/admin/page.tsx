@@ -117,7 +117,6 @@ export default async function AdminPage() {
           <h2 className="text-secondary text-xl font-semibold">クイックアクション</h2>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* Base Masters */}
           <Link
             href="/admin/venues"
             className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
@@ -150,7 +149,6 @@ export default async function AdminPage() {
             <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-emerald-600" />
           </Link>
 
-          {/* Core Entities */}
           <Link
             href="/admin/horses"
             className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
@@ -183,7 +181,6 @@ export default async function AdminPage() {
             <ArrowRight className="group-hover:text-primary h-5 w-5 text-gray-300 transition-colors" />
           </Link>
 
-          {/* Operations */}
           <Link
             href="/admin/events"
             className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
@@ -232,7 +229,6 @@ export default async function AdminPage() {
             <ArrowRight className="h-5 w-5 text-gray-300 transition-colors group-hover:text-green-600" />
           </Link>
 
-          {/* User Management */}
           <Link
             href="/admin/users"
             className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"

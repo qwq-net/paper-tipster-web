@@ -1,14 +1,12 @@
 import { getHorseTags } from '@/features/admin/manage-horse-tags/actions';
-import { getHorse } from '@/features/admin/manage-horses/actions';
 import { HorseForm } from '@/features/admin/manage-horses/ui/horse-form';
 import { Card } from '@/shared/ui';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-export default async function EditHorsePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const [horse, tagOptions] = await Promise.all([getHorse(id), getHorseTags()]);
+export default async function CreateHorsePage() {
+  const tagOptions = await getHorseTags();
 
   async function onSuccess() {
     'use server';
@@ -28,22 +26,12 @@ export default async function EditHorsePage({ params }: { params: Promise<{ id: 
       </div>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">馬情報の編集</h1>
-        <p className="mt-1 text-gray-500">馬情報を編集します。</p>
+        <h1 className="text-2xl font-semibold text-gray-900">新規馬登録</h1>
+        <p className="mt-1 text-gray-500">新しい競走馬の情報を入力してください。</p>
       </div>
 
       <Card className="p-6">
-        <HorseForm
-          initialData={{
-            ...horse,
-            gender: horse.gender as '牡' | '牝' | 'セン',
-            origin: horse.origin as 'DOMESTIC' | 'FOREIGN_BRED' | 'FOREIGN_TRAINED',
-            type: horse.type as 'REAL' | 'FICTIONAL',
-            tags: horse.tags,
-          }}
-          tagOptions={tagOptions}
-          onSuccess={onSuccess}
-        />
+        <HorseForm tagOptions={tagOptions} onSuccess={onSuccess} />
       </Card>
     </div>
   );

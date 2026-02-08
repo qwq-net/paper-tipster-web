@@ -1,7 +1,8 @@
-import { getHorseTags } from '@/features/admin/manage-horse-tags/actions';
-import { CreateHorseDialog, HorseList } from '@/features/admin/manage-horses';
-import { Card } from '@/shared/ui';
+import { HorseList } from '@/features/admin/manage-horses';
+import { Button, Card } from '@/shared/ui';
+import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
@@ -9,8 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default async function HorsesPage() {
-  const tagOptions = await getHorseTags();
-
   return (
     <div className="space-y-6">
       <div>
@@ -21,11 +20,19 @@ export default async function HorsesPage() {
       <div className="space-y-4">
         <div className="flex items-end justify-between px-2">
           <h2 className="text-xl font-semibold text-gray-900">登録済みの馬</h2>
-          <CreateHorseDialog tagOptions={tagOptions} />
+          <Button
+            asChild
+            className="flex items-center gap-2 font-semibold shadow-sm transition-all hover:shadow-md active:scale-95"
+          >
+            <Link href="/admin/horses/new">
+              <Plus className="h-4 w-4" />
+              新規馬登録
+            </Link>
+          </Button>
         </div>
 
         <Suspense fallback={<Card className="py-12 text-center font-semibold text-gray-500">読み込み中...</Card>}>
-          <HorseList tagOptions={tagOptions} />
+          <HorseList />
         </Suspense>
       </div>
     </div>

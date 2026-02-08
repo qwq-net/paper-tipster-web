@@ -1,16 +1,10 @@
-import { HorseTagType } from '@/shared/constants/horse-tags';
 import { Badge } from '@/shared/ui';
 import { getGenderAge } from '@/shared/utils/gender';
 import Link from 'next/link';
 import { getHorses } from '../actions';
 import { DeleteHorseButton } from './delete-horse-button';
-import { EditHorseDialog } from './edit-horse-dialog';
 
-export async function HorseList({
-  tagOptions,
-}: {
-  tagOptions: Array<{ id: string; type: HorseTagType; content: string }>;
-}) {
+export async function HorseList() {
   const horses = await getHorses();
 
   if (horses.length === 0) {
@@ -53,7 +47,10 @@ export async function HorseList({
             <tr key={horse.id} className="transition-colors hover:bg-gray-50">
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900">
                 <div className="flex flex-col gap-1">
-                  <Link href={`/admin/horses/${horse.id}`} className="hover:text-blue-600 hover:underline">
+                  <Link
+                    href={`/admin/horses/${horse.id}`}
+                    className="text-blue-600 transition-colors hover:text-blue-800 hover:underline"
+                  >
                     {horse.name}
                   </Link>
                   <span
@@ -95,15 +92,6 @@ export async function HorseList({
               </td>
               <td className="px-6 py-4 text-right whitespace-nowrap">
                 <div className="flex justify-end gap-2">
-                  <EditHorseDialog
-                    horse={{
-                      ...horse,
-                      gender: horse.gender as '牡' | '牝' | 'セン',
-                      type: horse.type as 'REAL' | 'FICTIONAL',
-                      tags: horse.tags,
-                    }}
-                    tagOptions={tagOptions}
-                  />
                   <DeleteHorseButton horseId={horse.id} horseName={horse.name} />
                 </div>
               </td>

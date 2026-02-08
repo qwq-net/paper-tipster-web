@@ -1,19 +1,11 @@
-import { getRaceDefinitions } from '@/features/admin/manage-race-definitions/actions';
-import { getVenues } from '@/features/admin/manage-venues/actions';
-import { RaceCondition } from '@/shared/types/race';
 import { Badge, Button } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { Eye } from 'lucide-react';
 import Link from 'next/link';
 import { getRaces } from '../actions';
-import { EditRaceDialog } from './edit-race-dialog';
 
-interface RaceListProps {
-  events: Array<{ id: string; name: string; date: string }>;
-}
-
-export async function RaceList({ events }: RaceListProps) {
-  const [races, raceDefinitions, venues] = await Promise.all([getRaces(), getRaceDefinitions(), getVenues()]);
+export async function RaceList() {
+  const races = await getRaces();
 
   if (races.length === 0) {
     return <div className="py-12 text-center text-gray-500">登録されているレースはありません</div>;
@@ -54,7 +46,14 @@ export async function RaceList({ events }: RaceListProps) {
           {races.map((race) => (
             <tr key={race.id} className="transition-colors hover:bg-gray-50">
               <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">{race.event.name}</td>
-              <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900">{race.name}</td>
+              <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap">
+                <Link
+                  href={`/admin/races/${race.id}/edit`}
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {race.name}
+                </Link>
+              </td>
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-500">{race.location}</td>
               <td className="px-6 py-4 text-sm whitespace-nowrap">
                 <Badge variant="surface" label={race.surface} />
@@ -80,21 +79,6 @@ export async function RaceList({ events }: RaceListProps) {
                       <Eye className="h-4 w-4 text-gray-400" />
                     </Link>
                   </Button>
-                  <EditRaceDialog
-                    events={events}
-                    race={{
-                      ...race,
-                      location: race.location ?? '',
-                      surface: race.surface as '芝' | 'ダート',
-                      condition: race.condition as RaceCondition | null,
-                      closingAt: race.closingAt,
-                      venueId: race.venueId ?? undefined,
-                      raceDefinitionId: race.raceDefinitionId,
-                      direction: race.direction,
-                    }}
-                    raceDefinitions={raceDefinitions}
-                    venues={venues}
-                  />
                 </div>
               </td>
             </tr>

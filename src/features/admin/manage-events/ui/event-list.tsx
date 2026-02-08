@@ -1,17 +1,18 @@
 'use client';
 
 import { toggleRankingVisibility } from '@/features/ranking/actions';
-import { Badge, Button } from '@/shared/ui';
-import { Trophy } from 'lucide-react';
+import { type EventStatus } from '@/shared/constants/status';
+import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui';
+import { ChevronDown, Pause, Play, RefreshCw, Square, Trophy } from 'lucide-react';
+import Link from 'next/link';
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
-import { EditEventDialog } from './edit-event-dialog';
 
 type Event = {
   id: string;
   name: string;
   description: string | null;
-  status: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED';
+  status: EventStatus;
   distributeAmount: number;
   date: string;
   rankingPublished: boolean;
@@ -60,8 +61,14 @@ export function EventList({ events }: { events: Event[] }) {
               <td className="px-6 py-4 whitespace-nowrap">
                 <Badge label={event.status} variant="status" />
               </td>
-              <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900" title={event.name}>
-                {event.name}
+              <td className="px-6 py-4 text-sm whitespace-nowrap" title={event.name}>
+                <Link
+                  prefetch={false}
+                  href={`/admin/events/${event.id}`}
+                  className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {event.name}
+                </Link>
               </td>
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-600">
                 {event.distributeAmount.toLocaleString()} 円
@@ -69,47 +76,43 @@ export function EventList({ events }: { events: Event[] }) {
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-400">{event.date}</td>
               <td className="px-6 py-4 text-right whitespace-nowrap">
                 <div className="flex items-center justify-end gap-2">
-                  <EditEventDialog event={event} />
-                  {event.status === 'SCHEDULED' && (
-                    <Button
-                      size="sm"
-                      disabled={isPending}
-                      onClick={() => handleStatusChange(event.id, 'ACTIVE')}
-                      className="bg-green-600 font-semibold text-white hover:bg-green-700"
-                    >
-                      Start
-                    </Button>
-                  )}
-                  {event.status === 'ACTIVE' && (
-                    <>
-                      <Button
-                        size="sm"
-                        disabled={isPending}
-                        onClick={() => handleStatusChange(event.id, 'SCHEDULED')}
-                        className="bg-amber-500 font-semibold text-white hover:bg-amber-600"
-                      >
-                        Pause
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="outline" disabled={isPending} className="gap-1">
+                        変更
+                        <ChevronDown className="h-3.5 w-3.5" />
                       </Button>
-                      <Button
-                        size="sm"
-                        disabled={isPending}
-                        onClick={() => handleStatusChange(event.id, 'COMPLETED')}
-                        variant="destructive"
-                      >
-                        End
-                      </Button>
-                    </>
-                  )}
-                  {event.status === 'COMPLETED' && (
-                    <Button
-                      size="sm"
-                      disabled={isPending}
-                      onClick={() => handleStatusChange(event.id, 'ACTIVE')}
-                      className="bg-gray-500 font-semibold text-white hover:bg-gray-600"
-                    >
-                      Re-Open
-                    </Button>
-                  )}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {event.status === 'SCHEDULED' && (
+                        <DropdownMenuItem variant="success" onClick={() => handleStatusChange(event.id, 'ACTIVE')}>
+                          <Play className="h-4 w-4" />
+                          開始
+                        </DropdownMenuItem>
+                      )}
+                      {event.status === 'ACTIVE' && (
+                        <>
+                          <DropdownMenuItem variant="warning" onClick={() => handleStatusChange(event.id, 'SCHEDULED')}>
+                            <Pause className="h-4 w-4" />
+                            一時停止
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => handleStatusChange(event.id, 'COMPLETED')}
+                          >
+                            <Square className="h-4 w-4" />
+                            終了
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {event.status === 'COMPLETED' && (
+                        <DropdownMenuItem onClick={() => handleStatusChange(event.id, 'ACTIVE')}>
+                          <RefreshCw className="h-4 w-4" />
+                          再開
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button
                     size="sm"
                     variant={event.rankingPublished ? 'primary' : 'outline'}

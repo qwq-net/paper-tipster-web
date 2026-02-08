@@ -1,13 +1,11 @@
 'use client';
 
 import { useIsMounted } from '@/shared/hooks/use-is-mounted';
-import { RaceCondition, RaceDefinition, RaceSurface, Venue } from '@/shared/types/race';
 import { Badge } from '@/shared/ui';
 import * as Accordion from '@radix-ui/react-accordion';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { EditRaceDialog } from './edit-race-dialog';
 
 interface RaceAccordionProps {
   events: Array<{
@@ -30,14 +28,11 @@ interface RaceAccordionProps {
       direction?: string | null;
     }>;
   }>;
-  allEvents: Array<{ id: string; name: string; date: string }>;
-  raceDefinitions: Array<RaceDefinition>;
-  venues: Array<Venue>;
 }
 
 const STORAGE_KEY = 'race-accordion-open-items';
 
-export function RaceAccordion({ events, allEvents, raceDefinitions, venues }: RaceAccordionProps) {
+export function RaceAccordion({ events }: RaceAccordionProps) {
   const isMounted = useIsMounted();
   const [openItems, setOpenItems] = useState<string[]>([]);
 
@@ -107,9 +102,6 @@ export function RaceAccordion({ events, allEvents, raceDefinitions, venues }: Ra
                       <th className="px-6 py-3 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
                         状態
                       </th>
-                      <th className="w-20 px-6 py-3 text-right text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
-                        編集
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
@@ -120,7 +112,7 @@ export function RaceAccordion({ events, allEvents, raceDefinitions, venues }: Ra
                         </td>
                         <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                           <Link
-                            href={`/admin/races/${race.id}`}
+                            href={`/admin/races/${race.id}/edit`}
                             className="text-primary hover:text-primary-hover font-semibold hover:underline"
                           >
                             {race.name}
@@ -133,28 +125,6 @@ export function RaceAccordion({ events, allEvents, raceDefinitions, venues }: Ra
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <Badge variant="status" label={race.status} />
-                        </td>
-                        <td className="px-6 py-4 text-right text-sm whitespace-nowrap">
-                          <EditRaceDialog
-                            race={{
-                              id: race.id,
-                              eventId: event.id,
-                              date: event.date,
-                              location: race.location ?? '',
-                              name: race.name,
-                              raceNumber: race.raceNumber,
-                              distance: race.distance,
-                              surface: race.surface as RaceSurface,
-                              condition: race.condition as RaceCondition | null,
-
-                              venueId: race.venueId ?? undefined,
-                              raceDefinitionId: race.raceDefinitionId,
-                              direction: race.direction,
-                            }}
-                            events={allEvents}
-                            raceDefinitions={raceDefinitions}
-                            venues={venues}
-                          />
                         </td>
                       </tr>
                     ))}

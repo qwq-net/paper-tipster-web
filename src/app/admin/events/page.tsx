@@ -1,9 +1,12 @@
-import { CreateEventDialog, EventList } from '@/features/admin/manage-events';
+import { EventList } from '@/features/admin/manage-events';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events } from '@/shared/db/schema';
+import { Button } from '@/shared/ui';
 import { desc } from 'drizzle-orm';
+import { Plus } from 'lucide-react';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
@@ -30,7 +33,15 @@ export default async function AdminEventsPage() {
       <div className="space-y-4">
         <div className="flex items-end justify-between px-2">
           <h2 className="text-xl font-semibold text-gray-900">すべてのイベント</h2>
-          <CreateEventDialog />
+          <Button asChild>
+            <Link
+              href="/admin/events/new"
+              className="flex items-center gap-2 font-semibold shadow-sm transition-all hover:shadow-md active:scale-95"
+            >
+              <Plus className="h-4 w-4" />
+              新規イベント作成
+            </Link>
+          </Button>
         </div>
 
         <EventList events={allEvents} />

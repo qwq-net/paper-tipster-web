@@ -1,5 +1,6 @@
 'use client';
 
+import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/constants/status';
 import { Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import { useTransition } from 'react';
 import { claimEvent } from '../actions';
@@ -10,7 +11,7 @@ type AvailableEvent = {
   description: string | null;
   distributeAmount: number;
   date: string;
-  status: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED';
+  status: EventStatus;
   isJoined?: boolean;
 };
 
@@ -43,7 +44,7 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
                       : 'bg-amber-100 text-amber-700'
                 }`}
               >
-                {event.isJoined ? '参加済み' : event.status === 'ACTIVE' ? '公開中' : '準備中'}
+                {event.isJoined ? '参加済み' : EVENT_STATUS_LABELS[event.status]}
               </span>
             </div>
             <p className="mt-1 text-sm text-gray-600">開催日: {event.date}</p>

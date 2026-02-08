@@ -20,3 +20,9 @@ export async function getRaces() {
 export async function getEvents() {
   return db.select().from(events).orderBy(desc(events.date), events.name);
 }
+
+export async function getRaceById(id: string) {
+  return db.query.raceInstances.findFirst({
+    where: (raceInstances, { eq }) => eq(raceInstances.id, id),
+  });
+}

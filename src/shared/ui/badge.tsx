@@ -1,3 +1,4 @@
+import { EVENT_STATUS_LABELS, RACE_STATUS_LABELS, type EventStatus, type RaceStatus } from '@/shared/constants/status';
 import { cn } from '@/shared/utils/cn';
 
 type BadgeVariant = 'surface' | 'condition' | 'status' | 'gender' | 'role' | 'origin' | 'outline';
@@ -10,7 +11,9 @@ interface BadgeProps {
 }
 
 export function Badge({ label, variant = 'outline', className, children }: BadgeProps) {
-  const content = children || label;
+  const content =
+    children ||
+    (label && (EVENT_STATUS_LABELS[label as EventStatus] || RACE_STATUS_LABELS[label as RaceStatus] || label));
   if (!content) return <span>-</span>;
 
   const getVariantStyles = () => {
@@ -38,6 +41,8 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
           case '受付中':
           case 'Active':
           case '有効':
+          case '出走前':
+          case '準備中':
             return 'bg-green-100 text-green-800';
           case 'ACTIVE':
           case '開催中':
@@ -47,6 +52,7 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
             return 'bg-orange-100 text-orange-800';
           case 'FINALIZED':
           case '結果確定済み':
+          case '払戻確定':
             return 'bg-indigo-100 text-indigo-800';
           case 'COMPLETED':
           case '終了':
@@ -55,6 +61,7 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
           case 'キャンセル':
           case 'Disabled':
           case '無効':
+          case '中止':
             return 'bg-red-100 text-red-800';
           default:
             return 'bg-gray-100 text-gray-800';

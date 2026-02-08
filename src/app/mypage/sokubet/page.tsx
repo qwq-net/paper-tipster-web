@@ -8,13 +8,6 @@ import { ChevronLeft, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-const STATUS_LABELS: Record<string, string> = {
-  SCHEDULED: '受付中',
-  CLOSED: '締切済み',
-  FINALIZED: '結果確定済み',
-  CANCELLED: 'キャンセル',
-};
-
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -126,7 +119,7 @@ export default async function SokupatPage() {
                                   {race.raceNumber}R
                                 </span>
                               )}
-                              <Badge variant="status" label={STATUS_LABELS[race.status] || race.status} />
+                              <Badge variant="status" label={race.status} />
                             </div>
                             <h3 className="text-xl font-semibold text-gray-900">{race.name}</h3>
                             <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">

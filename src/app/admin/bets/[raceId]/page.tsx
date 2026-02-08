@@ -2,8 +2,13 @@ import { getBetsByRace, getRaceWithBets } from '@/features/admin/manage-bets/act
 import { Badge } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { ArrowLeft } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+
+export const metadata: Metadata = {
+  title: '馬券詳細',
+};
 
 interface BetDetailPageProps {
   params: Promise<{ raceId: string }>;
@@ -76,7 +81,14 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
                       {bet.user.name || 'Unknown'}
                     </td>
                     <td className="px-6 py-4 text-sm whitespace-nowrap">
-                      <Badge variant="status" label={(bet.details as { type?: string })?.type || 'Unknown'} />
+                      <Badge
+                        variant="status"
+                        label={
+                          BET_TYPE_LABELS[(bet.details as { type?: BetType })?.type as BetType] ||
+                          (bet.details as { type?: string })?.type ||
+                          'Unknown'
+                        }
+                      />
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900">
                       {JSON.stringify((bet.details as { selections?: unknown })?.selections || [])}

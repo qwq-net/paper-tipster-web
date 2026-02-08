@@ -2,7 +2,12 @@ import { CreateRaceDefinitionDialog } from '@/features/admin/manage-race-definit
 import { RaceDefinitionList } from '@/features/admin/manage-race-definitions/ui/race-definition-list';
 import { getVenues } from '@/features/admin/manage-venues/actions';
 import { BookOpen } from 'lucide-react';
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
+
+export const metadata: Metadata = {
+  title: 'レース定義',
+};
 
 export default async function RaceDefinitionsPage() {
   const venues = await getVenues();

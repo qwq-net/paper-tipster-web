@@ -1,7 +1,12 @@
 import { getGuestCodes } from '@/features/admin/guest-codes/actions/guest-actions';
 import { GuestCodeManager } from '@/features/admin/guest-codes/ui/guest-code-manager';
 import { ChevronLeft } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'ゲストユーザー管理',
+};
 
 export default async function GuestCodesPage() {
   const codes = await getGuestCodes();

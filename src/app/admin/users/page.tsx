@@ -1,6 +1,11 @@
 import { UserList, getUsers } from '@/features/admin/manage-users';
 import { auth } from '@/shared/config/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+
+export const metadata: Metadata = {
+  title: 'ユーザー管理',
+};
 
 export default async function AdminUsersPage() {
   const session = await auth();

@@ -14,6 +14,12 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: 'キャンセル',
 };
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '即BET',
+};
+
 export default async function SokupatPage() {
   const session = await auth();
 

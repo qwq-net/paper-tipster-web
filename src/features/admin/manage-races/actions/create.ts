@@ -49,10 +49,16 @@ export async function createRace(formData: FormData) {
   const venueId = formData.get('venueId') as string;
   const eventId = formData.get('eventId') as string;
 
+  const venue = await db.query.venues.findFirst({
+    where: eq(raceInstances.venueId, venueId),
+    columns: { shortName: true },
+  });
+
   await db.insert(raceInstances).values({
     eventId,
     date: formData.get('date') as string,
     venueId,
+    location: venue?.shortName || null,
     raceDefinitionId: (formData.get('raceDefinitionId') as string) || null,
     name: formData.get('name') as string,
     raceNumber,

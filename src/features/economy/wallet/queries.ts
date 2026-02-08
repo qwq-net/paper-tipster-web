@@ -19,7 +19,11 @@ export async function getWalletTransactions(walletId: string) {
     with: {
       bet: {
         with: {
-          race: true,
+          race: {
+            with: {
+              venue: true,
+            },
+          },
         },
       },
       event: true,

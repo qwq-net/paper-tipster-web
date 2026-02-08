@@ -1,8 +1,13 @@
 import { CreateVenueDialog } from '@/features/admin/manage-venues/ui/create-venue-dialog';
 import { VenueList } from '@/features/admin/manage-venues/ui/venue-list';
 import { auth } from '@/shared/config/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
+
+export const metadata: Metadata = {
+  title: '競馬場管理',
+};
 
 export default async function AdminVenuesPage() {
   const session = await auth();

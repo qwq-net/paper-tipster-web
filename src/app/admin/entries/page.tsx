@@ -1,7 +1,12 @@
 import { getRacesForSelect } from '@/features/admin/manage-entries';
 import { EntryRaceAccordion } from '@/features/admin/manage-entries/ui/entry-race-accordion';
 import { Card } from '@/shared/ui';
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
+
+export const metadata: Metadata = {
+  title: '出走馬管理',
+};
 
 async function RaceSelectList() {
   const events = await getRacesForSelect();

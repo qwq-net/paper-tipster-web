@@ -1,7 +1,12 @@
 import { getHorseTags } from '@/features/admin/manage-horse-tags/actions';
 import { CreateHorseDialog, HorseList } from '@/features/admin/manage-horses';
 import { Card } from '@/shared/ui';
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
+
+export const metadata: Metadata = {
+  title: '馬管理',
+};
 
 export default async function HorsesPage() {
   const tagOptions = await getHorseTags();

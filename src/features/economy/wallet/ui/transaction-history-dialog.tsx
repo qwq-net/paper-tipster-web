@@ -37,9 +37,9 @@ export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChan
               let description = null;
               if (tx.type === 'BET' || tx.type === 'PAYOUT' || tx.type === 'REFUND') {
                 const raceName = tx.bet?.race?.name;
-                const location = tx.bet?.race?.location;
+                const location = tx.bet?.race?.location || tx.bet?.race?.venue?.shortName;
                 if (raceName) {
-                  description = `${location} ${raceName}`;
+                  description = location ? `${location} ${raceName}` : raceName;
                 }
               } else if (tx.type === 'DISTRIBUTION') {
                 description = tx.event?.name || '配布金';

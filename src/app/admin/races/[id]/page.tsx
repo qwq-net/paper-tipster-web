@@ -10,8 +10,13 @@ import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
 import { eq } from 'drizzle-orm';
 import { ChevronLeft, Info, Settings2, Trophy } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+
+export const metadata: Metadata = {
+  title: 'レース詳細編集',
+};
 
 export default async function RaceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

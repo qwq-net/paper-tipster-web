@@ -1,5 +1,10 @@
 import { getEventsWithRaces } from '@/features/admin/manage-bets/actions/read';
 import { EventAccordion } from '@/features/admin/manage-bets/ui/event-accordion';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '馬券管理',
+};
 
 export default async function BetsPage() {
   const events = await getEventsWithRaces();

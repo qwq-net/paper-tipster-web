@@ -29,6 +29,12 @@ interface ClientPayoutResult {
   }[];
 }
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '結果待機',
+};
+
 export default async function RaceStandbyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();

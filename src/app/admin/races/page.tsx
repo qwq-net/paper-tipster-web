@@ -4,7 +4,12 @@ import { RaceAccordion } from '@/features/admin/manage-races/ui/race-accordion';
 import { getVenues } from '@/features/admin/manage-venues/actions';
 import { Card } from '@/shared/ui';
 import { CircleHelp } from 'lucide-react';
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
+
+export const metadata: Metadata = {
+  title: 'レース管理',
+};
 
 export default async function RacesPage() {
   const [events, races, raceDefinitions, venues] = await Promise.all([

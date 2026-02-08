@@ -3,7 +3,12 @@ import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events } from '@/shared/db/schema';
 import { desc } from 'drizzle-orm';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+
+export const metadata: Metadata = {
+  title: 'イベント管理',
+};
 
 export default async function AdminEventsPage() {
   const session = await auth();

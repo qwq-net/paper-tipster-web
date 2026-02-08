@@ -16,6 +16,12 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '管理者ダッシュボード',
+};
+
 export default async function AdminPage() {
   const [
     [totalUsersResult],

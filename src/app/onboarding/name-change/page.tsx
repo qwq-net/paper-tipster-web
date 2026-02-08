@@ -2,6 +2,12 @@ import { NameChangeForm } from '@/features/user/ui/name-change-form';
 import { auth } from '@/shared/config/auth';
 import { redirect } from 'next/navigation';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'プロフィール設定',
+};
+
 export default async function OnboardingNameChangePage() {
   const session = await auth();
 

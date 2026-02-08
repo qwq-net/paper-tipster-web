@@ -2,8 +2,13 @@ import { getHorse, getHorseWins } from '@/features/admin/manage-horses/actions';
 import { HorseDetail } from '@/features/admin/manage-horses/ui/horse-detail';
 import { Button } from '@/shared/ui';
 import { ArrowLeft } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+
+export const metadata: Metadata = {
+  title: '馬詳細編集',
+};
 
 export default async function HorseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

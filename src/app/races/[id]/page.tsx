@@ -8,6 +8,24 @@ import { ChevronLeft, Info } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const race = await getRaceById(id);
+
+  if (!race) {
+    return {
+      title: 'レースが見つかりません',
+    };
+  }
+
+  return {
+    title: race.name,
+    description: `${race.location} ${race.raceNumber ? race.raceNumber + 'R' : ''} ${race.name}の予想・オッズ情報`,
+  };
+}
+
 export default async function RacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();

@@ -1,5 +1,11 @@
 import { LogoutButton } from '@/features/auth';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'ログアウト',
+};
+
 export default function LogoutPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white">

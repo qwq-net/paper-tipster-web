@@ -4,6 +4,12 @@ import { auth } from '@/shared/config/auth';
 import { CircleHelp } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '招待コードログイン',
+};
+
 export default async function LoginPage() {
   const session = await auth();
   if (session?.user) {

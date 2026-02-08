@@ -6,6 +6,12 @@ import { Coins, History, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'マイページ',
+};
+
 export default async function MyPage() {
   const session = await auth();
 

@@ -8,6 +8,12 @@ import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'お小遣いを貰う',
+};
+
 export default async function ClaimPage() {
   const session = await auth();
 

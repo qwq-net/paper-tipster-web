@@ -1,9 +1,10 @@
 import { HorseTagList } from '@/features/admin/manage-horse-tags/ui/horse-tag-list';
 import { db } from '@/shared/db';
 import type { HorseTagType } from '@/shared/types/horse';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: '馬タグ管理 | Paper Tipster Admin',
+export const metadata: Metadata = {
+  title: '馬タグ管理',
 };
 
 export default async function HorseTagsPage() {

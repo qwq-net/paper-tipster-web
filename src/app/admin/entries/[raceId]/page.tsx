@@ -1,8 +1,13 @@
 import { EntryDnd, getAvailableHorses, getEntriesForRace, getRaceById } from '@/features/admin/manage-entries';
 import { Card } from '@/shared/ui';
 import { ArrowLeft } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+
+export const metadata: Metadata = {
+  title: '出走馬詳細',
+};
 
 type Props = {
   params: Promise<{ raceId: string }>;

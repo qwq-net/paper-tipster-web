@@ -51,12 +51,18 @@ export async function updateRace(id: string, formData: FormData) {
       newStatus = 'SCHEDULED';
     }
 
+    const venue = await tx.query.venues.findFirst({
+      where: eq(raceInstances.venueId, parse.data.venueId),
+      columns: { shortName: true },
+    });
+
     await tx
       .update(raceInstances)
       .set({
         eventId: parse.data.eventId,
         date: parse.data.date,
         venueId: parse.data.venueId,
+        location: venue?.shortName || null,
         raceDefinitionId: parse.data.raceDefinitionId,
         direction: parse.data.direction,
         name: parse.data.name,

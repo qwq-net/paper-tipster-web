@@ -4,6 +4,12 @@ import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'ウォレット確認',
+};
+
 export default async function WalletPage() {
   const session = await auth();
 

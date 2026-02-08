@@ -1,0 +1,107 @@
+'use client';
+
+import { useRankingEvents } from '@/features/ranking/hooks/use-ranking-events';
+import { Badge, LiveConnectionStatus } from '@/shared/ui';
+import { Trophy, Users } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { RankingData } from '../actions';
+
+interface RankingListProps {
+  eventId: string;
+  initialRanking: RankingData[];
+  initialPublished: boolean;
+  distributeAmount: number;
+}
+
+export function RankingList({ eventId, initialRanking, initialPublished, distributeAmount }: RankingListProps) {
+  const [ranking, setRanking] = useState<RankingData[]>(initialRanking);
+  const [published, setPublished] = useState(initialPublished);
+
+  const handleRankingUpdated = useCallback((data: { published: boolean; ranking?: RankingData[] }) => {
+    setPublished(data.published);
+    if (data.ranking) {
+      setRanking(data.ranking);
+    }
+  }, []);
+
+  const { connectionStatus } = useRankingEvents({
+    eventId,
+    onRankingUpdated: handleRankingUpdated,
+  });
+
+  return (
+    <div className="w-full space-y-4">
+      <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4">
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="status"
+            label={published ? '公開中' : '待機中'}
+            className={published ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}
+          />
+          <span className="text-sm text-gray-500">{published ? '現在の順位' : '結果発表までお待ちください'}</span>
+        </div>
+        <LiveConnectionStatus status={connectionStatus} showText={false} />
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white px-6 py-4">
+          <div className="flex items-center gap-2">
+            <Trophy className={`h-5 w-5 ${published ? 'text-amber-500' : 'text-gray-400'}`} />
+            <h2 className="font-semibold text-gray-900">ランキング</h2>
+          </div>
+        </div>
+
+        <div className="divide-y divide-gray-100">
+          {ranking.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <Users className="mb-2 h-8 w-8 opacity-20" />
+              <p>参加者がいません</p>
+            </div>
+          ) : (
+            ranking.map((user) => (
+              <div
+                key={user.userId}
+                className={`flex items-center justify-between px-6 py-4 transition-colors ${
+                  user.isCurrentUser ? 'bg-blue-50/50' : 'hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-full font-semibold ${
+                      user.rank === 1
+                        ? 'bg-amber-100 text-amber-700'
+                        : user.rank === 2
+                          ? 'bg-gray-100 text-gray-700'
+                          : user.rank === 3
+                            ? 'bg-orange-100 text-orange-800'
+                            : 'bg-white text-gray-500'
+                    }`}
+                  >
+                    {user.rank}
+                  </div>
+                  <div>
+                    <div className={`font-medium ${user.isCurrentUser ? 'text-blue-700' : 'text-gray-900'}`}>
+                      {user.name}
+                      {user.isCurrentUser && <span className="ml-2 text-sm font-normal text-blue-500">(あなた)</span>}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="font-semibold text-gray-900">{user.balance.toLocaleString()}円</div>
+                  <div
+                    className={`text-sm font-medium ${
+                      user.balance - distributeAmount >= 0 ? 'text-green-600' : 'text-red-500'
+                    }`}
+                  >
+                    ({user.balance - distributeAmount >= 0 ? '+' : ''}
+                    {(user.balance - distributeAmount).toLocaleString()})
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -128,6 +128,7 @@ export const events = pgTable('event', {
   description: text('description'),
   distributeAmount: bigint('distribute_amount', { mode: 'number' }).notNull(),
   status: eventStatusEnum('status').default('SCHEDULED').notNull(),
+  rankingPublished: boolean('ranking_published').default(false).notNull(),
   date: date('date').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true })

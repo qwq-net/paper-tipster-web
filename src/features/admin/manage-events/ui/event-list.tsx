@@ -1,6 +1,8 @@
 'use client';
 
+import { toggleRankingVisibility } from '@/features/ranking/actions';
 import { Badge, Button } from '@/shared/ui';
+import { Trophy } from 'lucide-react';
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
 import { EditEventDialog } from './edit-event-dialog';
@@ -12,6 +14,7 @@ type Event = {
   status: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED';
   distributeAmount: number;
   date: string;
+  rankingPublished: boolean;
 };
 
 export function EventList({ events }: { events: Event[] }) {
@@ -20,6 +23,12 @@ export function EventList({ events }: { events: Event[] }) {
   const handleStatusChange = (eventId: string, newStatus: Event['status']) => {
     startTransition(async () => {
       await updateEventStatus(eventId, newStatus);
+    });
+  };
+
+  const handleRankingToggle = (eventId: string, currentPublished: boolean) => {
+    startTransition(async () => {
+      await toggleRankingVisibility(eventId, !currentPublished);
     });
   };
 
@@ -101,6 +110,16 @@ export function EventList({ events }: { events: Event[] }) {
                       Re-Open
                     </Button>
                   )}
+                  <Button
+                    size="sm"
+                    variant={event.rankingPublished ? 'primary' : 'outline'}
+                    disabled={isPending}
+                    onClick={() => handleRankingToggle(event.id, event.rankingPublished)}
+                    className={event.rankingPublished ? 'bg-amber-500 hover:bg-amber-600' : ''}
+                    title={event.rankingPublished ? 'ランキング公開中' : 'ランキング非公開'}
+                  >
+                    <Trophy className={`h-4 w-4 ${event.rankingPublished ? 'text-white' : 'text-gray-500'}`} />
+                  </Button>
                 </div>
               </td>
             </tr>

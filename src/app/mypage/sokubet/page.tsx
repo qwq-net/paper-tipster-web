@@ -1,3 +1,4 @@
+import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { raceInstances, wallets } from '@/shared/db/schema';
@@ -97,7 +98,10 @@ export default async function SokupatPage() {
               <section key={event.id}>
                 <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">{event.name}</h2>
+                    <div className="flex items-center gap-4">
+                      <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">{event.name}</h2>
+                      <RankingButton eventId={event.id} />
+                    </div>
                     <p className="mt-1 text-sm font-semibold text-gray-400">{event.date}</p>
                   </div>
                   <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-4 py-3 ring-1 ring-gray-200 ring-inset sm:py-2">

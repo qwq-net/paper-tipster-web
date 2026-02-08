@@ -112,3 +112,4 @@ npm run db:admin -- --user=<username>
 - [UIコンポーネントガイド](docs/UI_COMPONENT_GUIDE.md)
 - [データベース設計](docs/DATABASE_DESIGN.md)
 - [馬券UI設計](docs/BETTING_UI_DESIGN.md)
+- [ランキング機能](docs/RANKING_FEATURE.md)

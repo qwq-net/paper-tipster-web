@@ -2,6 +2,7 @@ import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/
 import { getPayoutResults } from '@/features/admin/manage-races/actions';
 import { getUserBetsForRace } from '@/features/betting/actions';
 import { PurchasedTicketList } from '@/features/betting/ui/purchased-ticket-list';
+import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
 import { BetDetail, BetType } from '@/types/betting';
 import { ChevronLeft } from 'lucide-react';
@@ -90,13 +91,16 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-5xl space-y-8">
-        <Link
-          href={`/races/${id}`}
-          className="mb-6 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-        >
-          <ChevronLeft size={16} />
-          レース画面へ戻る
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            href={`/races/${id}`}
+            className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
+          >
+            <ChevronLeft size={16} />
+            レース画面へ戻る
+          </Link>
+          <RankingButton eventId={race.eventId} />
+        </div>
 
         <StandbyClient
           race={{

@@ -2,6 +2,7 @@ import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/
 import { fetchRaceOdds } from '@/features/betting/actions';
 import { BetTable } from '@/features/betting/ui/bet-table';
 import { getEventWallets } from '@/features/economy/wallet';
+import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
 import { Button, Card, CardContent } from '@/shared/ui';
 import { ChevronLeft, Info } from 'lucide-react';
@@ -89,11 +90,14 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
             </div>
             <div className="flex items-center justify-between gap-4">
               <h1 className="text-3xl font-semibold text-gray-900">{race.name}</h1>
-              <Link href={`/races/${id}/standby`}>
-                <Button variant="outline" className="font-semibold">
-                  購入馬券確認・結果待機
-                </Button>
-              </Link>
+              <div className="flex items-center gap-2">
+                <RankingButton eventId={race.eventId} />
+                <Link href={`/races/${id}/standby`}>
+                  <Button variant="outline" className="font-semibold">
+                    購入馬券確認・結果待機
+                  </Button>
+                </Link>
+              </div>
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-500">
               <span>{race.surface}</span>

@@ -453,4 +453,26 @@ export const raceInstancesRelations = relations(raceInstances, ({ one, many }) =
     references: [raceDefinitions.id],
   }),
   entries: many(raceEntries),
+  odds: one(raceOdds),
+}));
+
+export const raceOdds = pgTable('race_odds', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  raceId: uuid('race_id')
+    .notNull()
+    .unique()
+    .references(() => raceInstances.id, { onDelete: 'cascade' }),
+  winOdds: jsonb('win_odds').$type<Record<string, number>>(),
+  placeOdds: jsonb('place_odds').$type<Record<string, { min: number; max: number }>>(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
+export const raceOddsRelations = relations(raceOdds, ({ one }) => ({
+  race: one(raceInstances, {
+    fields: [raceOdds.raceId],
+    references: [raceInstances.id],
+  }),
 }));

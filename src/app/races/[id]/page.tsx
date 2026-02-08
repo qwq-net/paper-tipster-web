@@ -1,4 +1,5 @@
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
+import { fetchRaceOdds } from '@/features/betting/actions';
 import { BetTable } from '@/features/betting/ui/bet-table';
 import { getEventWallets } from '@/features/economy/wallet';
 import { auth } from '@/shared/config/auth';
@@ -15,10 +16,11 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
     redirect('/login');
   }
 
-  const [race, entries, wallets] = await Promise.all([
+  const [race, entries, wallets, initialOdds] = await Promise.all([
     getRaceById(id),
     getEntriesForRace(id),
     getEventWallets(session.user.id),
+    fetchRaceOdds(id),
   ]);
 
   if (!race) {
@@ -92,6 +94,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
           entries={entries}
           initialStatus={race.status}
           closingAt={race.closingAt ? race.closingAt.toISOString() : null}
+          initialOdds={initialOdds}
         />
       </div>
     </div>

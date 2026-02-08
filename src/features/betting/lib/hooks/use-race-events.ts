@@ -7,9 +7,10 @@ interface UseRaceEventsProps {
   raceId: string;
   isFinalized: boolean;
   onRaceBroadcast?: () => void;
+  onRaceOddsUpdated?: (data: SSEMessage) => void;
 }
 
-export function useRaceEvents({ raceId, isFinalized, onRaceBroadcast }: UseRaceEventsProps) {
+export function useRaceEvents({ raceId, isFinalized, onRaceBroadcast, onRaceOddsUpdated }: UseRaceEventsProps) {
   const router = useRouter();
 
   const handleMessage = useCallback(
@@ -19,8 +20,12 @@ export function useRaceEvents({ raceId, isFinalized, onRaceBroadcast }: UseRaceE
         onRaceBroadcast?.();
         router.refresh();
       }
+
+      if (data.type === 'RACE_ODDS_UPDATED' && data.raceId === raceId) {
+        onRaceOddsUpdated?.(data);
+      }
     },
-    [raceId, onRaceBroadcast, router]
+    [raceId, onRaceBroadcast, router, onRaceOddsUpdated]
   );
 
   const { connectionStatus } = useSSE({

@@ -1,0 +1,27 @@
+import { Button } from '@/shared/ui';
+import { BET_TYPE_LABELS, BET_TYPE_ORDER, BetType } from '@/types/betting';
+
+interface BetTypeSelectorProps {
+  betType: BetType;
+  onBetTypeChange: (type: BetType) => void;
+}
+
+export function BetTypeSelector({ betType, onBetTypeChange }: BetTypeSelectorProps) {
+  return (
+    <div className="flex flex-wrap gap-2 rounded-xl bg-gray-100 p-2">
+      {BET_TYPE_ORDER.map((type) => (
+        <Button
+          key={type}
+          type="button"
+          onClick={() => onBetTypeChange(type)}
+          variant={betType === type ? 'primary' : 'ghost'}
+          className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
+            betType === type ? 'shadow-md' : 'bg-white text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          {BET_TYPE_LABELS[type]}
+        </Button>
+      ))}
+    </div>
+  );
+}

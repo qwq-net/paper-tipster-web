@@ -9,6 +9,17 @@ export const BET_TYPES = {
   TRIO: 'trio',
 } as const;
 
+export const BET_TYPE_ORDER = [
+  BET_TYPES.WIN,
+  BET_TYPES.PLACE,
+  BET_TYPES.BRACKET_QUINELLA,
+  BET_TYPES.QUINELLA,
+  BET_TYPES.WIDE,
+  BET_TYPES.EXACTA,
+  BET_TYPES.TRIFECTA,
+  BET_TYPES.TRIO,
+] as const;
+
 export type BetType = (typeof BET_TYPES)[keyof typeof BET_TYPES];
 
 export const BET_TYPE_LABELS: Record<BetType, string> = {

@@ -89,6 +89,12 @@ export async function placeBet({
 
   revalidatePath('/mypage');
   revalidatePath(`/races/${raceId}`);
+
+  import('./logic/odds').then(({ calculateOdds }) => {
+    calculateOdds(raceId).catch((err) => {
+      console.error('Failed to calculate odds:', err);
+    });
+  });
 }
 
 export async function getUserBetsForRace(raceId: string) {
@@ -111,4 +117,9 @@ export async function getUserBetsForRace(raceId: string) {
       },
     },
   });
+}
+
+export async function fetchRaceOdds(raceId: string) {
+  const { getRaceOdds } = await import('./logic/odds');
+  return getRaceOdds(raceId);
 }

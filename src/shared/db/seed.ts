@@ -541,7 +541,10 @@ async function main() {
 
   const getRandomCondition = () => RACE_CONDITIONS[Math.floor(Math.random() * RACE_CONDITIONS.length)];
 
-  for (const eventTemplate of eventTemplates) {
+  const racesPerEvent = 5;
+
+  for (let eventIndex = 0; eventIndex < eventTemplates.length; eventIndex++) {
+    const eventTemplate = eventTemplates[eventIndex];
     const existingEvent = await db.query.events.findFirst({
       where: (e, { eq }) => eq(e.name, eventTemplate.name),
     });
@@ -555,7 +558,11 @@ async function main() {
       eventId = event.id;
     }
 
-    const selectedDefs = raceDefinitionIds.slice(0, 5);
+    const startIndex = (eventIndex * racesPerEvent) % raceDefinitionIds.length;
+    const selectedDefs: string[] = [];
+    for (let i = 0; i < racesPerEvent; i++) {
+      selectedDefs.push(raceDefinitionIds[(startIndex + i) % raceDefinitionIds.length]);
+    }
 
     for (let i = 0; i < selectedDefs.length; i++) {
       const defId = selectedDefs[i];
@@ -586,7 +593,7 @@ async function main() {
         })
         .returning();
 
-      console.log(`Race Instance created: ${race.name}`);
+      console.log(`Race Instance created: ${race.name} (Event: ${eventTemplate.name})`);
 
       const shuffledHorses = [...allHorses].sort(() => Math.random() - 0.5);
       const numEntries = Math.min(shuffledHorses.length, 12 + Math.floor(Math.random() * 6));

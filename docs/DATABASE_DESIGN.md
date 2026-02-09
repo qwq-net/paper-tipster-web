@@ -96,10 +96,10 @@ NextAuth.js の標準テーブル構成に従います。
 | `name` | Text | Yes | レース名 (例: 有馬記念) |
 | `grade` | Enum | Yes | 格付け ('G1', 'G2', 'G3', 'LISTED', 'OPEN', 'NONE') |
 | `type` | Enum | Yes | 'REAL', 'FICTION' |
-| `distance` | Integer | Yes | 距離 |
-| `surface` | Enum | Yes | 芝/ダート ('TURF', 'DIRT') |
-| `venueId` | UUID | No | デフォルト競馬場 |
-| `direction` | Enum | No | 回り方向 |
+| `defaultDistance` | Integer | Yes | 距離 |
+| `defaultSurface` | Enum | Yes | 芝/ダート ('TURF', 'DIRT') |
+| `defaultVenueId` | UUID | No | デフォルト競馬場 |
+| `defaultDirection` | Enum | No | 回り方向 |
 
 ### `event`
 
@@ -117,10 +117,12 @@ NextAuth.js の標準テーブル構成に従います。
 | :--- | :--- | :--- | :--- |
 | `id` | UUID | Yes | 主キー |
 | `eventId` | UUID | Yes | `event.id` への外部キー |
-| `definitionId` | UUID | No | `race_definition.id` への外部キー |
+| `raceDefinitionId` | UUID | No | `race_definition.id` への外部キー |
+| `date` | Date | Yes | 開催日 |
 | `name` | Text | Yes | レース名（定義から継承または独自設定） |
 | `raceNumber` | Integer | Yes | レース番号 (1-12) |
 | `venueId` | UUID | Yes | `venue.id` への外部キー |
+| `location` | Text | No | 開催場所名 (venue.nameが入る想定だが、現在はvenueId参照推奨) |
 | `distance` | Integer | Yes | 距離 (メートル) |
 | `surface` | Text | Yes | コース種別 (芝/ダート) |
 | `direction` | Enum | Yes | 回り方向 |

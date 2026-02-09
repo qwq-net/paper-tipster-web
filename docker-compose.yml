@@ -10,12 +10,13 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/webapp
       - REDIS_URL=redis://redis:6379
+      - CI=true
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "pnpm install && pnpm dev"
 
   db:
     image: postgres:15-alpine

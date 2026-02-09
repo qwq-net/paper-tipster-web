@@ -90,6 +90,12 @@ Next.jsのApp Router規約に基づくディレクトリです。FSDの「App」
 - `RACE_FINALIZED`: 配当の確定（結果表示の準備完了）
 - `RACE_BROADCAST`: 全ユーザーへの結果発表（自動ポップアップ表示）
 
+#### 実装詳細: Singleton Emitter
+
+Next.js の Server Actions や API Routes はステートレスに動作するため、各リクエストで `EventEmitter` が再生成されてしまう問題がありました。
+これを解決するため、`global` オブジェクトを利用したシングルトンパターン (`src/lib/sse/event-emitter.ts`) を採用しています。
+これにより、タイマーによる自動実行（バックグラウンド）と、API経由の手動実行（フォアグラウンド）の間で、確実にイベントを共有・配信しています。
+
 ### UI標準化とFSDの適用
 
 - **Shared UI**: `src/shared/ui` 配下のコンポーネントのみで構築することでデザインの一貫性を担保。

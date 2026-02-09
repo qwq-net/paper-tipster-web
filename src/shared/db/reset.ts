@@ -5,13 +5,21 @@ async function main() {
   console.log('--- Resetting Database (Truncating all tables) ---');
 
   const tableNames = [
+    'payout_result',
+    'race_odds',
     'race_entry',
     'bet',
+    'horse_win',
+    'horse_tag',
+    'horse_tag_master',
+    'race_instance',
+    'race_definition',
+    'venue',
     'transaction',
     'wallet',
-    'race',
     'horse',
     'event',
+    'guest_code',
     'verificationToken',
     'session',
     'account',

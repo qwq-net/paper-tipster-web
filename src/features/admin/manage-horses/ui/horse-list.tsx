@@ -46,20 +46,20 @@ export async function HorseList() {
           {horses.map((horse) => (
             <tr key={horse.id} className="transition-colors hover:bg-gray-50">
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900">
-                <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`shrink-0 rounded px-1.5 py-0.5 text-sm font-medium ${
+                      horse.type === 'REAL' ? 'bg-green-50 text-green-700' : 'bg-purple-50 text-purple-700'
+                    }`}
+                  >
+                    {horse.type === 'REAL' ? '実在' : '架空'}
+                  </span>
                   <Link
                     href={`/admin/horses/${horse.id}`}
                     className="text-blue-600 transition-colors hover:text-blue-800 hover:underline"
                   >
                     {horse.name}
                   </Link>
-                  <span
-                    className={`w-fit origin-top-left scale-90 rounded px-1.5 py-0.5 text-sm font-medium ${
-                      horse.type === 'REAL' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'
-                    }`}
-                  >
-                    {horse.type === 'REAL' ? '実在' : '架空'}
-                  </span>
                 </div>
               </td>
               <td className="px-6 py-4 text-sm whitespace-nowrap">

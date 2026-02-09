@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import { getVenues } from '../actions';
 import { DeleteVenueButton } from './delete-venue-button';
-import { EditVenueDialog } from './edit-venue-dialog';
 
 const DIRECTION_LABELS: Record<string, string> = {
   LEFT: '左回り',
@@ -43,7 +43,14 @@ export async function VenueList() {
         <tbody className="divide-y divide-gray-200 bg-white">
           {venues.map((venue) => (
             <tr key={venue.id} className="transition-colors hover:bg-gray-50">
-              <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900">{venue.name}</td>
+              <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900">
+                <Link
+                  href={`/admin/venues/${venue.id}`}
+                  className="text-blue-600 transition-colors hover:text-blue-800 hover:underline"
+                >
+                  {venue.name}
+                </Link>
+              </td>
               <td className="px-6 py-4 font-mono text-sm whitespace-nowrap text-gray-500">{venue.code || '-'}</td>
               <td className="px-6 py-4 text-sm whitespace-nowrap">{venue.shortName}</td>
               <td className="px-6 py-4 text-sm whitespace-nowrap">
@@ -73,15 +80,7 @@ export async function VenueList() {
                 </span>
               </td>
               <td className="px-6 py-4 text-right whitespace-nowrap">
-                <div className="flex justify-end gap-2">
-                  <EditVenueDialog
-                    venue={{
-                      ...venue,
-                      code: venue.code,
-                      direction: venue.defaultDirection as 'LEFT' | 'RIGHT' | 'STRAIGHT',
-                      area: venue.area as 'EAST_JAPAN' | 'WEST_JAPAN' | 'OVERSEAS',
-                    }}
-                  />
+                <div className="flex justify-end">
                   <DeleteVenueButton venueId={venue.id} venueName={venue.name} />
                 </div>
               </td>

@@ -1,4 +1,5 @@
 import { Role } from '@/entities/user';
+import { AdapterUser as DefaultAdapterUser } from '@auth/core/adapters';
 import { DefaultSession, DefaultUser } from 'next-auth';
 
 declare module 'next-auth' {
@@ -21,5 +22,12 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     role: Role;
+  }
+}
+
+declare module '@auth/core/adapters' {
+  interface AdapterUser extends DefaultAdapterUser {
+    role: Role;
+    isOnboardingCompleted: boolean;
   }
 }

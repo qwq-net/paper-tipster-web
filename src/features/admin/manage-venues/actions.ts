@@ -91,3 +91,8 @@ export async function deleteVenue(id: string) {
 export async function getVenues() {
   return db.select().from(venues).orderBy(venues.code, venues.name);
 }
+
+export async function getVenue(id: string) {
+  const result = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
+  return result[0] || null;
+}

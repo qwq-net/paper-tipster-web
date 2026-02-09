@@ -43,7 +43,7 @@ export function HorseDetail({ horse, wins }: HorseDetailProps) {
               <span className="text-2xl">{horse.name}</span>
               <span
                 className={`ml-2 rounded px-2 py-0.5 text-sm font-medium ${
-                  horse.type === 'REAL' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                  horse.type === 'REAL' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
                 }`}
               >
                 {horse.type === 'REAL' ? '実在' : '架空'}

@@ -68,7 +68,7 @@ export async function RaceDefinitionList() {
                 <span
                   className={`inline-flex items-center rounded-md px-2 py-1 text-sm font-medium ring-1 ring-inset ${
                     def.type === 'REAL'
-                      ? 'bg-blue-50 text-blue-700 ring-blue-700/10'
+                      ? 'bg-green-50 text-green-700 ring-green-700/10'
                       : 'bg-purple-50 text-purple-700 ring-purple-700/10'
                   }`}
                 >

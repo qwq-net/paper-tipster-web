@@ -146,6 +146,29 @@ NextAuth.js の標準テーブル構成に従います。
 | `weight` | Integer | No | 斤量 |
 | `status` | Enum | Yes | 状態 ('ENTRANT', 'SCRATCHED', 'EXCLUDED') |
 
+### `bet5_event` (BET5イベント)
+
+5つのレースを対象とした5重勝単勝式イベント。
+
+- `id`: UUID (主キー)
+- `eventId`: UUID (`event.id` への外部キー)
+- `race1Id` - `race5Id`: UUID (`race_instance.id` への外部キー)
+- `initialPot`: Integer (キャリーオーバー等による初期ポット金額)
+- `status`: Enum ('SCHEDULED', 'CLOSED', 'FINALIZED')
+
+### `bet5_ticket` (BET5投票)
+
+ユーザーが購入したBET5のチケット。
+
+- `id`: UUID (主キー)
+- `bet5EventId`: UUID (`bet5_event.id` への外部キー)
+- `userId`: Text (`user.id` への外部キー)
+- `walletId`: UUID (`wallet.id` への外部キー)
+- `race1HorseIds` - `race5HorseIds`: JSONB (各レースで選択した馬IDの配列)
+- `amount`: Integer (購入金額)
+- `isWin`: Boolean (的中可否)
+- `payout`: Integer (払戻金)
+
 ---
 
 ## リレーションシップ図 (概念)

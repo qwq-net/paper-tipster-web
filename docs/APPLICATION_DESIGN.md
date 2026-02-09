@@ -57,6 +57,7 @@ Next.jsのApp Router規約に基づくディレクトリです。FSDの「App」
   - `admin/manage-horse-tags`: 馬タグ管理
   - `admin/manage-entries`: 出走登録・枠順管理
   - `admin/manage-bets`: 馬券管理（全馬券の参照）
+  - `admin/bet5`: BET5（5重勝単勝式）イベント管理
 - **なぜここか？**: これらのアクションはビジネスロジックの中核であり、単なるデータの表示を超えた「振る舞い」をカプセル化するためです。
 
 ### 4. `src/entities` (Entities Layer)

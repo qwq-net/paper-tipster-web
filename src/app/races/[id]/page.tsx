@@ -1,11 +1,11 @@
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { fetchRaceOdds } from '@/features/betting/actions';
 import { BetTable } from '@/features/betting/ui/bet-table';
-import { getEventWallets } from '@/features/economy/wallet';
+import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
-import { Button, Card, CardContent } from '@/shared/ui';
-import { ChevronLeft, Info } from 'lucide-react';
+import { Button } from '@/shared/ui';
+import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
@@ -49,22 +49,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
   const wallet = wallets.find((w) => w.eventId === race.eventId);
 
   if (!wallet) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="max-w-md">
-          <CardContent className="pt-6 text-center">
-            <Info className="mx-auto mb-4 h-12 w-12 text-blue-500" />
-            <h2 className="mb-2 text-xl font-semibold">ウォレットが見つかりません</h2>
-            <p className="text-gray-500">
-              馬券を購入するには、まずマイページからイベントに参加して資金を受け取ってください。
-            </p>
-            <Link href="/mypage/claim">
-              <Button className="mt-6">お小遣いを貰いに行く</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <WalletMissingCard showBackLink={true} />;
   }
 
   return (

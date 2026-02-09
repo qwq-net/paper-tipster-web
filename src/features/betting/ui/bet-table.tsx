@@ -10,7 +10,7 @@ import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
 import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
 import { useRaceOdds as useRaceOddsData } from '@/features/race/hooks/use-race-odds';
 import { useSSE } from '@/shared/hooks/use-sse';
-import { Badge, LiveConnectionStatus } from '@/shared/ui';
+import { Badge, Checkbox, LiveConnectionStatus } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { getGenderAge } from '@/shared/utils/gender';
@@ -186,12 +186,11 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
                       {idx === 0 &&
                         Array.from({ length: columnCount }).map((_, colIdx) => (
                           <td key={colIdx} className="px-2 text-center align-middle" rowSpan={bracketEntries.length}>
-                            <input
-                              type="checkbox"
+                            <Checkbox
                               checked={selections[colIdx].has(Number(bracket))}
-                              onChange={() => handleCheckboxChange(colIdx, Number(bracket))}
+                              onCheckedChange={() => handleCheckboxChange(colIdx, Number(bracket))}
                               disabled={isClosed || isPending}
-                              className="text-primary focus:ring-primary h-5 w-5 cursor-pointer rounded border-gray-300 disabled:cursor-not-allowed disabled:opacity-30"
+                              className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
                             />
                           </td>
                         ))}
@@ -221,12 +220,11 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
 
                     {Array.from({ length: columnCount }).map((_, colIdx) => (
                       <td key={colIdx} className="px-2 py-2 text-center">
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={selections[colIdx].has(entry.horseNumber!)}
-                          onChange={() => handleCheckboxChange(colIdx, entry.horseNumber!)}
+                          onCheckedChange={() => handleCheckboxChange(colIdx, entry.horseNumber!)}
                           disabled={isClosed || isPending}
-                          className="text-primary focus:ring-primary h-5 w-5 cursor-pointer rounded border-gray-300 disabled:cursor-not-allowed disabled:opacity-30"
+                          className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
                         />
                       </td>
                     ))}

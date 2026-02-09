@@ -1,7 +1,7 @@
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { raceInstances, wallets } from '@/shared/db/schema';
+import { bet5Events, raceInstances, wallets } from '@/shared/db/schema';
 import { Badge, Card } from '@/shared/ui';
 import { desc, eq } from 'drizzle-orm';
 import { ChevronLeft, Wallet, Zap } from 'lucide-react';
@@ -14,14 +14,14 @@ export const metadata: Metadata = {
   title: '即BET',
 };
 
-export default async function SokupatPage() {
+export default async function SokubetPage() {
   const session = await auth();
 
   if (!session?.user?.id) {
     redirect('/login');
   }
 
-  const [allRaces, userWallets] = await Promise.all([
+  const [allRaces, userWallets, bet5EventsList] = await Promise.all([
     db.query.raceInstances.findMany({
       orderBy: [desc(raceInstances.date)],
       with: {
@@ -32,6 +32,9 @@ export default async function SokupatPage() {
     db.query.wallets.findMany({
       where: eq(wallets.userId, session.user.id),
     }),
+    db.query.bet5Events.findMany({
+      where: eq(bet5Events.status, 'SCHEDULED'),
+    }),
   ]);
 
   const activeRaces = allRaces.filter((race) => race.event.status === 'ACTIVE');
@@ -41,16 +44,21 @@ export default async function SokupatPage() {
       const eventId = race.event.id;
       if (!acc[eventId]) {
         const wallet = userWallets.find((w) => w.eventId === eventId);
+        const bet5 = bet5EventsList.find((b) => b.eventId === eventId);
         acc[eventId] = {
           event: race.event,
           races: [],
           balance: wallet?.balance ?? 0,
+          bet5Id: bet5?.id,
         };
       }
       acc[eventId].races.push(race);
       return acc;
     },
-    {} as Record<string, { event: (typeof activeRaces)[0]['event']; races: typeof activeRaces; balance: number }>
+    {} as Record<
+      string,
+      { event: (typeof activeRaces)[0]['event']; races: typeof activeRaces; balance: number; bet5Id?: string }
+    >
   );
 
   const sortedEventGroups = Object.values(eventGroups)
@@ -87,13 +95,21 @@ export default async function SokupatPage() {
           <Card className="p-12 text-center text-gray-500">現在、開催中のイベントはありません。</Card>
         ) : (
           <div className="space-y-8">
-            {sortedEventGroups.map(({ event, races, balance }) => (
+            {sortedEventGroups.map(({ event, races, balance, bet5Id }) => (
               <section key={event.id}>
                 <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <div className="flex items-center gap-4">
                       <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">{event.name}</h2>
                       <RankingButton eventId={event.id} />
+                      {bet5Id && (
+                        <Link href={`/events/${event.id}/bet5`}>
+                          <Badge
+                            label="BET5 開催中"
+                            className="cursor-pointer border-0 bg-green-500 text-white hover:bg-green-600"
+                          />
+                        </Link>
+                      )}
                     </div>
                     <p className="mt-1 text-sm font-semibold text-gray-400">{event.date}</p>
                   </div>
@@ -106,6 +122,24 @@ export default async function SokupatPage() {
                     </span>
                   </div>
                 </div>
+                {bet5Id && (
+                  <div className="mb-4">
+                    <Link href={`/events/${event.id}/bet5`}>
+                      <Card className="cursor-pointer border-0 bg-linear-to-r from-indigo-500 to-purple-600 p-4 text-white shadow-md transition-opacity hover:opacity-90">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="flex items-center gap-2 text-lg font-semibold">
+                              <span className="rounded bg-white px-2 py-0.5 text-sm text-indigo-600">BET5</span>
+                              5レース的中・一攫千金チャンス！
+                            </h3>
+                            <p className="mt-1 text-sm text-indigo-100">対象の5レース全ての1着を予想しよう</p>
+                          </div>
+                          <ChevronLeft className="rotate-180" />
+                        </div>
+                      </Card>
+                    </Link>
+                  </div>
+                )}
                 <div className="grid gap-4 md:grid-cols-2">
                   {races.map((race) => (
                     <Link key={race.id} href={`/races/${race.id}`}>

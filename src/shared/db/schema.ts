@@ -477,3 +477,102 @@ export const raceOddsRelations = relations(raceOdds, ({ one }) => ({
     references: [raceInstances.id],
   }),
 }));
+
+export const bet5Events = pgTable('bet5_event', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  eventId: uuid('event_id')
+    .notNull()
+    .references(() => events.id, { onDelete: 'cascade' }),
+  race1Id: uuid('race1_id')
+    .notNull()
+    .references(() => raceInstances.id),
+  race2Id: uuid('race2_id')
+    .notNull()
+    .references(() => raceInstances.id),
+  race3Id: uuid('race3_id')
+    .notNull()
+    .references(() => raceInstances.id),
+  race4Id: uuid('race4_id')
+    .notNull()
+    .references(() => raceInstances.id),
+  race5Id: uuid('race5_id')
+    .notNull()
+    .references(() => raceInstances.id),
+  initialPot: bigint('initial_pot', { mode: 'number' }).default(0).notNull(),
+  status: raceStatusEnum('status').default('SCHEDULED').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
+export const bet5Tickets = pgTable('bet5_ticket', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  bet5EventId: uuid('bet5_event_id')
+    .notNull()
+    .references(() => bet5Events.id, { onDelete: 'cascade' }),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  walletId: uuid('wallet_id')
+    .notNull()
+    .references(() => wallets.id, { onDelete: 'cascade' }),
+  race1HorseIds: jsonb('race1_horse_ids').$type<string[]>().notNull(),
+  race2HorseIds: jsonb('race2_horse_ids').$type<string[]>().notNull(),
+  race3HorseIds: jsonb('race3_horse_ids').$type<string[]>().notNull(),
+  race4HorseIds: jsonb('race4_horse_ids').$type<string[]>().notNull(),
+  race5HorseIds: jsonb('race5_horse_ids').$type<string[]>().notNull(),
+  amount: bigint('amount', { mode: 'number' }).notNull(),
+  isWin: boolean('is_win'),
+  payout: bigint('payout', { mode: 'number' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const bet5EventRelations = relations(bet5Events, ({ one, many }) => ({
+  event: one(events, {
+    fields: [bet5Events.eventId],
+    references: [events.id],
+  }),
+  race1: one(raceInstances, {
+    fields: [bet5Events.race1Id],
+    references: [raceInstances.id],
+    relationName: 'bet5_race1',
+  }),
+  race2: one(raceInstances, {
+    fields: [bet5Events.race2Id],
+    references: [raceInstances.id],
+    relationName: 'bet5_race2',
+  }),
+  race3: one(raceInstances, {
+    fields: [bet5Events.race3Id],
+    references: [raceInstances.id],
+    relationName: 'bet5_race3',
+  }),
+  race4: one(raceInstances, {
+    fields: [bet5Events.race4Id],
+    references: [raceInstances.id],
+    relationName: 'bet5_race4',
+  }),
+  race5: one(raceInstances, {
+    fields: [bet5Events.race5Id],
+    references: [raceInstances.id],
+    relationName: 'bet5_race5',
+  }),
+  tickets: many(bet5Tickets),
+}));
+
+export const bet5TicketRelations = relations(bet5Tickets, ({ one }) => ({
+  bet5Event: one(bet5Events, {
+    fields: [bet5Tickets.bet5EventId],
+    references: [bet5Events.id],
+  }),
+  user: one(users, {
+    fields: [bet5Tickets.userId],
+    references: [users.id],
+  }),
+  wallet: one(wallets, {
+    fields: [bet5Tickets.walletId],
+    references: [wallets.id],
+  }),
+}));

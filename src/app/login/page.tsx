@@ -21,7 +21,7 @@ export default async function LoginPage() {
       <div className="w-full max-w-md space-y-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
         <div className="text-center">
           <div className="mb-4">
-            <h1 className="text-primary mb-2 text-2xl font-semibold tracking-tight">Paper Tipster</h1>
+            <h1 className="text-primary text-2xl font-semibold tracking-tight">Paper Tipster</h1>
             <p className={`text-center text-sm text-gray-500`}>オンライン馬券投票ごっこシステム</p>
           </div>
           <LoginButton />

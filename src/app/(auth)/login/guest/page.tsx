@@ -10,12 +10,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'ゲストログイン',
-};
-
 export default function GuestLoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState('');

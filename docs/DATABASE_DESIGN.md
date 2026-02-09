@@ -36,10 +36,10 @@ NextAuth.js の標準テーブル構成に従います。
 | カラム名 | 型 | 必須 | 説明 |
 | :--- | :--- | :--- | :--- |
 | `id` | UUID | Yes | 主キー |
-| `bankAccountId`| UUID | Yes | `bank_account.id` への外部キー |
+| `walletId`| UUID | Yes | `wallet.id` への外部キー |
 | `amount` | Integer | Yes | 変動金額（差分） |
-| `type` | Enum | Yes | 'DEPOSIT', 'WITHDRAWAL', 'BET', 'PAYOUT' |
-| `description` | Text | No | 取引内容の詳細 |
+| `type` | Enum | Yes | 'DISTRIBUTION', 'BET', 'PAYOUT', 'REFUND', 'ADJUSTMENT' |
+| `referenceId` | UUID | No | 関連するID (レースIDやチケットID等) |
 | `createdAt` | Timestamp | Yes | 取引日時 |
 
 ### `venue` (競馬場)
@@ -70,13 +70,11 @@ NextAuth.js の標準テーブル構成に従います。
 | :--- | :--- | :--- | :--- |
 | `id` | UUID | Yes | 主キー |
 | `name` | Text | Yes | 馬名 |
-| `gender` | Enum | Yes | 性別 ('MALE', 'FEMALE', 'GELDING') |
+| `gender` | Enum | Yes | 性別 ('MARE', 'FILLY', 'HORSE', 'COLT', 'GELDING') |
 | `age` | Integer | Yes | 年齢 |
 | `type` | Enum | Yes | 'REAL' (実在), 'FICTION' (非実在) |
-| `origin` | Text | No | 出身・生産地 |
-| `sire` | Text | No | 父馬名 |
-| `dam` | Text | No | 母馬名 |
-| `remarks` | Text | No | 備考 |
+| `origin` | Enum | Yes | 'DOMESTIC', 'FOREIGN_BRED' |
+| `notes` | Text | No | 備考 |
 | `createdAt` | Timestamp | Yes | 登録日時 |
 
 ### `horse_tag` (馬タグ紐付け)
@@ -186,24 +184,28 @@ NextAuth.js の標準テーブル構成に従います。
 
 5つのレースを対象とした5重勝単勝式イベント。
 
-- `id`: UUID (主キー)
-- `eventId`: UUID (`event.id` への外部キー)
-- `race1Id` - `race5Id`: UUID (`race_instance.id` への外部キー)
-- `initialPot`: Integer (キャリーオーバー等による初期ポット金額)
-- `status`: Enum ('SCHEDULED', 'CLOSED', 'FINALIZED')
+| カラム名             | 型      | 必須 | 説明                               |
+| :------------------- | :------ | :--- | :--------------------------------- |
+| `id`                 | UUID    | Yes  | 主キー                             |
+| `eventId`            | UUID    | Yes  | `event.id` への外部キー            |
+| `race1Id`〜`race5Id` | UUID    | Yes  | `race_instance.id` への外部キー    |
+| `initialPot`         | Integer | Yes  | 初期ポット金額                     |
+| `status`             | Enum    | Yes  | 'SCHEDULED', 'CLOSED', 'FINALIZED' |
 
 ### `bet5_ticket` (BET5投票)
 
 ユーザーが購入したBET5のチケット。
 
-- `id`: UUID (主キー)
-- `bet5EventId`: UUID (`bet5_event.id` への外部キー)
-- `userId`: Text (`user.id` への外部キー)
-- `walletId`: UUID (`wallet.id` への外部キー)
-- `race1HorseIds` - `race5HorseIds`: JSONB (各レースで選択した馬IDの配列)
-- `amount`: Integer (購入金額)
-- `isWin`: Boolean (的中可否)
-- `payout`: Integer (払戻金)
+| カラム名                         | 型      | 必須 | 説明                         |
+| :------------------------------- | :------ | :--- | :--------------------------- |
+| `id`                             | UUID    | Yes  | 主キー                       |
+| `bet5EventId`                    | UUID    | Yes  | `bet5_event.id` への外部キー |
+| `userId`                         | Text    | Yes  | `user.id` への外部キー       |
+| `walletId`                       | UUID    | Yes  | `wallet.id` への外部キー     |
+| `race1HorseIds`〜`race5HorseIds` | JSONB   | Yes  | 各レースで選択した馬IDの配列 |
+| `amount`                         | Integer | Yes  | 購入金額                     |
+| `isWin`                          | Boolean | No   | 的中可否                     |
+| `payout`                         | Integer | No   | 払戻金                       |
 
 ---
 
@@ -211,8 +213,8 @@ NextAuth.js の標準テーブル構成に従います。
 
 ```mermaid
 erDiagram
-    USER ||--o{ BANK_ACCOUNT : "所有"
-    EVENT ||--o{ BANK_ACCOUNT : "所属"
+    USER ||--o{ WALLET : "所有"
+    EVENT ||--o{ WALLET : "所属"
     EVENT ||--o{ RACE_INSTANCE : "含む"
     VENUE ||--o{ RACE_INSTANCE : "開催場"
     RACE_DEFINITION ||--o{ RACE_INSTANCE : "マスタ"

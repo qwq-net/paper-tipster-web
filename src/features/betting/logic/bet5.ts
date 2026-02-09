@@ -1,5 +1,5 @@
 import { db } from '@/shared/db';
-import { bet5Events, bet5Tickets, raceEntries, transactions, wallets } from '@/shared/db/schema';
+import { bet5Events, bet5Tickets, transactions, wallets } from '@/shared/db/schema';
 import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -125,17 +125,20 @@ export async function calculateBet5Payout(bet5EventId: string) {
     if (event.status === 'FINALIZED') return { success: false, message: 'Already finalized' };
 
     const races = [event.race1Id, event.race2Id, event.race3Id, event.race4Id, event.race5Id];
-    const winners: string[] = [];
+    const allWinners = await tx.query.raceEntries.findMany({
+      where: (raceEntries, { and, inArray, eq }) =>
+        and(inArray(raceEntries.raceId, races), eq(raceEntries.finishPosition, 1)),
+    });
 
-    for (const raceId of races) {
-      const entry = await tx.query.raceEntries.findFirst({
-        where: and(eq(raceEntries.raceId, raceId), eq(raceEntries.finishPosition, 1)),
-      });
-      if (!entry) {
-        throw new Error(`Winner not found for race ${raceId}`);
-      }
-      winners.push(entry.horseId);
+    if (allWinners.length !== 5) {
+      return { success: false, winCount: 0, dividend: 0, totalPot: 0, message: 'Not all races have a winner' };
     }
+
+    const sortedWinners = races.map((raceId) => {
+      const winner = allWinners.find((w) => w.raceId === raceId);
+      if (!winner) throw new Error(`Winner not found for race ${raceId}`);
+      return winner.horseId;
+    });
 
     const tickets = await tx.query.bet5Tickets.findMany({
       where: eq(bet5Tickets.bet5EventId, bet5EventId),
@@ -152,11 +155,11 @@ export async function calculateBet5Payout(bet5EventId: string) {
       const r5 = t.race5HorseIds as string[];
 
       return (
-        r1.includes(winners[0]) &&
-        r2.includes(winners[1]) &&
-        r3.includes(winners[2]) &&
-        r4.includes(winners[3]) &&
-        r5.includes(winners[4])
+        r1.includes(sortedWinners[0]) &&
+        r2.includes(sortedWinners[1]) &&
+        r3.includes(sortedWinners[2]) &&
+        r4.includes(sortedWinners[3]) &&
+        r5.includes(sortedWinners[4])
       );
     });
 

@@ -20,13 +20,13 @@ NextAuth.js の標準テーブル構成に従います。
 - `role`: Enum ('USER', 'ADMIN', 'GUEST', 'TIPSTER', 'AI_TIPSTER', 'AI_USER')
 - `emailVerified`: Timestamp
 
-### `bank_account`
+### `wallet`
 
-ユーザーの所持金（イベント通貨）を管理する口座。
+ユーザーの所持金（イベント通貨）を管理するウォレット。
 | カラム名 | 型 | 必須 | 説明 |
 | :--- | :--- | :--- | :--- |
 | `id` | UUID | Yes | 主キー |
-| `userId` | UUID | Yes | `user.id` への外部キー |
+| `userId` | Text | Yes | `user.id` への外部キー |
 | `eventId` | UUID | Yes | `event.id` への外部キー |
 | `balance` | Integer | Yes | 現在の残高 (デフォルト: 0) |
 
@@ -81,11 +81,14 @@ NextAuth.js の標準テーブル構成に従います。
 
 ### `horse_tag` (馬タグ紐付け)
 
-馬とタグの中間テーブル。
-| カラム名 | 型 | 必須 | 説明 |
-| :--- | :--- | :--- | :--- |
-| `horseId` | UUID | Yes | `horse.id` への外部キー |
-| `tagId` | UUID | Yes | `horse_tag_master.id` への外部キー |
+馬とタグの関連付けテーブル。
+
+| カラム名  | 型   | 必須 | 説明                    |
+| :-------- | :--- | :--- | :---------------------- |
+| `id`      | UUID | Yes  | 主キー                  |
+| `horseId` | UUID | Yes  | `horse.id` への外部キー |
+| `type`    | Enum | Yes  | タグ種別                |
+| `content` | Text | Yes  | タグ内容                |
 
 ### `race_definition` (レース定義)
 
@@ -145,6 +148,39 @@ NextAuth.js の標準テーブル構成に従います。
 | `jockey` | Text | No | 騎手名 |
 | `weight` | Integer | No | 斤量 |
 | `status` | Enum | Yes | 状態 ('ENTRANT', 'SCRATCHED', 'EXCLUDED') |
+
+### `race_odds` (レースオッズ)
+
+レースの単勝・複勝オッズを管理するテーブル。
+| カラム名 | 型 | 必須 | 説明 |
+| :--- | :--- | :--- | :--- |
+| `id` | UUID | Yes | 主キー |
+| `raceId` | UUID | Yes | `race_instance.id` への外部キー (Unique) |
+| `winOdds` | JSONB | No | 単勝オッズ (馬番 -> オッズ) |
+| `placeOdds` | JSONB | No | 複勝オッズ (馬番 -> {min, max}) |
+| `updatedAt` | Timestamp | Yes | 更新日時 |
+
+### `horse_win` (馬の勝利記録)
+
+馬の過去の勝利記録（タイトルなど）を管理するテーブル。
+| カラム名 | 型 | 必須 | 説明 |
+| :--- | :--- | :--- | :--- |
+| `id` | UUID | Yes | 主キー |
+| `horseId` | UUID | Yes | `horse.id` への外部キー |
+| `raceInstanceId` | UUID | No | `race_instance.id` への外部キー |
+| `raceDefinitionId` | UUID | No | `race_definition.id` への外部キー |
+| `title` | Text | Yes | タイトル名 |
+| `date` | Date | No | 日付 |
+
+### `payout_result` (払戻金結果)
+
+レース確定後の払戻金結果を保持するテーブル。
+| カラム名 | 型 | 必須 | 説明 |
+| :--- | :--- | :--- | :--- |
+| `id` | UUID | Yes | 主キー |
+| `raceId` | UUID | Yes | `race_instance.id` への外部キー |
+| `type` | Text | Yes | 券種 (WIN, PLACE, QUINELLA, etc.) |
+| `combinations` | JSONB | Yes | 払戻組番と金額のリスト |
 
 ### `bet5_event` (BET5イベント)
 

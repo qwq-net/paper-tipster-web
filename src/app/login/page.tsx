@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '招待コードログイン',
+  title: 'ログイン',
 };
 
 export default async function LoginPage() {

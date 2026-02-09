@@ -5,7 +5,7 @@ import { db } from '@/shared/db';
 import { bets, raceEntries, raceInstances } from '@/shared/db/schema';
 import { calculatePayoutRate, Finisher, isWinningBet } from '@/shared/utils/payout';
 import { BetDetail } from '@/types/betting';
-import { eq } from 'drizzle-orm';
+import { eq, sql, SQL } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function finalizeRace(
@@ -22,11 +22,20 @@ export async function finalizeRace(
   }
 
   await db.transaction(async (tx) => {
-    for (const result of results) {
-      await tx
-        .update(raceEntries)
-        .set({ finishPosition: result.finishPosition })
-        .where(eq(raceEntries.id, result.entryId));
+    if (results.length > 0) {
+      const sqlChunks: SQL[] = [];
+      const ids: string[] = [];
+
+      sqlChunks.push(sql`(case`);
+      for (const result of results) {
+        sqlChunks.push(sql`when ${raceEntries.id} = ${result.entryId} then ${result.finishPosition}`);
+        ids.push(result.entryId);
+      }
+      sqlChunks.push(sql`else ${raceEntries.finishPosition} end)`);
+
+      const finalSql: SQL = sql.join(sqlChunks, sql` `);
+
+      await tx.update(raceEntries).set({ finishPosition: finalSql }).where(eq(raceEntries.raceId, raceId));
     }
 
     const raceEntriesWithInfo = await tx.query.raceEntries.findMany({

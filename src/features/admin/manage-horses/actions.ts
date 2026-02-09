@@ -28,6 +28,12 @@ const horseSchema = z.object({
     .optional(),
 });
 
+const GENDER_MAP: Record<string, 'MARE' | 'FILLY' | 'HORSE' | 'COLT' | 'GELDING'> = {
+  牡: 'HORSE',
+  牝: 'MARE',
+  セン: 'GELDING',
+};
+
 export async function createHorse(formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
@@ -51,11 +57,20 @@ export async function createHorse(formData: FormData) {
     throw new Error('入力内容が無効です');
   }
 
+  const GENDER_MAP: Record<string, 'MARE' | 'FILLY' | 'HORSE' | 'COLT' | 'GELDING'> = {
+    牡: 'HORSE',
+    牝: 'MARE',
+    セン: 'GELDING',
+  };
+
+  const genderInput = parse.data.gender as '牡' | '牝' | 'セン';
+  const gender = GENDER_MAP[genderInput];
+
   const [horse] = await db
     .insert(horses)
     .values({
       name: parse.data.name,
-      gender: parse.data.gender,
+      gender: gender,
       age: parse.data.age,
       origin: parse.data.origin,
       notes: parse.data.notes,
@@ -99,12 +114,15 @@ export async function updateHorse(id: string, formData: FormData) {
     throw new Error('入力内容が無効です');
   }
 
+  const genderInput = parse.data.gender as '牡' | '牝' | 'セン';
+  const gender = GENDER_MAP[genderInput];
+
   await db.transaction(async (tx) => {
     await tx
       .update(horses)
       .set({
         name: parse.data.name,
-        gender: parse.data.gender,
+        gender: gender,
         age: parse.data.age,
         origin: parse.data.origin,
         notes: parse.data.notes,

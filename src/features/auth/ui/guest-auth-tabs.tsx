@@ -19,7 +19,7 @@ export function GuestAuthTabs({ activeTab }: GuestAuthTabsProps) {
             : 'bg-transparent text-gray-500 hover:bg-gray-200/50 hover:text-gray-700'
         )}
       >
-        新規登録
+        招待コード登録
       </Link>
       <Link
         href="/login/guest"
@@ -30,7 +30,7 @@ export function GuestAuthTabs({ activeTab }: GuestAuthTabsProps) {
             : 'bg-transparent text-gray-500 hover:bg-gray-200/50 hover:text-gray-700'
         )}
       >
-        ログイン
+        招待コードログイン
       </Link>
     </div>
   );

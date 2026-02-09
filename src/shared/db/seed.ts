@@ -518,7 +518,7 @@ async function main() {
         .insert(schema.horses)
         .values({
           name: cleanedName,
-          gender: horseData.gender,
+          gender: horseData.gender === '牡' ? 'HORSE' : horseData.gender === '牝' ? 'MARE' : 'GELDING',
           age: horseData.age,
           origin: isForeign ? 'FOREIGN_BRED' : 'DOMESTIC',
           type: horseData.type || 'REAL',

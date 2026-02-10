@@ -105,12 +105,35 @@ function TicketGroupItem({ group }: { group: BetGroup }) {
     });
   });
 
-  const compressedRows = compressBetSelections(
-    group.bets.map((b) => ({
-      selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
-      status: b.status,
-    }))
-  );
+  const winningBets = group.bets.filter((bet) => bet.status === 'HIT');
+  const otherBets = group.bets.filter((bet) => bet.status !== 'HIT');
+
+  let compressedRows: CompressedRow[];
+
+  if (winningBets.length > 0) {
+    const winningRows = compressBetSelections(
+      winningBets.map((b) => ({
+        selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
+        status: b.status,
+      }))
+    );
+
+    const otherRows = compressBetSelections(
+      otherBets.map((b) => ({
+        selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
+        status: b.status,
+      }))
+    );
+
+    compressedRows = [...winningRows, ...otherRows];
+  } else {
+    compressedRows = compressBetSelections(
+      group.bets.map((b) => ({
+        selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
+        status: b.status,
+      }))
+    );
+  }
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md">

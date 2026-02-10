@@ -1,6 +1,7 @@
-import { BET_TYPES, BetDetail } from '@/types/betting';
+import { BET_TYPES, BetDetail, BetType } from '@/types/betting';
 
 export const TOKUBARAI_RATE = 0.7;
+export const ODDS_UNIT = 100;
 
 export interface Finisher {
   horseNumber: number;
@@ -65,6 +66,16 @@ export function isWinningBet(detail: BetDetail, finishers: Finisher[]): boolean 
   }
 }
 
+export const isOrderSensitive = (type: BetType) =>
+  ([BET_TYPES.EXACTA, BET_TYPES.TRIFECTA, BET_TYPES.WIN, BET_TYPES.PLACE] as BetType[]).includes(type);
+
+export const normalizeSelections = (type: BetType, numbers: number[]) => {
+  if (isOrderSensitive(type)) {
+    return JSON.stringify(numbers);
+  }
+  return JSON.stringify([...numbers].sort((a, b) => a - b));
+};
+
 export function calculatePayoutRate(
   totalPool: number,
   winningAmount: number,
@@ -90,7 +101,7 @@ export function calculatePayoutRate(
   return Math.max(1.0, rate);
 }
 
-export function getWinningCombinations(type: string, finishers: Finisher[]): number[][] {
+export function getWinningCombinations(type: BetType, finishers: Finisher[]): number[][] {
   const f1 = finishers[0];
   const f2 = finishers[1];
   const f3 = finishers[2];
@@ -98,21 +109,21 @@ export function getWinningCombinations(type: string, finishers: Finisher[]): num
   if (!f1) return [];
 
   switch (type) {
-    case 'win':
+    case BET_TYPES.WIN:
       return [[f1.horseNumber]];
 
-    case 'place':
+    case BET_TYPES.PLACE:
       return finishers.slice(0, 3).map((f) => [f.horseNumber]);
 
-    case 'quinella':
+    case BET_TYPES.QUINELLA:
       if (!f2) return [];
       return [[f1.horseNumber, f2.horseNumber].sort((a, b) => a - b)];
 
-    case 'exacta':
+    case BET_TYPES.EXACTA:
       if (!f2) return [];
       return [[f1.horseNumber, f2.horseNumber]];
 
-    case 'wide': {
+    case BET_TYPES.WIDE: {
       if (!f2) return [];
       const top3 = finishers.slice(0, 3).map((f) => f.horseNumber);
       const combos: number[][] = [];
@@ -126,16 +137,16 @@ export function getWinningCombinations(type: string, finishers: Finisher[]): num
       return combos;
     }
 
-    case 'bracket_quinella':
+    case BET_TYPES.BRACKET_QUINELLA:
       if (!f2) return [];
       return [[f1.bracketNumber, f2.bracketNumber].sort((a, b) => a - b)];
 
-    case 'trio': {
+    case BET_TYPES.TRIO: {
       if (!f1 || !f2 || !f3) return [];
       return [[f1.horseNumber, f2.horseNumber, f3.horseNumber].sort((a, b) => a - b)];
     }
 
-    case 'trifecta':
+    case BET_TYPES.TRIFECTA:
       if (!f1 || !f2 || !f3) return [];
       return [[f1.horseNumber, f2.horseNumber, f3.horseNumber]];
 

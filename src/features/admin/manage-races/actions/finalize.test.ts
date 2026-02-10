@@ -1,8 +1,16 @@
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
+import { ADMIN_ERRORS } from '@/shared/utils/admin';
 import { BET_TYPES } from '@/types/betting';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { finalizeRace } from './finalize';
+
+vi.mock('@/shared/utils/admin', async () => {
+  const actual = await vi.importActual('@/shared/utils/admin');
+  return {
+    ...actual,
+    requireAdmin: vi.fn(),
+  };
+});
 
 vi.mock('@/shared/config/auth', () => ({
   auth: vi.fn(),
@@ -26,12 +34,19 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
 vi.mock('@/shared/db/schema', () => ({
-  bets: { id: 'bets' },
-  raceEntries: { id: 'raceEntries', finishPosition: 'finishPosition' },
-  races: { id: 'races', status: 'status' },
-  payoutResults: { raceId: 'raceId' },
+  bets: { id: 'bets', raceId: 'raceId', walletId: 'walletId', status: 'status', payout: 'payout', odds: 'odds' },
+  raceEntries: {
+    id: 'raceEntries',
+    raceId: 'raceId',
+    horseId: 'horseId',
+    horseNumber: 'horseNumber',
+    bracketNumber: 'bracketNumber',
+    finishPosition: 'finishPosition',
+  },
+  raceInstances: { id: 'raceInstances', status: 'status', finalizedAt: 'finalizedAt' },
+  payoutResults: { raceId: 'raceId', type: 'type', combinations: 'combinations' },
   transactions: {},
-  wallets: {},
+  wallets: { id: 'wallets', balance: 'balance' },
 }));
 
 describe('finalizeRace', () => {
@@ -56,12 +71,14 @@ describe('finalizeRace', () => {
   });
 
   it('should throw Unauthorized if user is not admin', async () => {
-    (auth as unknown as Mock).mockResolvedValue({ user: { role: 'USER' } });
-    await expect(finalizeRace('123', [])).rejects.toThrow('Unauthorized');
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
+    await expect(finalizeRace('123', [])).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
   });
 
   it('should finalize race correctly', async () => {
-    (auth as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
 
     mockTx.query.raceEntries.findMany.mockResolvedValue([
       { id: 'e1', horseNumber: 1, bracketNumber: 1, finishPosition: 1 },
@@ -88,8 +105,8 @@ describe('finalizeRace', () => {
 
     expect(mockTx.update).toHaveBeenCalled();
 
-    expect(mockTx.set).toHaveBeenCalledWith(expect.objectContaining({ status: 'HIT' }));
-    expect(mockTx.set).toHaveBeenCalledWith(expect.objectContaining({ status: 'LOST' }));
+    const setCalls = mockTx.set.mock.calls;
+    expect(setCalls).toEqual(expect.arrayContaining([[expect.objectContaining({ status: 'CLOSED' })]]));
 
     expect(mockTx.insert).toHaveBeenCalled();
     expect(mockTx.values).toHaveBeenCalledWith(

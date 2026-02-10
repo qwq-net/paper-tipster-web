@@ -1,8 +1,16 @@
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
+import { ADMIN_ERRORS } from '@/shared/utils/admin';
 import { revalidatePath } from 'next/cache';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRace } from './create';
+
+vi.mock('@/shared/utils/admin', async () => {
+  const actual = await vi.importActual('@/shared/utils/admin');
+  return {
+    ...actual,
+    requireAdmin: vi.fn(),
+  };
+});
 
 vi.mock('@/shared/config/auth', () => ({
   auth: vi.fn(),
@@ -13,6 +21,15 @@ vi.mock('@/shared/config/auth', () => ({
 vi.mock('@/shared/db', () => ({
   db: {
     insert: vi.fn(),
+    query: {
+      raceInstances: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      venues: {
+        findFirst: vi.fn().mockResolvedValue({ shortName: 'Tok' }),
+      },
+    },
   },
 }));
 vi.mock('next/cache', () => ({
@@ -31,21 +48,24 @@ describe('createRace', () => {
   });
 
   it('should throw Unauthorized if user is not admin', async () => {
-    (auth as unknown as Mock).mockResolvedValue({ user: { role: 'USER' } });
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
     const formData = new FormData();
 
-    await expect(createRace(formData)).rejects.toThrow('Unauthorized');
+    await expect(createRace(formData)).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
   });
 
   it('should throw Invalid Input if formData is empty', async () => {
-    (auth as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
     const formData = new FormData();
 
-    await expect(createRace(formData)).rejects.toThrow('Invalid Input');
+    await expect(createRace(formData)).rejects.toThrow(ADMIN_ERRORS.INVALID_INPUT);
   });
 
   it('should create race successfully with valid data', async () => {
-    (auth as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
 
     const formData = new FormData();
     formData.append('eventId', '550e8400-e29b-41d4-a716-446655440000');
@@ -56,6 +76,7 @@ describe('createRace', () => {
     formData.append('surface', '芝');
     formData.append('condition', '良');
     formData.append('closingAt', '2024-01-01T10:00:00');
+    formData.append('venueId', 'venue_id');
 
     await createRace(formData);
 

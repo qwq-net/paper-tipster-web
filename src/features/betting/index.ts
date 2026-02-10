@@ -1,1 +1,1 @@
-export { placeBet } from './actions';
+export { placeBets } from './actions';

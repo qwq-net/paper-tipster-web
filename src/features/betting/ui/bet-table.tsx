@@ -1,6 +1,6 @@
 'use client';
 
-import { fetchRaceOdds, placeBet } from '@/features/betting/actions';
+import { fetchRaceOdds, placeBets } from '@/features/betting/actions';
 import { useBetSelections } from '@/features/betting/hooks/use-bet-selections';
 import { useRaceTimer } from '@/features/betting/hooks/use-race-timer';
 import { getValidBetCombinations } from '@/features/betting/lib/calculations';
@@ -84,17 +84,13 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
 
     startTransition(async () => {
       try {
-        for (const combo of validCombinations) {
-          await placeBet({
-            raceId,
-            walletId,
-            details: {
-              type: betType,
-              selections: combo,
-            },
-            amount,
-          });
-        }
+        await placeBets({
+          raceId,
+          walletId,
+          betType,
+          combinations: validCombinations,
+          amountPerBet: amount,
+        });
         toast.success(`${totalAmount.toLocaleString()}円分の馬券を購入しました`);
         resetSelections();
         router.refresh();

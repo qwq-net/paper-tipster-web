@@ -1,18 +1,15 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { raceInstances } from '@/shared/db/schema';
+import { ADMIN_ERRORS, requireAdmin } from '@/shared/utils/admin';
 import { parseJSTToUTC } from '@/shared/utils/date';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { raceSchema } from '../model/validation';
 
 export async function createRace(formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const conditionValue = formData.get('condition');
   const closingAtValue = formData.get('closingAt');
@@ -33,7 +30,7 @@ export async function createRace(formData: FormData) {
 
   if (!parse.success) {
     console.error('Validation Error Details:', parse.error.format());
-    throw new Error('入力内容が無効です');
+    throw new Error(ADMIN_ERRORS.INVALID_INPUT);
   }
 
   let raceNumber = parse.data.raceNumber;

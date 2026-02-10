@@ -1,0 +1,61 @@
+
+> paper-tipster-web@0.7.0 lint /home/intn/repositories/paper-tipster
+> eslint
+
+
+/home/intn/repositories/paper-tipster/src/app/admin/events/[id]/bet5/page.tsx
+  13:3  error  Comments are not allowed. Please remove this comment  local/no-comments
+  22:3  error  Comments are not allowed. Please remove this comment  local/no-comments
+  28:3  error  Comments are not allowed. Please remove this comment  local/no-comments
+
+/home/intn/repositories/paper-tipster/src/features/admin/bet5/ui/bet5-config-form.tsx
+  27:3   error  Comments are not allowed. Please remove this comment                                                local/no-comments
+  91:39  error  Do not use text size smaller than 12px (text-sm). Use "text-sm" or larger for better accessibility  no-restricted-syntax
+
+/home/intn/repositories/paper-tipster/src/features/admin/bet5/ui/bet5-manage-card.tsx
+  85:12  error  Comments are not allowed. Please remove this comment  local/no-comments
+
+/home/intn/repositories/paper-tipster/src/features/admin/manage-events/ui/admin-event-editor.tsx
+  115:91  error  Comments are not allowed. Please remove this comment  local/no-comments
+  116:17  error  Comments are not allowed. Please remove this comment  local/no-comments
+
+/home/intn/repositories/paper-tipster/src/features/admin/manage-races/actions/payout.ts
+  32:5  error  Comments are not allowed. Please remove this comment  local/no-comments
+  72:5  error  Comments are not allowed. Please remove this comment  local/no-comments
+  73:5  error  Comments are not allowed. Please remove this comment  local/no-comments
+  81:5  error  Comments are not allowed. Please remove this comment  local/no-comments
+  82:5  error  Comments are not allowed. Please remove this comment  local/no-comments
+  92:5  error  Comments are not allowed. Please remove this comment  local/no-comments
+
+/home/intn/repositories/paper-tipster/src/features/betting/lib/calculations/load.test.ts
+   7:66  error  Comments are not allowed. Please remove this comment  local/no-comments
+  24:7   error  Comments are not allowed. Please remove this comment  local/no-comments
+  53:7   error  Comments are not allowed. Please remove this comment  local/no-comments
+  54:7   error  Comments are not allowed. Please remove this comment  local/no-comments
+  58:75  error  Comments are not allowed. Please remove this comment  local/no-comments
+  60:75  error  Comments are not allowed. Please remove this comment  local/no-comments
+  77:42  error  Comments are not allowed. Please remove this comment  local/no-comments
+  81:7   error  Comments are not allowed. Please remove this comment  local/no-comments
+
+/home/intn/repositories/paper-tipster/src/features/betting/lib/validation.test.ts
+  6:5  error  Comments are not allowed. Please remove this comment  local/no-comments
+
+/home/intn/repositories/paper-tipster/src/shared/config/site.ts
+  4:27  error  Comments are not allowed. Please remove this comment  local/no-comments
+
+/home/intn/repositories/paper-tipster/src/shared/utils/payout.test.ts
+   7:43  error  Comments are not allowed. Please remove this comment  local/no-comments
+   8:43  error  Comments are not allowed. Please remove this comment  local/no-comments
+   9:43  error  Comments are not allowed. Please remove this comment  local/no-comments
+  45:5   error  Comments are not allowed. Please remove this comment  local/no-comments
+  71:5   error  Comments are not allowed. Please remove this comment  local/no-comments
+  73:5   error  Comments are not allowed. Please remove this comment  local/no-comments
+  75:5   error  Comments are not allowed. Please remove this comment  local/no-comments
+  77:5   error  Comments are not allowed. Please remove this comment  local/no-comments
+  79:5   error  Comments are not allowed. Please remove this comment  local/no-comments
+  85:5   error  Comments are not allowed. Please remove this comment  local/no-comments
+  87:5   error  Comments are not allowed. Please remove this comment  local/no-comments
+
+✖ 35 problems (35 errors, 0 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.

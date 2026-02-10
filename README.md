@@ -46,23 +46,26 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
    pnpm db:setup
    ```
 
+- [AI向け開発コンテキスト](docs/AI_CONTEXT.md): プロジェクトに参加するAIエージェント/開発者向けの必読ドキュメント。
+
 ### 便利なコマンド
 
 `package.json` に定義されている主要なスクリプトです。
 
-| コマンド           | 説明                                        |
-| :----------------- | :------------------------------------------ |
-| `pnpm dev`         | ローカルで開発サーバーを起動                |
-| `pnpm d:up`        | Docker環境を起動 (バックグラウンド)         |
-| `pnpm d:down`      | Docker環境を停止                            |
-| `pnpm d:restart`   | Docker環境を再起動                          |
-| `pnpm d:logs`      | Dockerコンテナのログを表示                  |
-| `pnpm d:clean`     | Docker環境を完全にリセット (Volume削除含む) |
-| `pnpm db:setup`    | DBスキーマの適用とシードデータの投入        |
-| `pnpm db:reset`    | DBのリセット                                |
-| `pnpm redis:reset` | Redisデータのリセット                       |
-| `pnpm check`       | 型チェックとフォーマッタの実行              |
-| `pnpm test`        | テストの実行 (Vitest)                       |
+| コマンド         | 説明                                        |
+| :--------------- | :------------------------------------------ |
+| `pnpm dev`       | ローカルで開発サーバーを起動                |
+| `pnpm d:up`      | Docker環境を起動 (バックグラウンド)         |
+| `pnpm d:down`    | Docker環境を停止                            |
+| `pnpm d:restart` | Docker環境を再起動                          |
+| `pnpm d:logs`    | Dockerコンテナのログを表示                  |
+| `pnpm d:clean`   | Docker環境を完全にリセット (Volume削除含む) |
+| `pnpm d:test`    | **Dockerコンテナ内でテストを実行** (推奨)   |
+| `pnpm d:check`   | Dockerコンテナ内で型チェックを実行          |
+| `pnpm db:setup`  | DBスキーマの適用とシードデータの投入        |
+| `pnpm db:reset`  | DBのリセット                                |
+| `pnpm test`      | テストの実行 (ローカル環境)                 |
+| `pnpm lint:fix`  | Lintエラーの自動修正                        |
 
 ## 本番環境での実行
 

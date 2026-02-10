@@ -21,7 +21,11 @@
     "d:build": "docker compose up -d --build",
     "d:install": "docker compose exec app pnpm install",
     "d:logs": "docker compose logs -f",
-    "d:clean": "docker compose down -v && docker compose up -d --build"
+    "d:clean": "docker compose down -v && docker compose up -d --build",
+    "d:test": "docker compose exec app pnpm test",
+    "d:check": "docker compose exec app pnpm check",
+    "lint:fix": "eslint --fix",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@auth/core": "0.41.1",

@@ -35,12 +35,12 @@ Next.jsのApp Router規約に基づくディレクトリです。FSDの「App」
 
 - **役割**: ルーティング定義、レイアウト、ページ全体の組み立て。
 - **設計意図**: ここには「複雑なロジック」を書かず、下位レイヤー（Features/Entities）から部品をインポートして配置するだけに留めます。
-- **例**: `admin/venues/page.tsx` (競馬場管理ページ)
+- **例**: `admin/events/page.tsx` (イベント管理ページ)
 
 ### 2. `src/widgets` (Widgets Layer)
 
 - **役割**: ページ内で使われる大きなUIブロック。
-- **現状**: `AdminSidebar` のように、複数の機能やEntityを横断して管理画面を構成する共通パーツ。
+- **現状**: 多くのコンポーネントはまだ `features` に配置されています（例: `AdminSidebar` は `src/features/admin/ui` に存在）。将来的にはここへ移動・統合する可能性があります。
 
 ### 3. `src/features` (Features Layer)
 

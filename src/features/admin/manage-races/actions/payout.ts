@@ -1,22 +1,21 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bets, payoutResults as payoutResultsTable, raceInstances, transactions, wallets } from '@/shared/db/schema';
+import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
+import { normalizeSelections, ODDS_UNIT } from '@/shared/utils/payout';
 import { BetDetail } from '@/types/betting';
-import { eq } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
+import { eq, sql } from 'drizzle-orm';
 
 export async function finalizePayout(raceId: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') throw new Error('認証されていません');
+  await requireAdmin();
 
   const race = await db.query.raceInstances.findFirst({
     where: eq(raceInstances.id, raceId),
   });
 
   if (!race || race.status === 'FINALIZED') {
-    throw new Error('レースは既に確定しているか、見つかりません');
+    throw new Error(ADMIN_ERRORS.NOT_FOUND);
   }
 
   const results = await db.select().from(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
@@ -30,12 +29,21 @@ export async function finalizePayout(raceId: string) {
       where: eq(bets.raceId, raceId),
     });
 
+    const walletPayouts = new Map<string, number>();
+    const payoutDetails: {
+      betId: string;
+      walletId: string;
+      status: 'HIT' | 'LOST' | 'REFUNDED';
+      payout: number;
+      odds: string;
+    }[] = [];
+
     for (const bet of allBets) {
       const betDetail = bet.details as BetDetail;
       const typeResults = resultsMap.get(betDetail.type) || [];
+      const betKey = normalizeSelections(betDetail.type, betDetail.selections);
 
-      const hitResult = typeResults.find((r) => JSON.stringify(r.numbers) === JSON.stringify(betDetail.selections));
-
+      const hitResult = typeResults.find((r) => normalizeSelections(betDetail.type, r.numbers) === betKey);
       const refundResult = !hitResult ? typeResults.find((r) => r.numbers.length === 0) : null;
 
       let status: 'HIT' | 'LOST' | 'REFUNDED' = 'LOST';
@@ -44,34 +52,48 @@ export async function finalizePayout(raceId: string) {
 
       if (hitResult) {
         status = 'HIT';
-        payout = Math.floor((bet.amount * hitResult.payout) / 100);
-        odds = (hitResult.payout / 100).toFixed(1);
+        payout = Math.floor((bet.amount * hitResult.payout) / ODDS_UNIT);
+        odds = (hitResult.payout / ODDS_UNIT).toFixed(1);
       } else if (refundResult) {
         status = 'REFUNDED';
-        payout = Math.floor((bet.amount * refundResult.payout) / 100);
-        odds = (refundResult.payout / 100).toFixed(1);
+        payout = Math.floor((bet.amount * refundResult.payout) / ODDS_UNIT);
+        odds = (refundResult.payout / ODDS_UNIT).toFixed(1);
       }
 
-      await tx.update(bets).set({ status, payout, odds }).where(eq(bets.id, bet.id));
+      payoutDetails.push({ betId: bet.id, walletId: bet.walletId, status, payout, odds });
 
       if (payout > 0) {
-        const wallet = await tx.query.wallets.findFirst({
-          where: eq(wallets.id, bet.walletId),
-        });
-        if (wallet) {
-          await tx
-            .update(wallets)
-            .set({ balance: wallet.balance + payout })
-            .where(eq(wallets.id, wallet.id));
-
-          await tx.insert(transactions).values({
-            walletId: wallet.id,
-            type: 'PAYOUT',
-            amount: payout,
-            referenceId: bet.id,
-          });
-        }
+        const currentTotal = walletPayouts.get(bet.walletId) || 0;
+        walletPayouts.set(bet.walletId, currentTotal + payout);
       }
+    }
+
+    for (const detail of payoutDetails) {
+      await tx
+        .update(bets)
+        .set({ status: detail.status, payout: detail.payout, odds: detail.odds })
+        .where(eq(bets.id, detail.betId));
+    }
+
+    for (const [walletId, totalPayout] of walletPayouts.entries()) {
+      if (totalPayout > 0) {
+        await tx
+          .update(wallets)
+          .set({ balance: sql`${wallets.balance} + ${totalPayout}` })
+          .where(eq(wallets.id, walletId));
+      }
+    }
+
+    const transactionValues = payoutDetails
+      .filter((d) => d.payout > 0)
+      .map((d) => ({
+        walletId: d.walletId,
+        type: 'PAYOUT' as const,
+        amount: d.payout,
+        referenceId: d.betId,
+      }));
+    if (transactionValues.length > 0) {
+      await tx.insert(transactions).values(transactionValues);
     }
 
     await tx
@@ -86,11 +108,7 @@ export async function finalizePayout(raceId: string) {
   const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_BROADCAST, { raceId, timestamp: Date.now() });
 
-  revalidatePath('/admin/races');
-  revalidatePath(`/admin/races/${raceId}`);
-  revalidatePath(`/races/${raceId}`);
-  revalidatePath(`/races/${raceId}/standby`);
-  revalidatePath('/mypage');
+  revalidateRacePaths(raceId);
 
   return { success: true };
 }

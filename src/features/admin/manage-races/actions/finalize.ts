@@ -1,12 +1,11 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bets, raceEntries, raceInstances } from '@/shared/db/schema';
-import { calculatePayoutRate, Finisher, isWinningBet } from '@/shared/utils/payout';
+import { requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
+import { calculatePayoutRate, Finisher, isWinningBet, normalizeSelections, ODDS_UNIT } from '@/shared/utils/payout';
 import { BetDetail } from '@/types/betting';
 import { eq, sql, SQL } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
 
 export async function finalizeRace(
   raceId: string,
@@ -16,10 +15,7 @@ export async function finalizeRace(
     takeoutRate: 0,
   }
 ) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   await db.transaction(async (tx) => {
     if (results.length > 0) {
@@ -67,7 +63,7 @@ export async function finalizeRace(
       poolByBetType[type] = (poolByBetType[type] || 0) + bet.amount;
 
       if (isWinningBet(betDetail, finishers)) {
-        const selectionKey = JSON.stringify(betDetail.selections);
+        const selectionKey = normalizeSelections(type, betDetail.selections);
         if (!winnersByBetType[type]) winnersByBetType[type] = [];
         winnersByBetType[type].push({ bet, selectionKey });
 
@@ -105,12 +101,10 @@ export async function finalizeRace(
           );
 
           if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
-          if (
-            !payoutCalculationsByType[type].find(
-              (p) => JSON.stringify(p.numbers) === JSON.stringify(betDetail.selections)
-            )
-          ) {
-            const unitPayout = Math.floor(100 * rate);
+
+          const betKey = normalizeSelections(type, betDetail.selections);
+          if (!payoutCalculationsByType[type].find((p) => normalizeSelections(type, p.numbers) === betKey)) {
+            const unitPayout = Math.floor(ODDS_UNIT * rate);
             payoutCalculationsByType[type].push({ numbers: betDetail.selections, payout: unitPayout });
           }
         }
@@ -118,7 +112,7 @@ export async function finalizeRace(
         if (poolByBetType[type] > 0) {
           if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
           if (payoutCalculationsByType[type].length === 0) {
-            const tokubaraiPayout = Math.floor(100 * currentTokubaraiRate);
+            const tokubaraiPayout = Math.floor(ODDS_UNIT * currentTokubaraiRate);
             payoutCalculationsByType[type].push({ numbers: [], payout: tokubaraiPayout });
           }
         }
@@ -133,8 +127,9 @@ export async function finalizeRace(
       if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
 
       for (const combo of winningCombos) {
+        const comboKey = normalizeSelections(type, combo);
         const alreadyExists = payoutCalculationsByType[type].find(
-          (p) => JSON.stringify(p.numbers) === JSON.stringify(combo)
+          (p) => normalizeSelections(type, p.numbers) === comboKey
         );
 
         if (!alreadyExists) {
@@ -170,9 +165,5 @@ export async function finalizeRace(
       .where(eq(raceInstances.id, raceId));
   });
 
-  revalidatePath('/admin/races');
-  revalidatePath(`/admin/races/${raceId}`);
-  revalidatePath(`/races/${raceId}`);
-  revalidatePath(`/races/${raceId}/standby`);
-  revalidatePath('/mypage');
+  revalidateRacePaths(raceId);
 }

@@ -1,18 +1,14 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { raceInstances } from '@/shared/db/schema';
+import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { parseJSTToUTC } from '@/shared/utils/date';
 import { eq } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
 import { raceSchema } from '../model/validation';
 
 export async function updateRace(id: string, formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const conditionValue = formData.get('condition');
   const closingAtValue = formData.get('closingAt');
@@ -33,7 +29,7 @@ export async function updateRace(id: string, formData: FormData) {
 
   if (!parse.success) {
     console.error('Validation Error Details:', parse.error.format());
-    throw new Error('入力内容が無効です');
+    throw new Error(ADMIN_ERRORS.INVALID_INPUT);
   }
 
   const now = new Date();
@@ -44,7 +40,7 @@ export async function updateRace(id: string, formData: FormData) {
       where: eq(raceInstances.id, id),
     });
 
-    if (!race) throw new Error('レースが見つかりませんでした');
+    if (!race) throw new Error(ADMIN_ERRORS.NOT_FOUND);
 
     let newStatus = race.status;
     if (race.status === 'CLOSED' && newClosingAt && newClosingAt > now) {
@@ -76,43 +72,35 @@ export async function updateRace(id: string, formData: FormData) {
       .where(eq(raceInstances.id, id));
   });
 
-  revalidatePath('/admin/races');
-  revalidatePath(`/admin/races/${id}`);
+  revalidateRacePaths(id);
 }
 
 export async function closeRace(raceId: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+  await requireAdmin();
 
   await db.update(raceInstances).set({ status: 'CLOSED' }).where(eq(raceInstances.id, raceId));
 
   const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_CLOSED, { raceId, timestamp: Date.now() });
 
-  revalidatePath('/admin/races');
-  revalidatePath(`/admin/races/${raceId}`);
-  revalidatePath(`/races/${raceId}`);
+  revalidateRacePaths(raceId);
   return { success: true };
 }
 
 export async function reopenRace(raceId: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+  await requireAdmin();
 
   await db.update(raceInstances).set({ status: 'SCHEDULED', closingAt: null }).where(eq(raceInstances.id, raceId));
 
   const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
 
-  revalidatePath('/admin/races');
-  revalidatePath(`/admin/races/${raceId}`);
-  revalidatePath(`/races/${raceId}`);
+  revalidateRacePaths(raceId);
   return { success: true };
 }
 
 export async function setClosingTime(raceId: string, minutes: number) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') throw new Error('Unauthorized');
+  await requireAdmin();
 
   const closingAt = new Date(Date.now() + minutes * 60 * 1000);
 
@@ -121,9 +109,7 @@ export async function setClosingTime(raceId: string, minutes: number) {
   const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
 
-  revalidatePath('/admin/races');
-  revalidatePath(`/admin/races/${raceId}`);
-  revalidatePath(`/races/${raceId}`);
+  revalidateRacePaths(raceId);
 
   return { success: true, closingAt };
 }

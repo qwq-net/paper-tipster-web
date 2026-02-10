@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/shared/db';
-import { bets, raceInstances, transactions, wallets } from '@/shared/db/schema';
+import { betGroups, bets, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireUser } from '@/shared/utils/admin';
 import { BetType } from '@/types/betting';
 import { eq, sql } from 'drizzle-orm';
@@ -67,6 +67,17 @@ export async function placeBets({
   }
 
   await db.transaction(async (tx) => {
+    const [betGroup] = await tx
+      .insert(betGroups)
+      .values({
+        userId: session.user!.id!,
+        raceId,
+        walletId,
+        type: betType,
+        totalAmount,
+      })
+      .returning();
+
     for (let i = 0; i < combinations.length; i += BATCH_SIZE) {
       const batch = combinations.slice(i, i + BATCH_SIZE);
 
@@ -77,6 +88,7 @@ export async function placeBets({
             userId: session.user!.id!,
             raceId,
             walletId,
+            betGroupId: betGroup.id,
             details: { type: betType, selections: combo },
             amount: amountPerBet,
             status: 'PENDING' as const,
@@ -112,23 +124,30 @@ export async function placeBets({
   });
 }
 
-export async function getUserBetsForRace(raceId: string) {
+export async function getUserBetGroupsForRace(raceId: string) {
   const session = await requireUser();
 
-  return db.query.bets.findMany({
-    where: (bets, { and, eq }) => and(eq(bets.userId, session.user!.id!), eq(bets.raceId, raceId)),
+  const groups = await db.query.betGroups.findMany({
+    where: (bg, { and, eq }) => and(eq(bg.userId, session.user!.id!), eq(bg.raceId, raceId)),
+    orderBy: (bg, { desc }) => [desc(bg.createdAt)],
     with: {
-      race: {
+      bets: {
         with: {
-          entries: {
+          race: {
             with: {
-              horse: true,
+              entries: {
+                with: {
+                  horse: true,
+                },
+              },
             },
           },
         },
       },
     },
   });
+
+  return groups;
 }
 
 export async function fetchRaceOdds(raceId: string) {

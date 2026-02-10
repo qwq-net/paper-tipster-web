@@ -1,6 +1,6 @@
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getPayoutResults } from '@/features/admin/manage-races/actions';
-import { getUserBetsForRace } from '@/features/betting/actions';
+import { getUserBetGroupsForRace } from '@/features/betting/actions';
 import { PurchasedTicketList } from '@/features/betting/ui/purchased-ticket-list';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
@@ -44,10 +44,10 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
     redirect('/login');
   }
 
-  const [race, entriesData, userBets] = await Promise.all([
+  const [race, entriesData, betGroupsData] = await Promise.all([
     getRaceById(id),
     getEntriesForRace(id),
-    getUserBetsForRace(id),
+    getUserBetGroupsForRace(id),
   ]);
   const entries = entriesData as unknown as Entry[];
 
@@ -66,23 +66,32 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
     }));
   }
 
-  const tickets = userBets.map((bet) => {
-    const details = bet.details as BetDetail;
+  const ticketGroups = betGroupsData.map((group) => {
     return {
-      id: bet.id,
-      type: details.type,
-      amount: bet.amount,
-      status: bet.status,
-      payout: bet.payout ?? undefined,
-      odds: bet.odds ?? undefined,
-      createdAt: bet.createdAt,
-      selections: details.selections.map((num: number) => {
-        const entry = entries.find((e: Entry) => e.horseNumber === num);
+      id: group.id,
+      type: group.type as BetType,
+      totalAmount: group.totalAmount,
+      createdAt: group.createdAt,
+      bets: group.bets.map((bet) => {
+        const details = bet.details as BetDetail;
         return {
-          horseNumber: num,
-          horseName: entry?.horseName || '不明',
-          horseGender: entry?.horseGender || '不明',
-          horseAge: entry?.horseAge || 0,
+          id: bet.id,
+          type: details.type,
+          amount: bet.amount,
+          status: bet.status,
+          payout: bet.payout ?? undefined,
+          odds: bet.odds ?? undefined,
+          createdAt: bet.createdAt,
+          selections: details.selections.map((num: number) => {
+            const entry = entries.find((e: Entry) => e.horseNumber === num);
+            return {
+              horseNumber: num,
+              bracketNumber: entry?.bracketNumber || undefined,
+              horseName: entry?.horseName || '不明',
+              horseGender: entry?.horseGender || '不明',
+              horseAge: entry?.horseAge || 0,
+            };
+          }),
         };
       }),
     };
@@ -110,11 +119,11 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
           }}
           isFinalized={isFinalized}
           initialResults={initialResults}
-          hasTickets={tickets.length > 0}
+          hasTickets={ticketGroups.length > 0}
           entryCount={entries.length}
         />
 
-        <PurchasedTicketList tickets={tickets} />
+        <PurchasedTicketList ticketGroups={ticketGroups} />
       </div>
     </div>
   );

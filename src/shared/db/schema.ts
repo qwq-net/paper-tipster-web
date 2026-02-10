@@ -274,6 +274,22 @@ export const raceInstances = pgTable(
 
 export const betStatusEnum = pgEnum('bet_status', ['PENDING', 'HIT', 'LOST', 'REFUNDED']);
 
+export const betGroups = pgTable('bet_group', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  raceId: uuid('race_id')
+    .notNull()
+    .references(() => raceInstances.id, { onDelete: 'cascade' }),
+  walletId: uuid('wallet_id')
+    .notNull()
+    .references(() => wallets.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  totalAmount: bigint('total_amount', { mode: 'number' }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const bets = pgTable(
   'bet',
   {
@@ -287,6 +303,9 @@ export const bets = pgTable(
     walletId: uuid('wallet_id')
       .notNull()
       .references(() => wallets.id, { onDelete: 'cascade' }),
+    betGroupId: uuid('bet_group_id')
+      .notNull()
+      .references(() => betGroups.id, { onDelete: 'cascade' }),
     details: jsonb('details').notNull(),
     amount: bigint('amount', { mode: 'number' }).notNull(),
     odds: numeric('odds'),
@@ -297,6 +316,7 @@ export const bets = pgTable(
   (table) => ({
     raceIdx: index('bet_race_idx').on(table.raceId),
     userIdx: index('bet_user_idx').on(table.userId),
+    groupIdx: index('bet_group_idx').on(table.betGroupId),
   })
 );
 
@@ -410,11 +430,32 @@ export const betRelations = relations(bets, ({ one }) => ({
     fields: [bets.walletId],
     references: [wallets.id],
   }),
+  group: one(betGroups, {
+    fields: [bets.betGroupId],
+    references: [betGroups.id],
+  }),
+}));
+
+export const betGroupRelations = relations(betGroups, ({ one, many }) => ({
+  user: one(users, {
+    fields: [betGroups.userId],
+    references: [users.id],
+  }),
+  race: one(raceInstances, {
+    fields: [betGroups.raceId],
+    references: [raceInstances.id],
+  }),
+  wallet: one(wallets, {
+    fields: [betGroups.walletId],
+    references: [wallets.id],
+  }),
+  bets: many(bets),
 }));
 
 export const userRelations = relations(users, ({ many }) => ({
   wallets: many(wallets),
   bets: many(bets),
+  betGroups: many(betGroups),
   accounts: many(accounts),
   createdGuestCodes: many(guestCodes, { relationName: 'creator' }),
   createdRaces: many(raceInstances),

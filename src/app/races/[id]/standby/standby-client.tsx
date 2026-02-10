@@ -68,9 +68,7 @@ export function StandbyClient({
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-semibold text-gray-900">
-              {initialIsFinalized ? race.name : '結果発表を待機中'}
-            </h1>
+            <h1 className="text-3xl font-semibold text-gray-900">{race.name}</h1>
             <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
               <span>{race.surface}</span>
               <span className="h-1 w-1 rounded-full bg-gray-300" />

@@ -207,6 +207,37 @@ NextAuth.js の標準テーブル構成に従います。
 | `isWin`                          | Boolean | No   | 的中可否                     |
 | `payout`                         | Integer | No   | 払戻金                       |
 
+### `bet_group` (馬券購入グループ)
+
+1回の購入操作（フォーメーション等）で生成される馬券のグループ単位。
+| カラム名 | 型 | 必須 | 説明 |
+| :--- | :--- | :--- | :--- |
+| `id` | UUID | Yes | 主キー |
+| `userId` | Text | Yes | `user.id` への外部キー |
+| `raceId` | UUID | Yes | `race_instance.id` への外部キー |
+| `walletId` | UUID | Yes | `wallet.id` への外部キー |
+| `type` | Text | Yes | 券種 (WIN, PLACE, QUINELLA, etc.) |
+| `totalAmount` | BigInt | Yes | グループ全体の購入金額合計 |
+| `createdAt` | Timestamp | Yes | 購入日時 |
+
+### `bet` (馬券)
+
+個別の馬券レコード。`bet_group` に紐づく。
+
+| カラム名     | 型        | 必須 | 説明                                 |
+| :----------- | :-------- | :--- | :----------------------------------- |
+| `id`         | UUID      | Yes  | 主キー                               |
+| `userId`     | Text      | Yes  | `user.id` への外部キー               |
+| `raceId`     | UUID      | Yes  | `race_instance.id` への外部キー      |
+| `walletId`   | UUID      | Yes  | `wallet.id` への外部キー             |
+| `betGroupId` | UUID      | Yes  | `bet_group.id` への外部キー          |
+| `details`    | JSONB     | Yes  | 買い目の詳細 (馬番配列)              |
+| `amount`     | BigInt    | Yes  | 購入金額                             |
+| `odds`       | Numeric   | No   | オッズ                               |
+| `status`     | Enum      | Yes  | 'PENDING', 'HIT', 'LOST', 'REFUNDED' |
+| `payout`     | BigInt    | No   | 払戻金                               |
+| `createdAt`  | Timestamp | Yes  | 購入日時                             |
+
 ---
 
 ## リレーションシップ図 (概念)
@@ -222,4 +253,7 @@ erDiagram
     HORSE ||--o{ RACE_ENTRY : "出走"
     HORSE ||--o{ HORSE_TAG : "属性"
     HORSE_TAG_MASTER ||--o{ HORSE_TAG : "定義"
+    USER ||--o{ BET_GROUP : "購入"
+    RACE_INSTANCE ||--o{ BET_GROUP : "対象"
+    BET_GROUP ||--|{ BET : "含む"
 ```

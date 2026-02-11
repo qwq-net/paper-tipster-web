@@ -11,6 +11,7 @@
     "check": "pnpm tsc --noEmit && pnpm prettier --write .",
     "test": "vitest",
     "db:seed": "pnpm tsx src/shared/db/seed.ts",
+    "db:seed:master": "pnpm db:seed --master-only",
     "db:reset": "pnpm tsx src/shared/db/reset.ts",
     "db:admin": "pnpm tsx src/shared/db/set-admin.ts",
     "db:setup": "pnpm drizzle-kit push && pnpm db:seed",

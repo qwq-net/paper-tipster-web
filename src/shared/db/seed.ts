@@ -2,7 +2,7 @@ import { Role } from '@/entities/user';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { RACE_CONDITIONS, RACE_GRADES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { type RaceStatus } from '@/shared/types/race';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { HorseTagType, HorseType } from '../types/horse';
 import { calculateBracketNumber } from '../utils/bracket';
 import { db } from './index';
@@ -139,37 +139,12 @@ const HORSE_TAG_MASTER_DATA: Array<{ type: HorseTagType; content: string }> = [
   { type: 'BIOGRAPHY', content: '人気高' },
 ];
 
+const isMasterOnly = process.argv.includes('--master-only');
+
 async function main() {
-  console.log('--- Starting Seeder ---');
+  console.log(`--- Starting Seeder ${isMasterOnly ? '(Master Data Only)' : ''} ---`);
 
   await db.transaction(async (tx) => {
-    let createdUserCount = 0;
-    const allUsers: Array<{ id: string; name: string | null; role: string }> = [];
-
-    for (const userData of usersToCreate) {
-      const existing = await tx.query.users.findFirst({
-        where: (u, { eq }) => eq(u.email, userData.email),
-      });
-
-      if (existing) {
-        allUsers.push(existing);
-      } else {
-        const [user] = await tx
-          .insert(schema.users)
-          .values({
-            name: userData.name,
-            email: userData.email,
-            role: userData.role,
-            isOnboardingCompleted: true,
-          })
-          .returning();
-        allUsers.push(user);
-        createdUserCount++;
-        console.log(`User created: ${userData.name} (${userData.role})`);
-      }
-    }
-    if (createdUserCount === 0) console.log('Users: all exist, skipped');
-
     for (const [key, odds] of Object.entries(DEFAULT_GUARANTEED_ODDS)) {
       const existing = await tx.query.guaranteedOddsMaster.findFirst({
         where: (t, { eq }) => eq(t.key, key),
@@ -305,6 +280,66 @@ async function main() {
     }
     if (createdHorseCount === 0) console.log('Horses: all exist, skipped');
 
+    for (const horseData of horsesData) {
+      if (!horseData.wins || horseData.wins.length === 0) continue;
+
+      const cleanedName = horseData.name.replace(/^外 /, '');
+      const horse = await tx.query.horses.findFirst({
+        where: (h, { eq }) => eq(h.name, cleanedName),
+      });
+      if (!horse) continue;
+
+      let winsCreated = 0;
+      for (const t of horseData.wins) {
+        const existing = await tx.query.horseWins.findFirst({
+          where: (hw, { and, eq }) => and(eq(hw.horseId, horse.id), eq(hw.title, t.title)),
+        });
+        if (!existing) {
+          await tx.insert(schema.horseWins).values({
+            horseId: horse.id,
+            title: t.title,
+            date: t.date,
+          });
+          winsCreated++;
+        }
+      }
+      if (winsCreated > 0) {
+        console.log(`Horse wins seeded: ${cleanedName} (${winsCreated} titles)`);
+      }
+    }
+
+    if (isMasterOnly) {
+      console.log('Skipping dummy data seeding (--master-only)');
+      return;
+    }
+
+    let createdUserCount = 0;
+    const allUsers: Array<{ id: string; name: string | null; role: string }> = [];
+
+    for (const userData of usersToCreate) {
+      const existing = await tx.query.users.findFirst({
+        where: (u, { eq }) => eq(u.email, userData.email),
+      });
+
+      if (existing) {
+        allUsers.push(existing);
+      } else {
+        const [user] = await tx
+          .insert(schema.users)
+          .values({
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+            isOnboardingCompleted: true,
+          })
+          .returning();
+        allUsers.push(user);
+        createdUserCount++;
+        console.log(`User created: ${userData.name} (${userData.role})`);
+      }
+    }
+    if (createdUserCount === 0) console.log('Users: all exist, skipped');
+
     const racesPerEvent = 5;
     const raceDefinitionNames = racesData.map((d) => d.name);
     const createdEventIds: Array<{ id: string; status: string; distributeAmount: number }> = [];
@@ -414,7 +449,9 @@ async function main() {
               await tx
                 .update(schema.raceEntries)
                 .set({ finishPosition: pos + 1 })
-                .where(eq(schema.raceEntries.horseNumber, top3[pos].horseNumber));
+                .where(
+                  and(eq(schema.raceEntries.raceId, race.id), eq(schema.raceEntries.horseNumber, top3[pos].horseNumber))
+                );
             }
 
             await tx.insert(schema.payoutResults).values({
@@ -464,34 +501,6 @@ async function main() {
       console.log(`Wallets created: ${walletCount} (with DISTRIBUTION transactions)`);
     } else {
       console.log('Wallets: all exist, skipped');
-    }
-
-    for (const horseData of horsesData) {
-      if (!horseData.wins || horseData.wins.length === 0) continue;
-
-      const cleanedName = horseData.name.replace(/^外 /, '');
-      const horse = await tx.query.horses.findFirst({
-        where: (h, { eq }) => eq(h.name, cleanedName),
-      });
-      if (!horse) continue;
-
-      let winsCreated = 0;
-      for (const t of horseData.wins) {
-        const existing = await tx.query.horseWins.findFirst({
-          where: (hw, { and, eq }) => and(eq(hw.horseId, horse.id), eq(hw.title, t.title)),
-        });
-        if (!existing) {
-          await tx.insert(schema.horseWins).values({
-            horseId: horse.id,
-            title: t.title,
-            date: t.date,
-          });
-          winsCreated++;
-        }
-      }
-      if (winsCreated > 0) {
-        console.log(`Horse wins seeded: ${cleanedName} (${winsCreated} titles)`);
-      }
     }
   });
 

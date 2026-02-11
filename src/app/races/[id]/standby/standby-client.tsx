@@ -156,7 +156,7 @@ export function StandbyClient({
           </div>
           <div className="divide-y divide-gray-100">
             {ranking.map((result) => (
-              <div key={result.finishPosition} className="flex items-center px-6 py-3">
+              <div key={result.horseNumber} className="flex items-center px-6 py-3">
                 <div
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-sm font-semibold ring-1 ring-inset ${getRankColor(
                     result.finishPosition

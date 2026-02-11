@@ -3,7 +3,8 @@
 import { db } from '@/shared/db';
 import { betGroups, bets, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireUser } from '@/shared/utils/admin';
-import { BetType } from '@/types/betting';
+import { isOrderSensitive } from '@/shared/utils/payout';
+import { BetDetail, BetType } from '@/types/betting';
 import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -127,6 +128,11 @@ export async function placeBets({
 export async function getUserBetGroupsForRace(raceId: string) {
   const session = await requireUser();
 
+  const race = await db.query.raceInstances.findFirst({
+    where: eq(raceInstances.id, raceId),
+    columns: { status: true },
+  });
+
   const groups = await db.query.betGroups.findMany({
     where: (bg, { and, eq }) => and(eq(bg.userId, session.user!.id!), eq(bg.raceId, raceId)),
     orderBy: (bg, { desc }) => [desc(bg.createdAt)],
@@ -146,6 +152,28 @@ export async function getUserBetGroupsForRace(raceId: string) {
       },
     },
   });
+
+  if (race?.status === 'CLOSED') {
+    const { calculateAllProvisionalOdds } = await import('./logic/odds');
+    const provisionalOdds = await calculateAllProvisionalOdds(raceId);
+
+    return groups.map((group) => ({
+      ...group,
+      bets: group.bets.map((bet) => {
+        const details = bet.details as BetDetail;
+        const betType = details.type as BetType;
+        const selectionKey = JSON.stringify(
+          isOrderSensitive(betType) ? details.selections : [...details.selections].sort((a, b) => a - b)
+        );
+
+        const oddsValue = provisionalOdds[betType]?.[selectionKey];
+        return {
+          ...bet,
+          odds: oddsValue ? oddsValue.toString() : bet.odds,
+        };
+      }),
+    }));
+  }
 
   return groups;
 }

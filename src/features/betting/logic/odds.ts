@@ -1,8 +1,9 @@
 import { RACE_EVENTS, raceEventEmitter } from '@/lib/sse/event-emitter';
 import { db } from '@/shared/db';
-import { bets, raceOdds } from '@/shared/db/schema';
+import { bets, raceInstances, raceOdds } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
-import { BetDetail } from '@/types/betting';
+import { isOrderSensitive } from '@/shared/utils/payout';
+import { BetDetail, BetType } from '@/types/betting';
 import { eq } from 'drizzle-orm';
 
 const ODDS_DEDUCTION_RATE = 0.2;
@@ -105,6 +106,58 @@ export async function calculateOdds(raceId: string) {
       }, delay);
     }
   }
+}
+
+export async function calculateAllProvisionalOdds(raceId: string) {
+  const [raceBets, race] = await Promise.all([
+    db.query.bets.findMany({
+      where: eq(bets.raceId, raceId),
+    }),
+    db.query.raceInstances.findFirst({
+      where: eq(raceInstances.id, raceId),
+      columns: { guaranteedOdds: true },
+    }),
+  ]);
+
+  const guaranteedOdds = race?.guaranteedOdds as Record<string, number> | undefined;
+
+  const poolByBetType: Record<string, number> = {};
+  const amountBySelection: Record<string, Record<string, number>> = {};
+
+  for (const bet of raceBets) {
+    const details = bet.details as BetDetail;
+    const betType = details.type as BetType;
+    const key = JSON.stringify(
+      isOrderSensitive(betType) ? details.selections : [...details.selections].sort((a, b) => a - b)
+    );
+
+    poolByBetType[betType] = (poolByBetType[betType] || 0) + bet.amount;
+    if (!amountBySelection[betType]) amountBySelection[betType] = {};
+    amountBySelection[betType][key] = (amountBySelection[betType][key] || 0) + bet.amount;
+  }
+
+  const provisionalOdds: Record<string, Record<string, number>> = {};
+
+  for (const [type, pool] of Object.entries(poolByBetType)) {
+    provisionalOdds[type] = {};
+    const selections = amountBySelection[type];
+
+    for (const [key, amount] of Object.entries(selections)) {
+      if (amount === 0) continue;
+
+      let rate = (pool * (1 - ODDS_DEDUCTION_RATE)) / amount;
+      rate = Math.floor(rate * 10) / 10;
+
+      if (guaranteedOdds && guaranteedOdds[type]) {
+        rate = Math.max(rate, guaranteedOdds[type]);
+      }
+
+      if (rate < 1.1) rate = 1.1;
+      provisionalOdds[type][key] = rate;
+    }
+  }
+
+  return provisionalOdds;
 }
 
 export async function getRaceOdds(raceId: string) {

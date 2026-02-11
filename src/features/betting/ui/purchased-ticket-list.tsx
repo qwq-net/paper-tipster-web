@@ -83,6 +83,14 @@ function TicketGroupItem({ group }: { group: BetGroup }) {
   const [isOpen, setIsOpen] = useState(true);
 
   const groupPayout = group.bets.reduce((sum, bet) => sum + (bet.payout || 0), 0);
+  const provisionalPayouts = group.bets
+    .filter((bet) => bet.status === 'PENDING' && bet.odds)
+    .map((bet) => Math.floor(bet.amount * parseFloat(bet.odds!)));
+
+  const hasProvisional = provisionalPayouts.length > 0;
+  const minProvisional = Math.min(...provisionalPayouts);
+  const maxProvisional = Math.max(...provisionalPayouts);
+
   const isHit = group.bets.some((bet) => bet.status === 'HIT');
   const isLost = group.bets.every((bet) => bet.status === 'LOST');
   const isPending = group.bets.some((bet) => bet.status === 'PENDING');
@@ -122,6 +130,8 @@ function TicketGroupItem({ group }: { group: BetGroup }) {
       otherBets.map((b) => ({
         selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
         status: b.status,
+        odds: b.odds,
+        amount: b.amount,
       }))
     );
 
@@ -131,6 +141,8 @@ function TicketGroupItem({ group }: { group: BetGroup }) {
       group.bets.map((b) => ({
         selections: b.selections.map((s) => s.horseNumber || s.bracketNumber || 0),
         status: b.status,
+        odds: b.odds,
+        amount: b.amount,
       }))
     );
   }
@@ -160,8 +172,17 @@ function TicketGroupItem({ group }: { group: BetGroup }) {
           <div className="text-sm font-semibold text-gray-900">
             {unitAmount.toLocaleString()}円 × {betCount}点 = {group.totalAmount.toLocaleString()}円
           </div>
-          {groupPayout > 0 && (
+          {groupPayout > 0 ? (
             <div className="text-sm font-semibold text-red-600">+{groupPayout.toLocaleString()}円</div>
+          ) : (
+            hasProvisional && (
+              <div className="mt-0.5 text-sm font-medium text-amber-600">
+                想定払戻:{' '}
+                {minProvisional === maxProvisional
+                  ? `${minProvisional.toLocaleString()}円`
+                  : `${minProvisional.toLocaleString()}〜${maxProvisional.toLocaleString()}円`}
+              </div>
+            )
           )}
         </div>
       </div>

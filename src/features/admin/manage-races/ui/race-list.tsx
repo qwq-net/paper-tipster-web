@@ -1,8 +1,9 @@
 import { Badge, Button } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
+import { getDisplayStatus } from '@/shared/utils/race-status';
 import { Eye } from 'lucide-react';
 import Link from 'next/link';
-import { getRaces } from '../actions';
+import { getRaces } from '../actions/read';
 
 export async function RaceList() {
   const races = await getRaces();
@@ -70,7 +71,13 @@ export async function RaceList() {
                 )}
               </td>
               <td className="px-6 py-4 text-sm whitespace-nowrap">
-                <Badge variant="status" label={race.status} />
+                <Badge
+                  variant="status"
+                  label={getDisplayStatus(
+                    race.status,
+                    race.entries.some((e) => e.finishPosition !== null)
+                  )}
+                />
               </td>
               <td className="px-6 py-4 text-right whitespace-nowrap">
                 <div className="flex items-center justify-end gap-2">

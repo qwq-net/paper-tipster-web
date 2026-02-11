@@ -110,6 +110,7 @@ NextAuth.js の標準テーブル構成に従います。
 - `name`: テキスト (イベント名)
 - `status`: Enum ('SCHEDULED', 'ACTIVE', 'COMPLETED')
 - `initialBalance`: Integer (参加時の初期配布金額)
+- `carryoverAmount`: BigInt (的中なし時に蓄積されるキャリーオーバー額、BET5の配当に加算される)
 
 ### `race_instance` (旧 `race`)
 

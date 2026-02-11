@@ -8,9 +8,20 @@ interface UseRaceEventsProps {
   isFinalized: boolean;
   onRaceBroadcast?: () => void;
   onRaceOddsUpdated?: (data: SSEMessage) => void;
+  onRaceClosed?: () => void;
+  onRaceReopened?: () => void;
+  onRaceResultUpdated?: (results: unknown[]) => void;
 }
 
-export function useRaceEvents({ raceId, isFinalized, onRaceBroadcast, onRaceOddsUpdated }: UseRaceEventsProps) {
+export function useRaceEvents({
+  raceId,
+  isFinalized,
+  onRaceBroadcast,
+  onRaceOddsUpdated,
+  onRaceClosed,
+  onRaceReopened,
+  onRaceResultUpdated,
+}: UseRaceEventsProps) {
   const router = useRouter();
 
   const handleMessage = useCallback(
@@ -24,8 +35,30 @@ export function useRaceEvents({ raceId, isFinalized, onRaceBroadcast, onRaceOdds
       if (data.type === 'RACE_ODDS_UPDATED' && data.raceId === raceId) {
         onRaceOddsUpdated?.(data);
       }
+
+      if (data.type === 'RACE_CLOSED' && data.raceId === raceId) {
+        toast.info('投票が締め切られました');
+        onRaceClosed?.();
+        router.refresh();
+      }
+
+      if (data.type === 'RACE_REOPENED' && data.raceId === raceId) {
+        toast.info('投票受付が再開されました');
+        onRaceReopened?.();
+        router.refresh();
+      }
+
+      if (data.type === 'RACE_RESULT_UPDATED' && data.raceId === raceId) {
+        const results = data.results as unknown[];
+        if (results.length > 0) {
+          toast.success('着順が確定しました');
+        } else {
+          toast.info('着順がリセットされました');
+        }
+        onRaceResultUpdated?.(results);
+      }
     },
-    [raceId, onRaceBroadcast, router, onRaceOddsUpdated]
+    [raceId, onRaceBroadcast, router, onRaceOddsUpdated, onRaceClosed, onRaceReopened, onRaceResultUpdated]
   );
 
   const { connectionStatus } = useSSE({

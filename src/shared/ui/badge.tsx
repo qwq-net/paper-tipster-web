@@ -50,6 +50,9 @@ export function Badge({ label, variant = 'outline', className, children }: Badge
           case 'CLOSED':
           case '締切済み':
             return 'bg-orange-100 text-orange-800';
+          case 'RANKING_CONFIRMED':
+          case '着順確定':
+            return 'bg-indigo-50 text-indigo-700 ring-indigo-200';
           case 'FINALIZED':
           case '結果確定済み':
           case '払戻確定':

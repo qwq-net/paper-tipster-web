@@ -23,6 +23,13 @@ export async function resetRaceResults(raceId: string) {
     await tx.update(raceEntries).set({ finishPosition: null }).where(eq(raceEntries.raceId, raceId));
 
     await tx.delete(payoutResults).where(eq(payoutResults.raceId, raceId));
+
+    const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
+    raceEventEmitter.emit(RACE_EVENTS.RACE_RESULT_UPDATED, {
+      raceId,
+      results: [],
+      timestamp: Date.now(),
+    });
   });
 
   revalidatePath('/admin/races');

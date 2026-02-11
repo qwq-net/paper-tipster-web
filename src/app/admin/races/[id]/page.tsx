@@ -28,8 +28,6 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
   if (!race) {
     notFound();
   }
-  const hasPayoutResults = payoutResults.length > 0;
-
   const entriesWithResult = await db
     .select({
       id: raceEntries.id,
@@ -42,6 +40,9 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
     .innerJoin(horses, eq(raceEntries.horseId, horses.id))
     .where(eq(raceEntries.raceId, id))
     .orderBy(raceEntries.finishPosition, raceEntries.horseNumber);
+
+  const hasFinishPositions = entriesWithResult.some((e) => e.finishPosition !== null);
+  const canFinalizePayout = payoutResults.length > 0 || (race.status === 'CLOSED' && hasFinishPositions);
 
   return (
     <div className="space-y-6">
@@ -129,7 +130,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
           ) : entriesWithResult.length > 0 ? (
             <RaceResultForm
               raceId={race.id}
-              hasPayoutResults={hasPayoutResults}
+              canFinalizePayout={canFinalizePayout}
               entries={entriesWithResult.map((e) => ({
                 id: e.id,
                 horseNumber: e.horseNumber,

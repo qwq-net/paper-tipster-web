@@ -117,14 +117,18 @@ export async function placeBet5Bet({
 
 export async function calculateBet5Payout(bet5EventId: string) {
   return db.transaction(async (tx) => {
-    const event = await tx.query.bet5Events.findFirst({
+    const bet5Event = await tx.query.bet5Events.findFirst({
       where: eq(bet5Events.id, bet5EventId),
+      with: {
+        event: true,
+      },
     });
 
-    if (!event) throw new Error('Event not found');
-    if (event.status === 'FINALIZED') return { success: false, message: 'Already finalized' };
+    if (!bet5Event) throw new Error('Event not found');
+    if (bet5Event.status === 'FINALIZED') return { success: false, message: 'Already finalized' };
 
-    const races = [event.race1Id, event.race2Id, event.race3Id, event.race4Id, event.race5Id];
+    const event = bet5Event.event;
+    const races = [bet5Event.race1Id, bet5Event.race2Id, bet5Event.race3Id, bet5Event.race4Id, bet5Event.race5Id];
     const allWinners = await tx.query.raceEntries.findMany({
       where: (raceEntries, { and, inArray, eq }) =>
         and(inArray(raceEntries.raceId, races), eq(raceEntries.finishPosition, 1)),
@@ -145,7 +149,7 @@ export async function calculateBet5Payout(bet5EventId: string) {
     });
 
     const totalSales = tickets.reduce((sum, t) => sum + t.amount, 0);
-    const totalPot = event.initialPot + totalSales;
+    const totalPot = bet5Event.initialPot + totalSales + (event.carryoverAmount || 0);
 
     const winningTickets = tickets.filter((t) => {
       const r1 = t.race1HorseIds as string[];

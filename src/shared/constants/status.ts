@@ -9,6 +9,7 @@ export type EventStatus = keyof typeof EVENT_STATUS_LABELS;
 export const RACE_STATUS_LABELS = {
   SCHEDULED: '出走前',
   CLOSED: '締切済み',
+  RANKING_CONFIRMED: '着順確定',
   FINALIZED: '払戻確定',
   CANCELLED: '中止',
 } as const;

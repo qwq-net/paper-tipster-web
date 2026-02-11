@@ -65,6 +65,14 @@ import { Badge } from '@/shared/ui';
 
 /* Condition Badge (Track Condition) */
 <Badge label="良" variant="condition" />
+
+/* Ranking Status with getDisplayStatus utility */
+import { getDisplayStatus } from '@/shared/utils/race-status';
+
+<Badge
+  label={getDisplayStatus(race.status, hasRankings)}
+  variant="status"
+/>
 ```
 
 ## Dialog

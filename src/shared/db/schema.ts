@@ -127,6 +127,7 @@ export const events = pgTable('event', {
   name: text('name').notNull(),
   description: text('description'),
   distributeAmount: bigint('distribute_amount', { mode: 'number' }).notNull(),
+  carryoverAmount: bigint('carryover_amount', { mode: 'number' }).default(0).notNull(),
   status: eventStatusEnum('status').default('SCHEDULED').notNull(),
   rankingPublished: boolean('ranking_published').default(false).notNull(),
   date: date('date').notNull(),

@@ -3,7 +3,9 @@
 import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
 import { PayoutResult, useRaceResults } from '@/features/betting/lib/hooks/use-race-results';
 import { PayoutResultModal } from '@/features/betting/ui/payout-result-modal';
+import { RACE_STATUS_LABELS, RaceStatus } from '@/shared/constants/status';
 import { Badge, Button, LiveConnectionStatus } from '@/shared/ui';
+import { getDisplayStatus } from '@/shared/utils/race-status';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
@@ -17,8 +19,10 @@ interface StandbyClientProps {
     raceNumber?: number | null;
     surface: string;
     distance: number;
+    status: string;
   };
   initialResults?: PayoutResult[];
+  initialRanking?: { finishPosition: number; horseNumber: number; horseName: string }[];
   isFinalized: boolean;
   hasTickets?: boolean;
   entryCount: number;
@@ -27,15 +31,32 @@ interface StandbyClientProps {
 export function StandbyClient({
   race,
   initialResults = [],
+  initialRanking = [],
   isFinalized: initialIsFinalized,
   hasTickets,
   entryCount,
 }: StandbyClientProps) {
   const [showModal, setShowModal] = useState(false);
+  const [isClosed, setIsClosed] = useState(() => {
+    if (initialIsFinalized) return true;
+    if (race.status === 'CLOSED') return true;
+    if (!race.closingAt) return false;
+    return new Date(race.closingAt) < new Date();
+  });
+  const [ranking, setRanking] =
+    useState<{ finishPosition: number; horseNumber: number; horseName: string }[]>(initialRanking);
 
   const { results, fetchResults } = useRaceResults(race.id, initialResults, initialIsFinalized);
 
   const handleRaceBroadcast = useCallback(async () => {
+    try {
+      const audio = new Audio('/sounds/chime.mp3');
+      audio.volume = 0.35;
+      audio.play().catch((e) => console.error('Audio play error:', e));
+    } catch (error) {
+      console.error('Failed to init notification sound:', error);
+    }
+
     await fetchResults();
     setShowModal(true);
   }, [fetchResults]);
@@ -44,19 +65,51 @@ export function StandbyClient({
     raceId: race.id,
     isFinalized: initialIsFinalized,
     onRaceBroadcast: handleRaceBroadcast,
+    onRaceClosed: useCallback(() => setIsClosed(true), []),
+    onRaceReopened: useCallback(() => setIsClosed(false), []),
+    onRaceResultUpdated: useCallback((results: unknown[]) => {
+      setRanking(results as { finishPosition: number; horseNumber: number; horseName: string }[]);
+    }, []),
   });
+
+  const baseStatus: RaceStatus = initialIsFinalized ? 'FINALIZED' : isClosed ? 'CLOSED' : 'SCHEDULED';
+  const displayStatus = initialIsFinalized ? 'FINALIZED' : getDisplayStatus(baseStatus, ranking.length > 0);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'SCHEDULED':
+        return 'bg-green-600';
+      case 'CLOSED':
+        return 'bg-orange-600';
+      case 'RANKING_CONFIRMED':
+        return 'bg-indigo-500 ring-indigo-300';
+      case 'FINALIZED':
+        return 'bg-indigo-600';
+      default:
+        return 'bg-gray-600';
+    }
+  };
+
+  const getRankColor = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return 'bg-amber-100 text-amber-700 ring-amber-200';
+      case 2:
+        return 'bg-slate-100 text-slate-700 ring-slate-200';
+      case 3:
+        return 'bg-orange-100 text-orange-700 ring-orange-200';
+      default:
+        return 'bg-gray-100 text-gray-600 ring-gray-200';
+    }
+  };
 
   return (
     <>
       <div className="mb-8 flex items-center justify-between border-b border-gray-100 pb-8">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <span
-              className={`rounded px-2 py-0.5 text-sm font-semibold text-white ${
-                initialIsFinalized ? 'bg-gray-600' : 'bg-green-600'
-              }`}
-            >
-              {initialIsFinalized ? '確定済み' : '待機中'}
+            <span className={`rounded px-2 py-0.5 text-sm font-semibold text-white ${getStatusColor(displayStatus)}`}>
+              {RACE_STATUS_LABELS[displayStatus as RaceStatus] || RACE_STATUS_LABELS[baseStatus]}
             </span>
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-500">{race.location}</span>
@@ -86,19 +139,66 @@ export function StandbyClient({
         )}
       </div>
 
+      {ranking.length > 0 && !initialIsFinalized && (
+        <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-3">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
+                R
+              </span>
+              <h3 className="text-sm font-semibold text-gray-900">着順速報</h3>
+            </div>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {ranking.map((result) => (
+              <div key={result.finishPosition} className="flex items-center px-6 py-3">
+                <div
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-sm font-semibold ring-1 ring-inset ${getRankColor(
+                    result.finishPosition
+                  )}`}
+                >
+                  {result.finishPosition}
+                </div>
+                <div className="ml-4 flex items-center gap-3">
+                  <div className="flex h-6 w-6 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-700">
+                    {result.horseNumber}
+                  </div>
+                  <span className="font-medium text-gray-900">{result.horseName}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {!initialIsFinalized && !hasTickets && (
         <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="border-b border-gray-100 bg-linear-to-r from-blue-50 to-white px-6 py-4">
+          <div
+            className={`border-b border-gray-100 px-6 py-4 ${
+              isClosed ? 'bg-linear-to-r from-gray-50 to-white' : 'bg-linear-to-r from-blue-50 to-white'
+            }`}
+          >
             <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-              <span className="text-sm font-semibold text-blue-600">確定待ち</span>
+              {isClosed ? (
+                <div className="flex h-4 w-4 items-center justify-center rounded-full bg-gray-400 text-sm font-semibold text-white">
+                  !
+                </div>
+              ) : (
+                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+              )}
+              <span className={`text-sm font-semibold ${isClosed ? 'text-gray-600' : 'text-blue-600'}`}>
+                {isClosed ? '投票締切' : '確定待ち'}
+              </span>
             </div>
           </div>
           <div className="p-6">
-            <h2 className="mb-2 text-lg font-semibold text-gray-900">レースの確定を待っています</h2>
+            <h2 className="mb-2 text-lg font-semibold text-gray-900">
+              {isClosed ? 'レースは締め切られました' : 'レースの確定を待っています'}
+            </h2>
             <p className="text-sm leading-relaxed text-gray-600">
-              購入した馬券はありませんが、発表されるまでこの画面のままお待ちください。
-              確定後に結果（払戻金等）の確認が可能です。
+              {isClosed
+                ? '結果発表をお待ちください。確定後に結果（払戻金等）の確認が可能です。'
+                : '購入した馬券はありませんが、発表されるまでこの画面のままお待ちください。確定後に結果（払戻金等）の確認が可能です。'}
             </p>
           </div>
         </div>

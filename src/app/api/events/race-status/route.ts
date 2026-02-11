@@ -48,12 +48,19 @@ export async function GET(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
       };
 
+      const onRaceResultUpdated = (data: { raceId: string; results: unknown[] }) => {
+        console.log(`[SSE] Emitting RACE_RESULT_UPDATED for race: ${data.raceId}`);
+        const payload = JSON.stringify({ type: 'RACE_RESULT_UPDATED', ...data });
+        controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
+      };
+
       raceEventEmitter.on(RACE_EVENTS.RACE_FINALIZED, onRaceFinalized);
       raceEventEmitter.on(RACE_EVENTS.RACE_BROADCAST, onRaceBroadcast);
       raceEventEmitter.on(RACE_EVENTS.RACE_CLOSED, onRaceClosed);
       raceEventEmitter.on(RACE_EVENTS.RACE_REOPENED, onRaceReopened);
       raceEventEmitter.on(RACE_EVENTS.RACE_ODDS_UPDATED, onRaceOddsUpdated);
       raceEventEmitter.on(RACE_EVENTS.RANKING_UPDATED, onRankingUpdated);
+      raceEventEmitter.on(RACE_EVENTS.RACE_RESULT_UPDATED, onRaceResultUpdated);
 
       const heartbeatInterval = setInterval(() => {
         controller.enqueue(encoder.encode('data: : ping\n\n'));
@@ -68,6 +75,7 @@ export async function GET(req: NextRequest) {
         raceEventEmitter.off(RACE_EVENTS.RACE_REOPENED, onRaceReopened);
         raceEventEmitter.off(RACE_EVENTS.RACE_ODDS_UPDATED, onRaceOddsUpdated);
         raceEventEmitter.off(RACE_EVENTS.RANKING_UPDATED, onRankingUpdated);
+        raceEventEmitter.off(RACE_EVENTS.RACE_RESULT_UPDATED, onRaceResultUpdated);
         controller.close();
       });
     },

@@ -2,6 +2,7 @@
 
 import { useIsMounted } from '@/shared/hooks/use-is-mounted';
 import { Badge } from '@/shared/ui';
+import { getDisplayStatus } from '@/shared/utils/race-status';
 import * as Accordion from '@radix-ui/react-accordion';
 import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
@@ -23,6 +24,7 @@ interface RaceAccordionProps {
       condition: string | null;
       status: string;
       closingAt: Date | null;
+      entries?: Array<{ finishPosition: number | null }>;
       venueId?: string;
       raceDefinitionId?: string | null;
       direction?: string | null;
@@ -129,7 +131,13 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
                           {race.surface} {race.condition || ''}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge variant="status" label={race.status} />
+                          <Badge
+                            variant="status"
+                            label={getDisplayStatus(
+                              race.status,
+                              race.entries?.some((e) => e.finishPosition !== null) ?? false
+                            )}
+                          />
                         </td>
                       </tr>
                     ))}

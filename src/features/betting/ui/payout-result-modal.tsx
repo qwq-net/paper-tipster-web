@@ -96,7 +96,7 @@ function renderResultBlock(results: ResultItem[], type: BetType, minRows: number
 
   const rows = [...data];
   while (rows.length < minRows) {
-    rows.push({ numbers: [], payout: 70 });
+    rows.push({ numbers: [], payout: 0 });
   }
 
   return (

@@ -97,6 +97,16 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
     };
   });
 
+  const initialRanking = entries
+    .filter((e) => e.finishPosition !== null)
+    .sort((a, b) => (a.finishPosition || 0) - (b.finishPosition || 0))
+    .slice(0, 5)
+    .map((e) => ({
+      finishPosition: e.finishPosition!,
+      horseNumber: e.horseNumber!,
+      horseName: e.horseName,
+    }));
+
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-5xl space-y-8">
@@ -116,9 +126,11 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
             ...race,
             location: race.location ?? '',
             closingAt: race.closingAt,
+            status: race.status,
           }}
           isFinalized={isFinalized}
           initialResults={initialResults}
+          initialRanking={initialRanking}
           hasTickets={ticketGroups.length > 0}
           entryCount={entries.length}
         />

@@ -3,6 +3,7 @@ import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { bet5Events, raceInstances, wallets } from '@/shared/db/schema';
 import { Badge, Card } from '@/shared/ui';
+import { getDisplayStatus } from '@/shared/utils/race-status';
 import { desc, eq } from 'drizzle-orm';
 import { ChevronLeft, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
@@ -153,7 +154,13 @@ export default async function SokubetPage() {
                                   {race.raceNumber}R
                                 </span>
                               )}
-                              <Badge variant="status" label={race.status} />
+                              <Badge
+                                variant="status"
+                                label={getDisplayStatus(
+                                  race.status,
+                                  race.entries?.some((e) => e.finishPosition !== null) ?? false
+                                )}
+                              />
                             </div>
                             <h3 className="text-xl font-semibold text-gray-900">{race.name}</h3>
                             <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">

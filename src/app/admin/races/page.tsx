@@ -1,4 +1,4 @@
-import { getRaces } from '@/features/admin/manage-races';
+import { getRaces } from '@/features/admin/manage-races/actions/read';
 import { RaceAccordion } from '@/features/admin/manage-races/ui/race-accordion';
 import { Button, Card } from '@/shared/ui';
 import { CircleHelp, Plus } from 'lucide-react';

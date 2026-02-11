@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, Button, Label, Select } from '@/shared/ui';
+import { Badge, Button } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
@@ -17,7 +17,7 @@ import {
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { AlertCircle, CheckCircle2, Coins, GripVertical, Info, RotateCcw, Settings2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, GripVertical, Info, RotateCcw, Settings2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -35,7 +35,7 @@ interface Entry {
 interface RaceResultFormProps {
   raceId: string;
   entries: Entry[];
-  hasPayoutResults?: boolean;
+  canFinalizePayout?: boolean;
   race: {
     id: string;
     eventId: string;
@@ -122,15 +122,13 @@ function SortableResultItem({ entry, position }: { entry: Entry; position: numbe
   );
 }
 
-export function RaceResultForm({ raceId, entries: initialEntries, race, hasPayoutResults }: RaceResultFormProps) {
+export function RaceResultForm({ raceId, entries: initialEntries, race, canFinalizePayout }: RaceResultFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [sortedEntries, setSortedEntries] = useState(initialEntries);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isPayoutMoving, setIsPayoutMoving] = useState(false);
-
-  const [takeoutRate, setTakeoutRate] = useState<number>(0);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -221,8 +219,8 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, hasPayou
 
       try {
         await finalizeRace(raceId, results, {
-          payoutMode: takeoutRate === 0 ? 'TOTAL_DISTRIBUTION' : 'MANUAL',
-          takeoutRate: takeoutRate / 100,
+          payoutMode: 'TOTAL_DISTRIBUTION',
+          takeoutRate: 0,
         });
         toast.success('着順を確定しました（払い戻し計算完了）', {
           icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
@@ -376,35 +374,6 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, hasPayou
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-gray-50 pb-4">
-              <Coins className="h-4 w-4 text-amber-500" />
-              <h4 className="font-semibold text-gray-900">配当設定</h4>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-sm font-semibold text-gray-500">配当方式</Label>
-                <Select
-                  value={takeoutRate === 0 ? 'TOTAL' : 'STANDARD'}
-                  onChange={(e) => setTakeoutRate(e.target.value === 'TOTAL' ? 0 : 30)}
-                >
-                  <option value="TOTAL">全額配分 (控除率0%)</option>
-                  <option value="STANDARD">標準配分 (控除率30%)</option>
-                </Select>
-              </div>
-
-              <div className="flex items-start gap-2 rounded-xl bg-blue-50/50 p-3 ring-1 ring-blue-100/50">
-                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500" />
-                <p className="text-sm leading-relaxed text-blue-600/80">
-                  {takeoutRate === 0
-                    ? '全ての賭け金を的中者で山分けします。的中なし時は100円の特払いとなります。'
-                    : '30%を差し引いた金額を的中者で分配します。的中なし時は70円の特払いとなります。'}
-                </p>
-              </div>
-            </div>
-          </div>
-
           <div className="mt-8 space-y-3">
             {race.status === 'SCHEDULED' && (
               <Button
@@ -423,7 +392,7 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, hasPayou
                   variant="outline"
                   className="w-full border-blue-100 py-4 text-sm font-semibold text-blue-600 hover:bg-blue-50"
                   onClick={handleReopen}
-                  disabled={isPending || hasPayoutResults}
+                  disabled={isPending || canFinalizePayout}
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   受付を再開する
@@ -436,9 +405,9 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, hasPayou
                         'shadow-primary/20 relative w-full py-6 text-lg font-semibold shadow-lg transition-all duration-300 active:scale-[0.98]',
                         isChanged ? 'from-primary to-primary/80 bg-linear-to-br' : 'grayscale-50'
                       )}
-                      disabled={isPending || isPayoutMoving || hasPayoutResults}
+                      disabled={isPending || isPayoutMoving || canFinalizePayout}
                     >
-                      {isPending ? '確定処理中...' : hasPayoutResults ? '着順確定済み' : '着順を確定する'}
+                      {isPending ? '確定処理中...' : canFinalizePayout ? '着順確定済み' : '着順を確定する'}
                       {isChanged && !isPending && (
                         <span className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-white/40" />
                       )}
@@ -456,11 +425,7 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, hasPayou
                         </AlertDialog.Title>
                         <AlertDialog.Description asChild className="text-sm text-gray-500">
                           <div>
-                            この操作を行うと、投票された馬券の払い戻し計算が
-                            <span className="mx-1 font-semibold text-gray-900 underline">
-                              {takeoutRate === 0 ? '全額配分' : `控除率 ${takeoutRate}%`}
-                            </span>
-                            で実行されます。
+                            この操作を行うと、投票された馬券の払い戻し計算が実行されます。
                             <br />
                             <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
                               <div className="flex justify-between border-b border-gray-100 pb-1">
@@ -497,7 +462,7 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, hasPayou
               </div>
             )}
 
-            {hasPayoutResults && (
+            {canFinalizePayout && (
               <div className="space-y-3">
                 <Button
                   className="relative w-full border-2 border-amber-500 bg-white py-6 text-lg font-semibold text-amber-600 shadow-lg shadow-amber-200 hover:bg-amber-50"

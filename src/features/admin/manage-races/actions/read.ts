@@ -14,6 +14,7 @@ export async function getRaces() {
     with: {
       event: true,
       venue: true,
+      entries: true,
     },
   });
 }

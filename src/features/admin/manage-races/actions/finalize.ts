@@ -49,6 +49,22 @@ export async function finalizeRace(
 
     if (finishers.length === 0) throw new Error('着順が指定されていません');
 
+    const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
+    const rankingPayload = raceEntriesWithInfo
+      .filter((e) => e.finishPosition !== null)
+      .slice(0, 5)
+      .map((e) => ({
+        finishPosition: e.finishPosition!,
+        horseNumber: e.horseNumber!,
+        horseName: e.horse!.name,
+      }));
+
+    raceEventEmitter.emit(RACE_EVENTS.RACE_RESULT_UPDATED, {
+      raceId,
+      results: rankingPayload,
+      timestamp: Date.now(),
+    });
+
     const allBets = await tx.query.bets.findMany({
       where: eq(bets.raceId, raceId),
     });
@@ -119,21 +135,29 @@ export async function finalizeRace(
       }
     }
 
-    const { getWinningCombinations: getWinningCombos } = await import('@/shared/utils/payout');
     const { BET_TYPES } = await import('@/types/betting');
+    const { getWinningCombinations } = await import('@/shared/utils/payout');
+
+    let raceCarryover = 0;
 
     for (const type of Object.values(BET_TYPES)) {
-      const winningCombos = getWinningCombos(type, finishers);
       if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
 
-      for (const combo of winningCombos) {
-        const comboKey = normalizeSelections(type, combo);
-        const alreadyExists = payoutCalculationsByType[type].find(
-          (p) => normalizeSelections(type, p.numbers) === comboKey
-        );
+      const winningCombinations = getWinningCombinations(type, finishers);
+      for (const combination of winningCombinations) {
+        const key = normalizeSelections(type, combination);
+        const exists = payoutCalculationsByType[type].some((p) => normalizeSelections(type, p.numbers) === key);
+        if (!exists) {
+          payoutCalculationsByType[type].push({ numbers: combination, payout: 0 });
+        }
+      }
 
-        if (!alreadyExists) {
-          payoutCalculationsByType[type].push({ numbers: combo, payout: 70 });
+      const hasWinningVotes = payoutCalculationsByType[type].some((p) => p.payout > 0);
+
+      if (!hasWinningVotes) {
+        const pool = poolByBetType[type] || 0;
+        if (pool > 0) {
+          raceCarryover += pool;
         }
       }
 
@@ -144,7 +168,7 @@ export async function finalizeRace(
         });
     }
 
-    const { payoutResults: payoutResultsTable } = await import('@/shared/db/schema');
+    const { payoutResults: payoutResultsTable, events } = await import('@/shared/db/schema');
     await tx.delete(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
 
     for (const [type, combinations] of Object.entries(payoutCalculationsByType)) {
@@ -154,6 +178,22 @@ export async function finalizeRace(
           type,
           combinations,
         });
+      }
+    }
+
+    if (raceCarryover > 0) {
+      const raceInstance = await tx.query.raceInstances.findFirst({
+        where: eq(raceInstances.id, raceId),
+        columns: { eventId: true },
+      });
+
+      if (raceInstance) {
+        await tx
+          .update(events)
+          .set({
+            carryoverAmount: sql`${events.carryoverAmount} + ${raceCarryover}`,
+          })
+          .where(eq(events.id, raceInstance.eventId));
       }
     }
 

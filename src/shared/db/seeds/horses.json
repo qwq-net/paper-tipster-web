@@ -1,0 +1,56 @@
+[
+  {
+    "name": "オツルマルボーイ",
+    "gender": "牡",
+    "age": 6,
+    "type": "FICTIONAL",
+    "tags": []
+  },
+  {
+    "name": "ミックーロイル",
+    "gender": "牡",
+    "age": 6,
+    "type": "FICTIONAL",
+    "tags": []
+  },
+  {
+    "name": "ホクトタナカ",
+    "gender": "牝",
+    "age": 5,
+    "type": "FICTIONAL",
+    "tags": []
+  },
+  {
+    "name": "モズバスコット",
+    "gender": "牝",
+    "age": 4,
+    "type": "FICTIONAL",
+    "tags": []
+  },
+  {
+    "name": "ラヴズオンリーガミ",
+    "gender": "牝",
+    "age": 5,
+    "type": "FICTIONAL"
+  },
+  {
+    "name": "ヘニョーヒューズ",
+    "gender": "牡",
+    "age": 5,
+    "type": "FICTIONAL",
+    "tags": []
+  },
+  {
+    "name": "マチカネマチホイザ",
+    "gender": "牡",
+    "age": 6,
+    "type": "FICTIONAL",
+    "tags": []
+  },
+  {
+    "name": "モイチャクラ",
+    "gender": "牡",
+    "age": 3,
+    "type": "FICTIONAL"
+  }
+]

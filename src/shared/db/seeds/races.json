@@ -1,0 +1,194 @@
+[
+  {
+    "name": "フェブラリーS",
+    "grade": "G1",
+    "venue": "東京競馬場",
+    "surface": "ダート",
+    "distance": 1600,
+    "direction": "LEFT"
+  },
+  {
+    "name": "高松宮記念",
+    "grade": "G1",
+    "venue": "中京競馬場",
+    "surface": "芝",
+    "distance": 1200,
+    "direction": "LEFT"
+  },
+  {
+    "name": "大阪杯",
+    "grade": "G1",
+    "venue": "阪神競馬場",
+    "surface": "芝",
+    "distance": 2000,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "桜花賞",
+    "grade": "G1",
+    "venue": "阪神競馬場",
+    "surface": "芝",
+    "distance": 1600,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "皐月賞",
+    "grade": "G1",
+    "venue": "中山競馬場",
+    "surface": "芝",
+    "distance": 2000,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "天皇賞（春）",
+    "grade": "G1",
+    "venue": "京都競馬場",
+    "surface": "芝",
+    "distance": 3200,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "NHKマイルC",
+    "grade": "G1",
+    "venue": "東京競馬場",
+    "surface": "芝",
+    "distance": 1600,
+    "direction": "LEFT"
+  },
+  {
+    "name": "ヴィクトリアM",
+    "grade": "G1",
+    "venue": "東京競馬場",
+    "surface": "芝",
+    "distance": 1600,
+    "direction": "LEFT"
+  },
+  {
+    "name": "オークス",
+    "grade": "G1",
+    "venue": "東京競馬場",
+    "surface": "芝",
+    "distance": 2400,
+    "direction": "LEFT"
+  },
+  {
+    "name": "日本ダービー",
+    "grade": "G1",
+    "venue": "東京競馬場",
+    "surface": "芝",
+    "distance": 2400,
+    "direction": "LEFT"
+  },
+  {
+    "name": "安田記念",
+    "grade": "G1",
+    "venue": "東京競馬場",
+    "surface": "芝",
+    "distance": 1600,
+    "direction": "LEFT"
+  },
+  {
+    "name": "宝塚記念",
+    "grade": "G1",
+    "venue": "阪神競馬場",
+    "surface": "芝",
+    "distance": 2200,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "スプリンターズS",
+    "grade": "G1",
+    "venue": "中山競馬場",
+    "surface": "芝",
+    "distance": 1200,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "秋華賞",
+    "grade": "G1",
+    "venue": "京都競馬場",
+    "surface": "芝",
+    "distance": 2000,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "菊花賞",
+    "grade": "G1",
+    "venue": "京都競馬場",
+    "surface": "芝",
+    "distance": 3000,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "天皇賞（秋）",
+    "grade": "G1",
+    "venue": "東京競馬場",
+    "surface": "芝",
+    "distance": 2000,
+    "direction": "LEFT"
+  },
+  {
+    "name": "エリザベス女王杯",
+    "grade": "G1",
+    "venue": "京都競馬場",
+    "surface": "芝",
+    "distance": 2200,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "マイルCS",
+    "grade": "G1",
+    "venue": "京都競馬場",
+    "surface": "芝",
+    "distance": 1600,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "ジャパンC",
+    "grade": "G1",
+    "venue": "東京競馬場",
+    "surface": "芝",
+    "distance": 2400,
+    "direction": "LEFT"
+  },
+  {
+    "name": "チャンピオンズC",
+    "grade": "G1",
+    "venue": "中京競馬場",
+    "surface": "ダート",
+    "distance": 1800,
+    "direction": "LEFT"
+  },
+  {
+    "name": "阪神JF",
+    "grade": "G1",
+    "venue": "阪神競馬場",
+    "surface": "芝",
+    "distance": 1600,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "朝日杯FS",
+    "grade": "G1",
+    "venue": "阪神競馬場",
+    "surface": "芝",
+    "distance": 1600,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "有馬記念",
+    "grade": "G1",
+    "venue": "中山競馬場",
+    "surface": "芝",
+    "distance": 2500,
+    "direction": "RIGHT"
+  },
+  {
+    "name": "ホープフルS",
+    "grade": "G1",
+    "venue": "中山競馬場",
+    "surface": "芝",
+    "distance": 2000,
+    "direction": "RIGHT"
+  }
+]

@@ -66,6 +66,16 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 | `pnpm db:reset`  | DBのリセット                                |
 | `pnpm test`      | テストの実行 (ローカル環境)                 |
 | `pnpm lint:fix`  | Lintエラーの自動修正                        |
+| `pnpm format`    | Prettierによるコード整形                    |
+
+## シードデータ
+
+マスタデータ（競馬場、レース定義、馬マスタ）は以下のJSONファイルで管理されています。
+データを追加・変更した後は `pnpm db:seed` を実行することで反映されます。
+
+- `src/shared/db/seeds/venues.json`: 競馬場マスタ
+- `src/shared/db/seeds/races.json`: レース定義マスタ
+- `src/shared/db/seeds/horses.json`: 馬マスタ（実在・架空・勝ち鞍データ）
 
 ## 本番環境での実行
 

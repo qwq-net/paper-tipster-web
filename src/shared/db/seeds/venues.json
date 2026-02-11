@@ -1,0 +1,12 @@
+[
+  { "code": "01", "name": "札幌競馬場", "shortName": "札幌", "direction": "RIGHT", "area": "EAST_JAPAN" },
+  { "code": "02", "name": "函館競馬場", "shortName": "函館", "direction": "RIGHT", "area": "EAST_JAPAN" },
+  { "code": "03", "name": "福島競馬場", "shortName": "福島", "direction": "RIGHT", "area": "EAST_JAPAN" },
+  { "code": "04", "name": "新潟競馬場", "shortName": "新潟", "direction": "LEFT", "area": "EAST_JAPAN" },
+  { "code": "05", "name": "東京競馬場", "shortName": "東京", "direction": "LEFT", "area": "EAST_JAPAN" },
+  { "code": "06", "name": "中山競馬場", "shortName": "中山", "direction": "RIGHT", "area": "EAST_JAPAN" },
+  { "code": "07", "name": "中京競馬場", "shortName": "中京", "direction": "LEFT", "area": "WEST_JAPAN" },
+  { "code": "08", "name": "京都競馬場", "shortName": "京都", "direction": "RIGHT", "area": "WEST_JAPAN" },
+  { "code": "09", "name": "阪神競馬場", "shortName": "阪神", "direction": "RIGHT", "area": "WEST_JAPAN" },
+  { "code": "10", "name": "小倉競馬場", "shortName": "小倉", "direction": "RIGHT", "area": "WEST_JAPAN" }
+]

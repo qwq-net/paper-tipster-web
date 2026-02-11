@@ -1,12 +1,45 @@
 import { Role } from '@/entities/user';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
-import { RACE_CONDITIONS } from '@/shared/constants/race';
+import { RACE_CONDITIONS, RACE_GRADES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { type RaceStatus } from '@/shared/types/race';
 import { eq } from 'drizzle-orm';
-import type { HorseGender, HorseTagType, HorseType } from '../types/horse';
+import type { HorseTagType, HorseType } from '../types/horse';
 import { calculateBracketNumber } from '../utils/bracket';
 import { db } from './index';
 import * as schema from './schema';
+import horsesDataRaw from './seeds/horses.json';
+import racesDataRaw from './seeds/races.json';
+import venuesDataRaw from './seeds/venues.json';
+
+interface VenueSeedData {
+  code: string;
+  name: string;
+  shortName: string;
+  direction: string;
+  area: string;
+}
+
+interface RaceSeedData {
+  name: string;
+  grade: string;
+  venue: string;
+  surface: string;
+  distance: number;
+  direction: string;
+}
+
+interface HorseSeedData {
+  name: string;
+  gender: string;
+  age: number | null;
+  type?: string;
+  tags?: { type: string; content: string }[];
+  wins?: { title: string; date: string }[];
+}
+
+const venuesData = venuesDataRaw as VenueSeedData[];
+const racesData = racesDataRaw as RaceSeedData[];
+const horsesData = horsesDataRaw as HorseSeedData[];
 
 const getRandomCondition = () => RACE_CONDITIONS[Math.floor(Math.random() * RACE_CONDITIONS.length)];
 
@@ -68,19 +101,6 @@ const eventTemplates = [
   },
 ];
 
-const jraRacecourses = [
-  { code: '01', name: '札幌競馬場', shortName: '札幌', direction: 'RIGHT' as const, area: 'EAST_JAPAN' as const },
-  { code: '02', name: '函館競馬場', shortName: '函館', direction: 'RIGHT' as const, area: 'EAST_JAPAN' as const },
-  { code: '03', name: '福島競馬場', shortName: '福島', direction: 'RIGHT' as const, area: 'EAST_JAPAN' as const },
-  { code: '04', name: '新潟競馬場', shortName: '新潟', direction: 'LEFT' as const, area: 'EAST_JAPAN' as const },
-  { code: '05', name: '東京競馬場', shortName: '東京', direction: 'LEFT' as const, area: 'EAST_JAPAN' as const },
-  { code: '06', name: '中山競馬場', shortName: '中山', direction: 'RIGHT' as const, area: 'EAST_JAPAN' as const },
-  { code: '07', name: '中京競馬場', shortName: '中京', direction: 'LEFT' as const, area: 'WEST_JAPAN' as const },
-  { code: '08', name: '京都競馬場', shortName: '京都', direction: 'RIGHT' as const, area: 'WEST_JAPAN' as const },
-  { code: '09', name: '阪神競馬場', shortName: '阪神', direction: 'RIGHT' as const, area: 'WEST_JAPAN' as const },
-  { code: '10', name: '小倉競馬場', shortName: '小倉', direction: 'RIGHT' as const, area: 'WEST_JAPAN' as const },
-];
-
 const HORSE_TAG_MASTER_DATA: Array<{ type: HorseTagType; content: string }> = [
   { type: 'LEG_TYPE', content: '芝' },
   { type: 'LEG_TYPE', content: 'ダート' },
@@ -105,356 +125,6 @@ const HORSE_TAG_MASTER_DATA: Array<{ type: HorseTagType; content: string }> = [
   { type: 'BIOGRAPHY', content: '人気薄' },
   { type: 'BIOGRAPHY', content: '人気高' },
 ];
-
-const g1Definitions = [
-  {
-    name: 'フェブラリーS',
-    grade: 'G1' as const,
-    venue: '東京競馬場',
-    surface: 'ダート',
-    distance: 1600,
-    direction: 'LEFT' as const,
-  },
-  {
-    name: '高松宮記念',
-    grade: 'G1' as const,
-    venue: '中京競馬場',
-    surface: '芝',
-    distance: 1200,
-    direction: 'LEFT' as const,
-  },
-  {
-    name: '大阪杯',
-    grade: 'G1' as const,
-    venue: '阪神競馬場',
-    surface: '芝',
-    distance: 2000,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: '桜花賞',
-    grade: 'G1' as const,
-    venue: '阪神競馬場',
-    surface: '芝',
-    distance: 1600,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: '皐月賞',
-    grade: 'G1' as const,
-    venue: '中山競馬場',
-    surface: '芝',
-    distance: 2000,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: '天皇賞（春）',
-    grade: 'G1' as const,
-    venue: '京都競馬場',
-    surface: '芝',
-    distance: 3200,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: 'NHKマイルC',
-    grade: 'G1' as const,
-    venue: '東京競馬場',
-    surface: '芝',
-    distance: 1600,
-    direction: 'LEFT' as const,
-  },
-  {
-    name: 'ヴィクトリアM',
-    grade: 'G1' as const,
-    venue: '東京競馬場',
-    surface: '芝',
-    distance: 1600,
-    direction: 'LEFT' as const,
-  },
-  {
-    name: 'オークス',
-    grade: 'G1' as const,
-    venue: '東京競馬場',
-    surface: '芝',
-    distance: 2400,
-    direction: 'LEFT' as const,
-  },
-  {
-    name: '日本ダービー',
-    grade: 'G1' as const,
-    venue: '東京競馬場',
-    surface: '芝',
-    distance: 2400,
-    direction: 'LEFT' as const,
-  },
-  {
-    name: '安田記念',
-    grade: 'G1' as const,
-    venue: '東京競馬場',
-    surface: '芝',
-    distance: 1600,
-    direction: 'LEFT' as const,
-  },
-  {
-    name: '宝塚記念',
-    grade: 'G1' as const,
-    venue: '阪神競馬場',
-    surface: '芝',
-    distance: 2200,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: 'スプリンターズS',
-    grade: 'G1' as const,
-    venue: '中山競馬場',
-    surface: '芝',
-    distance: 1200,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: '秋華賞',
-    grade: 'G1' as const,
-    venue: '京都競馬場',
-    surface: '芝',
-    distance: 2000,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: '菊花賞',
-    grade: 'G1' as const,
-    venue: '京都競馬場',
-    surface: '芝',
-    distance: 3000,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: '天皇賞（秋）',
-    grade: 'G1' as const,
-    venue: '東京競馬場',
-    surface: '芝',
-    distance: 2000,
-    direction: 'LEFT' as const,
-  },
-  {
-    name: 'エリザベス女王杯',
-    grade: 'G1' as const,
-    venue: '京都競馬場',
-    surface: '芝',
-    distance: 2200,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: 'マイルCS',
-    grade: 'G1' as const,
-    venue: '京都競馬場',
-    surface: '芝',
-    distance: 1600,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: 'ジャパンC',
-    grade: 'G1' as const,
-    venue: '東京競馬場',
-    surface: '芝',
-    distance: 2400,
-    direction: 'LEFT' as const,
-  },
-  {
-    name: 'チャンピオンズC',
-    grade: 'G1' as const,
-    venue: '中京競馬場',
-    surface: 'ダート',
-    distance: 1800,
-    direction: 'LEFT' as const,
-  },
-  {
-    name: '阪神JF',
-    grade: 'G1' as const,
-    venue: '阪神競馬場',
-    surface: '芝',
-    distance: 1600,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: '朝日杯FS',
-    grade: 'G1' as const,
-    venue: '阪神競馬場',
-    surface: '芝',
-    distance: 1600,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: '有馬記念',
-    grade: 'G1' as const,
-    venue: '中山競馬場',
-    surface: '芝',
-    distance: 2500,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: 'ホープフルS',
-    grade: 'G1' as const,
-    venue: '中山競馬場',
-    surface: '芝',
-    distance: 2000,
-    direction: 'RIGHT' as const,
-  },
-  {
-    name: 'アイビスSD',
-    grade: 'G3' as const,
-    venue: '新潟競馬場',
-    surface: '芝',
-    distance: 1000,
-    direction: 'STRAIGHT' as const,
-  },
-];
-
-const horsePool: Array<{
-  name: string;
-  gender: HorseGender;
-  age: number | null;
-  type?: HorseType;
-  tags?: Array<{ type: string; content: string }>;
-}> = [
-  {
-    name: 'オツルマルボーイ',
-    gender: '牡',
-    age: 6,
-    type: 'FICTIONAL',
-    tags: [{ type: 'CHARACTERISTIC', content: '逃げ' }],
-  },
-  {
-    name: 'ミックーロイル',
-    gender: '牡',
-    age: 6,
-    type: 'FICTIONAL',
-    tags: [{ type: 'CHARACTERISTIC', content: '差し' }],
-  },
-  {
-    name: 'ホクトタナカ',
-    gender: '牝',
-    age: 5,
-    type: 'FICTIONAL',
-    tags: [{ type: 'CHARACTERISTIC', content: '先行' }],
-  },
-  {
-    name: 'モズバスコット',
-    gender: '牝',
-    age: 4,
-    type: 'FICTIONAL',
-    tags: [
-      { type: 'LEG_TYPE', content: '芝' },
-      { type: 'LEG_TYPE', content: '1200~1600m' },
-    ],
-  },
-  { name: 'ラヴズオンリーガミ', gender: '牝', age: 5, type: 'FICTIONAL' },
-  {
-    name: 'ヘニョーヒューズ',
-    gender: '牡',
-    age: 5,
-    type: 'FICTIONAL',
-    tags: [{ type: 'LEG_TYPE', content: 'ダート' }],
-  },
-  {
-    name: '外 マチカネマチホイザ',
-    gender: '牡',
-    age: 6,
-    type: 'FICTIONAL',
-    tags: [{ type: 'CHARACTERISTIC', content: '差し' }],
-  },
-  { name: 'モイチャクラ', gender: '牡', age: 3, type: 'FICTIONAL' },
-  {
-    name: 'セキテイリュウオー',
-    gender: '牡',
-    age: 5,
-    type: 'REAL',
-    tags: [{ type: 'CHARACTERISTIC', content: '先行' }],
-  },
-  { name: 'トウカイテイオー', gender: '牡', age: 4, type: 'REAL', tags: [{ type: 'BIOGRAPHY', content: 'G1' }] },
-  { name: 'メジロマックイーン', gender: '牡', age: 5, type: 'REAL', tags: [{ type: 'BIOGRAPHY', content: 'G1' }] },
-  { name: 'ライスシャワー', gender: '牡', age: 4, type: 'REAL', tags: [{ type: 'BIOGRAPHY', content: 'G1' }] },
-  {
-    name: 'ミホノブルボン',
-    gender: '牡',
-    age: 3,
-    type: 'REAL',
-    tags: [
-      { type: 'BIOGRAPHY', content: 'G1' },
-      { type: 'CHARACTERISTIC', content: '逃げ' },
-    ],
-  },
-  {
-    name: 'サトノダイヤモンド',
-    gender: '牡',
-    age: 4,
-    type: 'REAL',
-    tags: [
-      { type: 'BIOGRAPHY', content: 'G1' },
-      { type: 'CHARACTERISTIC', content: '先行' },
-    ],
-  },
-  {
-    name: 'キタサンブラック',
-    gender: '牡',
-    age: 5,
-    type: 'REAL',
-    tags: [
-      { type: 'BIOGRAPHY', content: 'G1' },
-      { type: 'CHARACTERISTIC', content: '逃げ' },
-      { type: 'CHARACTERISTIC', content: '大舞台' },
-    ],
-  },
-  {
-    name: 'ゴールドシップ',
-    gender: '牡',
-    age: 4,
-    type: 'REAL',
-    tags: [
-      { type: 'BIOGRAPHY', content: 'G1' },
-      { type: 'CHARACTERISTIC', content: 'まくり' },
-    ],
-  },
-  { name: 'ジェンティルドンナ', gender: '牝', age: 4, type: 'REAL', tags: [{ type: 'BIOGRAPHY', content: 'G1' }] },
-  {
-    name: 'オルフェーヴル',
-    gender: '牡',
-    age: 4,
-    type: 'REAL',
-    tags: [
-      { type: 'BIOGRAPHY', content: 'G1' },
-      { type: 'CHARACTERISTIC', content: '追い込み' },
-    ],
-  },
-  {
-    name: 'ディープインパクト',
-    gender: '牡',
-    age: 3,
-    type: 'REAL',
-    tags: [
-      { type: 'BIOGRAPHY', content: 'G1' },
-      { type: 'CHARACTERISTIC', content: '差し' },
-      { type: 'LEG_TYPE', content: '芝' },
-    ],
-  },
-  { name: 'アーモンドアイ', gender: '牝', age: 4, type: 'REAL', tags: [{ type: 'BIOGRAPHY', content: 'G1' }] },
-];
-
-const horseWinsData: Record<string, Array<{ title: string; date: string }>> = {
-  ディープインパクト: [
-    { title: '無敗の三冠馬', date: '2005-10-23' },
-    { title: '年度代表馬', date: '2005-01-01' },
-    { title: '有馬記念(G1)', date: '2006-12-24' },
-    { title: 'ジャパンカップ(G1)', date: '2006-11-26' },
-    { title: '天皇賞(春)(G1)', date: '2006-04-30' },
-  ],
-  アーモンドアイ: [
-    { title: '芝G1 9勝 (史上最多記録)', date: '2020-11-29' },
-    { title: '牝馬三冠', date: '2018-10-14' },
-    { title: 'ジャパンカップ(G1)', date: '2020-11-29' },
-    { title: '天皇賞(秋)(G1)', date: '2020-11-01' },
-    { title: 'ドバイターフ(G1)', date: '2019-03-30' },
-  ],
-};
 
 async function main() {
   console.log('--- Starting Seeder ---');
@@ -509,7 +179,7 @@ async function main() {
     const venueMap: Record<string, string> = {};
     let createdVenueCount = 0;
 
-    for (const v of jraRacecourses) {
+    for (const v of venuesData) {
       const existing = await tx.query.venues.findFirst({
         where: (venues, { eq }) => eq(venues.name, v.name),
       });
@@ -523,8 +193,8 @@ async function main() {
             name: v.name,
             shortName: v.shortName,
             code: v.code,
-            defaultDirection: v.direction,
-            area: v.area,
+            defaultDirection: v.direction as (typeof VENUE_DIRECTIONS)[number],
+            area: v.area as (typeof VENUE_AREAS)[number],
           })
           .returning();
         venueMap[v.name] = venue.id;
@@ -537,7 +207,7 @@ async function main() {
     const raceDefinitionMap: Record<string, { id: string; grade: string }> = {};
     let createdDefCount = 0;
 
-    for (const def of g1Definitions) {
+    for (const def of racesData) {
       const existing = await tx.query.raceDefinitions.findFirst({
         where: (d, { eq }) => eq(d.name, def.name),
       });
@@ -549,9 +219,9 @@ async function main() {
           .insert(schema.raceDefinitions)
           .values({
             name: def.name,
-            grade: def.grade,
+            grade: def.grade as (typeof RACE_GRADES)[number],
             type: 'REAL',
-            defaultDirection: def.direction,
+            defaultDirection: def.direction as (typeof VENUE_DIRECTIONS)[number],
             defaultDistance: def.distance,
             defaultSurface: def.surface,
             defaultVenueId: venueMap[def.venue],
@@ -584,7 +254,7 @@ async function main() {
     const allHorses: Array<{ id: string; name: string }> = [];
     let createdHorseCount = 0;
 
-    for (const horseData of horsePool) {
+    for (const horseData of horsesData) {
       const isForeign = horseData.name.startsWith('外 ');
       const cleanedName = horseData.name.replace(/^外 /, '');
 
@@ -602,7 +272,7 @@ async function main() {
             gender: horseData.gender === '牡' ? 'HORSE' : horseData.gender === '牝' ? 'MARE' : 'GELDING',
             age: horseData.age,
             origin: isForeign ? 'FOREIGN_BRED' : 'DOMESTIC',
-            type: horseData.type || 'REAL',
+            type: (horseData.type as HorseType) || 'REAL',
           })
           .returning();
 
@@ -623,7 +293,7 @@ async function main() {
     if (createdHorseCount === 0) console.log('Horses: all exist, skipped');
 
     const racesPerEvent = 5;
-    const raceDefinitionNames = g1Definitions.map((d) => d.name);
+    const raceDefinitionNames = racesData.map((d) => d.name);
     const createdEventIds: Array<{ id: string; status: string; distributeAmount: number }> = [];
 
     for (let eventIndex = 0; eventIndex < eventTemplates.length; eventIndex++) {
@@ -783,14 +453,17 @@ async function main() {
       console.log('Wallets: all exist, skipped');
     }
 
-    for (const [horseName, titles] of Object.entries(horseWinsData)) {
+    for (const horseData of horsesData) {
+      if (!horseData.wins || horseData.wins.length === 0) continue;
+
+      const cleanedName = horseData.name.replace(/^外 /, '');
       const horse = await tx.query.horses.findFirst({
-        where: (h, { eq }) => eq(h.name, horseName),
+        where: (h, { eq }) => eq(h.name, cleanedName),
       });
       if (!horse) continue;
 
       let winsCreated = 0;
-      for (const t of titles) {
+      for (const t of horseData.wins) {
         const existing = await tx.query.horseWins.findFirst({
           where: (hw, { and, eq }) => and(eq(hw.horseId, horse.id), eq(hw.title, t.title)),
         });
@@ -804,7 +477,7 @@ async function main() {
         }
       }
       if (winsCreated > 0) {
-        console.log(`Horse wins seeded: ${horseName} (${winsCreated} titles)`);
+        console.log(`Horse wins seeded: ${cleanedName} (${winsCreated} titles)`);
       }
     }
   });

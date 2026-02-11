@@ -348,3 +348,25 @@ erDiagram
     BET5_EVENT ||--o{ BET5_TICKET : "投票"
     GUARANTEED_ODDS_MASTER ||--|| GUARANTEED_ODDS_MASTER : "システム設定"
 ```
+
+---
+
+## マスタデータの管理
+
+本アプリケーションの初期マスタデータは `src/shared/db/seeds/` 配下の JSON ファイルで管理されています。
+
+### 管理対象
+
+- **競馬場 (`venue`)**: `seeds/venues.json`
+- **レース定義 (`race_definition`)**: `seeds/races.json`
+- **馬マスタ (`horse`, `horse_tag`, `horse_win`)**: `seeds/horses.json`
+
+### 反映方法
+
+JSON ファイルを編集後、以下のコマンドを実行します。
+
+```bash
+pnpm db:seed
+```
+
+シードスクリプトは既存のデータをチェックし、存在しないレコードのみを追加します（重複追加は行われません）。

@@ -62,12 +62,20 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
               </p>
             </div>
           </div>
-          <Button variant="outline" asChild>
-            <Link href={`/admin/races/${race.id}/edit`}>
-              <Settings2 className="mr-2 h-4 w-4" />
-              レース情報を編集
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href={`/admin/races/${race.id}/odds`}>
+                <Trophy className="mr-2 h-4 w-4" />
+                保証オッズ設定
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href={`/admin/races/${race.id}/edit`}>
+                <Settings2 className="mr-2 h-4 w-4" />
+                レース情報を編集
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -161,7 +169,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 </div>
                 <h3 className="mb-2 text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
                 <p className="text-sm text-gray-500">レース結果を確定するには、まず出走馬を登録する必要があります。</p>
-                <Link href="/admin/entries" className="mt-6 inline-block">
+                <Link href={`/admin/entries/${race.id}`} className="mt-6 inline-block">
                   <Button variant="outline" className="font-semibold">
                     出走馬を登録する
                   </Button>

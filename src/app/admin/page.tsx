@@ -171,14 +171,14 @@ const QUICK_ACTIONS: {
   {
     href: '/admin/horses',
     icon: Carrot,
-    label: '馬管理',
+    label: '馬マスタ管理',
     description: '競走馬の新規登録と情報管理',
     color: 'amber',
   },
   {
     href: '/admin/race-definitions',
     icon: BookOpen,
-    label: 'レース定義管理',
+    label: 'レースマスタ管理',
     description: '重賞名・条件マスタ',
     color: 'primary',
   },
@@ -195,6 +195,13 @@ const QUICK_ACTIONS: {
     label: 'BET5管理',
     description: 'BET5イベントの作成・結果確定',
     color: 'rose',
+  },
+  {
+    href: '/admin/settings/odds',
+    icon: Coins,
+    label: '保証オッズ設定',
+    description: 'システム全体のデフォルト保証オッズ',
+    color: 'amber',
   },
   {
     href: '/admin/races',

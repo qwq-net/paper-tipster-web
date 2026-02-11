@@ -2,7 +2,6 @@
 
 import { VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
-import { toJSTString } from '@/shared/utils/date';
 import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -18,7 +17,6 @@ interface RaceFormProps {
     distance: number;
     surface: '芝' | 'ダート';
     condition: '良' | '稍重' | '重' | '不良' | null;
-    closingAt?: Date | string | null;
     venueId?: string;
     raceDefinitionId?: string | null;
     direction?: string | null;
@@ -35,7 +33,6 @@ interface RaceFormProps {
   }>;
   venues?: Array<{ id: string; name: string; defaultDirection: string }>;
   onSuccess?: () => void;
-  showClosingAt?: boolean;
 }
 
 const DIRECTION_LABELS: Record<string, string> = {
@@ -45,20 +42,12 @@ const DIRECTION_LABELS: Record<string, string> = {
   OTHER: 'その他',
 };
 
-export function RaceForm({
-  initialData,
-  events,
-  raceDefinitions = [],
-  venues = [],
-  onSuccess,
-  showClosingAt = false,
-}: RaceFormProps) {
+export function RaceForm({ initialData, events, raceDefinitions = [], venues = [], onSuccess }: RaceFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [eventId, setEventId] = useState(initialData?.eventId || events[0]?.id || '');
   const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
   const [surface, setSurface] = useState(initialData?.surface || '芝');
   const [condition, setCondition] = useState(initialData?.condition || '良');
-  const [closingAt, setClosingAt] = useState(toJSTString(initialData?.closingAt));
 
   const [raceDefinitionId, setRaceDefinitionId] = useState(initialData?.raceDefinitionId || '');
   const [venueId, setVenueId] = useState(initialData?.venueId || '');
@@ -297,23 +286,6 @@ export function RaceForm({
           ))}
         </div>
       </div>
-
-      {showClosingAt && (
-        <div>
-          <Label>受付終了時刻</Label>
-          <div className="relative">
-            <Input
-              name="closingAt"
-              type="datetime-local"
-              value={closingAt}
-              onChange={(e) => setClosingAt(e.target.value)}
-            />
-          </div>
-          <p className="mt-1 text-sm text-gray-500">
-            設定した時間になると自動的に投票が締め切られます。未設定の場合は手動での締め切りが必要です。
-          </p>
-        </div>
-      )}
 
       <Button
         type="submit"

@@ -33,13 +33,7 @@ export default async function CreateRacePage() {
       </div>
 
       <Card className="p-6">
-        <RaceForm
-          events={events}
-          raceDefinitions={raceDefinitions}
-          venues={venues}
-          showClosingAt={false}
-          onSuccess={onSuccess}
-        />
+        <RaceForm events={events} raceDefinitions={raceDefinitions} venues={venues} onSuccess={onSuccess} />
       </Card>
     </div>
   );

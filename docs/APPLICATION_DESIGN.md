@@ -53,7 +53,7 @@ Next.jsのApp Router規約に基づくディレクトリです。FSDの「App」
   - `admin/manage-users`: ユーザー・ゲスト・権限管理
   - `admin/guest-codes`: ゲストコード発行・管理
   - `admin/manage-events`: イベント管理
-  - `admin/manage-horses`: 競走馬管理
+  - `admin/manage-horses`: 馬マスタ管理
   - `admin/manage-horse-tags`: 馬タグ管理
   - `admin/manage-entries`: 出走登録・枠順管理
   - `admin/manage-bets`: 馬券管理（全馬券の参照）

@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/shared/db';
-import { raceInstances } from '@/shared/db/schema';
+import { raceInstances, venues } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { parseJSTToUTC } from '@/shared/utils/date';
 import { eq } from 'drizzle-orm';
@@ -48,7 +48,7 @@ export async function updateRace(id: string, formData: FormData) {
     }
 
     const venue = await tx.query.venues.findFirst({
-      where: eq(raceInstances.venueId, parse.data.venueId),
+      where: eq(venues.id, parse.data.venueId),
       columns: { shortName: true },
     });
 

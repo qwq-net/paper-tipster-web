@@ -104,6 +104,7 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
     .map((e) => ({
       finishPosition: e.finishPosition!,
       horseNumber: e.horseNumber!,
+      bracketNumber: e.bracketNumber!,
       horseName: e.horseName,
     }));
 

@@ -1,6 +1,8 @@
 import { Role } from '@/entities/user';
+import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { RACE_CONDITIONS } from '@/shared/constants/race';
 import { type RaceStatus } from '@/shared/types/race';
+import { eq } from 'drizzle-orm';
 import type { HorseGender, HorseTagType, HorseType } from '../types/horse';
 import { calculateBracketNumber } from '../utils/bracket';
 import { db } from './index';
@@ -33,6 +35,25 @@ async function main() {
       console.log(`User created: ${userData.name} (${userData.role})`);
     }
   }
+
+  for (const [key, odds] of Object.entries(DEFAULT_GUARANTEED_ODDS)) {
+    const existing = await db.query.guaranteedOddsMaster.findFirst({
+      where: (t, { eq }) => eq(t.key, key),
+    });
+
+    if (existing) {
+      await db
+        .update(schema.guaranteedOddsMaster)
+        .set({ odds: odds.toString() })
+        .where(eq(schema.guaranteedOddsMaster.key, key));
+    } else {
+      await db.insert(schema.guaranteedOddsMaster).values({
+        key,
+        odds: odds.toString(),
+      });
+    }
+  }
+  console.log('Guaranteed Odds Master seeded');
 
   const eventTemplates = [
     {
@@ -590,6 +611,7 @@ async function main() {
           condition: getRandomCondition(),
           status: (i < 2 ? 'FINALIZED' : i === 2 ? 'CLOSED' : 'SCHEDULED') as RaceStatus,
           type: 'REAL',
+          guaranteedOdds: DEFAULT_GUARANTEED_ODDS,
         })
         .returning();
 

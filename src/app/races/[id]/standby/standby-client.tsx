@@ -5,6 +5,7 @@ import { PayoutResult, useRaceResults } from '@/features/betting/lib/hooks/use-r
 import { PayoutResultModal } from '@/features/betting/ui/payout-result-modal';
 import { RACE_STATUS_LABELS, RaceStatus } from '@/shared/constants/status';
 import { Badge, Button, LiveConnectionStatus } from '@/shared/ui';
+import { getBracketColor } from '@/shared/utils/bracket';
 import { getDisplayStatus } from '@/shared/utils/race-status';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
@@ -22,7 +23,7 @@ interface StandbyClientProps {
     status: string;
   };
   initialResults?: PayoutResult[];
-  initialRanking?: { finishPosition: number; horseNumber: number; horseName: string }[];
+  initialRanking?: { finishPosition: number; horseNumber: number; bracketNumber: number; horseName: string }[];
   isFinalized: boolean;
   hasTickets?: boolean;
   entryCount: number;
@@ -44,7 +45,9 @@ export function StandbyClient({
     return new Date(race.closingAt) < new Date();
   });
   const [ranking, setRanking] =
-    useState<{ finishPosition: number; horseNumber: number; horseName: string }[]>(initialRanking);
+    useState<{ finishPosition: number; horseNumber: number; bracketNumber: number; horseName: string }[]>(
+      initialRanking
+    );
 
   const { results, fetchResults } = useRaceResults(race.id, initialResults, initialIsFinalized);
 
@@ -68,7 +71,9 @@ export function StandbyClient({
     onRaceClosed: useCallback(() => setIsClosed(true), []),
     onRaceReopened: useCallback(() => setIsClosed(false), []),
     onRaceResultUpdated: useCallback((results: unknown[]) => {
-      setRanking(results as { finishPosition: number; horseNumber: number; horseName: string }[]);
+      setRanking(
+        results as { finishPosition: number; horseNumber: number; bracketNumber: number; horseName: string }[]
+      );
     }, []),
   });
 
@@ -139,14 +144,14 @@ export function StandbyClient({
         )}
       </div>
 
-      {ranking.length > 0 && !initialIsFinalized && (
+      {ranking.length > 0 && (
         <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-3">
             <div className="flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
                 R
               </span>
-              <h3 className="text-sm font-semibold text-gray-900">着順速報</h3>
+              <h3 className="text-sm font-semibold text-gray-900">{initialIsFinalized ? '確定着順' : '着順速報'}</h3>
             </div>
           </div>
           <div className="divide-y divide-gray-100">
@@ -160,7 +165,11 @@ export function StandbyClient({
                   {result.finishPosition}
                 </div>
                 <div className="ml-4 flex items-center gap-3">
-                  <div className="flex h-6 w-6 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-700">
+                  <div
+                    className={`flex h-6 w-6 items-center justify-center rounded text-sm font-semibold shadow-xs ${getBracketColor(
+                      result.bracketNumber
+                    )}`}
+                  >
                     {result.horseNumber}
                   </div>
                   <span className="font-medium text-gray-900">{result.horseName}</span>

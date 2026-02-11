@@ -6,15 +6,15 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: '馬管理',
+  title: '馬マスタ管理',
 };
 
 export default async function HorsesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">馬管理</h1>
-        <p className="mt-1 text-sm font-medium text-gray-500">競走馬の登録・管理を行います</p>
+        <h1 className="text-2xl font-semibold text-gray-900">馬マスタ管理</h1>
+        <p className="mt-1 text-sm text-gray-500">競走馬の新規登録と情報の管理を行います</p>
       </div>
 
       <div className="space-y-4">

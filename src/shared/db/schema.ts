@@ -140,6 +140,20 @@ export const events = pgTable('event', {
     .$onUpdate(() => new Date()),
 });
 
+export const guaranteedOddsMaster = pgTable('guaranteed_odds_master', {
+  key: text('key').primaryKey(),
+  odds: numeric('odds').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
+export const eventRelations = relations(events, ({ many }) => ({
+  wallets: many(wallets),
+  races: many(raceInstances),
+}));
+
 export const wallets = pgTable(
   'wallet',
   {
@@ -263,6 +277,7 @@ export const raceInstances = pgTable(
     status: raceStatusEnum('status').default('SCHEDULED').notNull(),
     closingAt: timestamp('closing_at', { withTimezone: true }),
     finalizedAt: timestamp('finalized_at', { withTimezone: true }),
+    guaranteedOdds: jsonb('guaranteed_odds').$type<Record<string, number>>(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -373,11 +388,6 @@ export const walletRelations = relations(wallets, ({ one, many }) => ({
     references: [events.id],
   }),
   transactions: many(transactions),
-}));
-
-export const eventRelations = relations(events, ({ many }) => ({
-  wallets: many(wallets),
-  races: many(raceInstances),
 }));
 
 export const horseWins = pgTable('horse_win', {

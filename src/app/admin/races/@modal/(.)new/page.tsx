@@ -42,7 +42,6 @@ export default function InterceptCreateRacePage() {
         events={data.events}
         raceDefinitions={data.raceDefinitions}
         venues={data.venues}
-        showClosingAt={false}
         onSuccess={handleSuccess}
       />
     </InterceptDialog>

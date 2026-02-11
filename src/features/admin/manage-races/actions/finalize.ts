@@ -56,6 +56,7 @@ export async function finalizeRace(
       .map((e) => ({
         finishPosition: e.finishPosition!,
         horseNumber: e.horseNumber!,
+        bracketNumber: e.bracketNumber!,
         horseName: e.horse!.name,
       }));
 
@@ -68,6 +69,12 @@ export async function finalizeRace(
     const allBets = await tx.query.bets.findMany({
       where: eq(bets.raceId, raceId),
     });
+
+    const raceInstance = await tx.query.raceInstances.findFirst({
+      where: eq(raceInstances.id, raceId),
+      columns: { guaranteedOdds: true, eventId: true },
+    });
+    const guaranteedOdds = raceInstance?.guaranteedOdds as Record<string, number> | undefined;
 
     const poolByBetType: Record<string, number> = {};
     const winnersByBetType: Record<string, { bet: (typeof allBets)[0]; selectionKey: string }[]> = {};
@@ -108,13 +115,17 @@ export async function finalizeRace(
           const totalWinningAmount = Object.values(winningSelectionAmounts[type]).reduce((sum, val) => sum + val, 0);
           const winningCount = Object.keys(winningSelectionAmounts[type]).length;
 
-          const rate = calculatePayoutRate(
+          let rate = calculatePayoutRate(
             poolByBetType[type],
             selectionAmount,
             totalWinningAmount,
             winningCount,
             takeoutRate
           );
+
+          if (guaranteedOdds && guaranteedOdds[type]) {
+            rate = Math.max(rate, guaranteedOdds[type]);
+          }
 
           if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
 
@@ -182,11 +193,6 @@ export async function finalizeRace(
     }
 
     if (raceCarryover > 0) {
-      const raceInstance = await tx.query.raceInstances.findFirst({
-        where: eq(raceInstances.id, raceId),
-        columns: { eventId: true },
-      });
-
       if (raceInstance) {
         await tx
           .update(events)

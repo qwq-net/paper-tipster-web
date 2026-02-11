@@ -49,14 +49,12 @@ export default async function EditRacePage({ params }: { params: Promise<{ id: s
             raceNumber: race.raceNumber,
             condition: race.condition as '良' | '稍重' | '重' | '不良' | null,
             surface: race.surface as '芝' | 'ダート',
-            closingAt: race.closingAt,
             venueId: race.venueId || undefined,
             direction: race.direction || undefined,
           }}
           events={events}
           raceDefinitions={raceDefinitions}
           venues={venues}
-          showClosingAt={true}
           onSuccess={onSuccess}
         />
       </Card>

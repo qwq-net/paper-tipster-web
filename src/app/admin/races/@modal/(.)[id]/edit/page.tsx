@@ -51,14 +51,12 @@ export default function InterceptEditRacePage({ params }: { params: Promise<{ id
           raceNumber: data.race.raceNumber,
           condition: data.race.condition as '良' | '稍重' | '重' | '不良' | null,
           surface: data.race.surface as '芝' | 'ダート',
-          closingAt: data.race.closingAt,
           venueId: data.race.venueId || undefined,
           direction: data.race.direction || undefined,
         }}
         events={data.events}
         raceDefinitions={data.raceDefinitions}
         venues={data.venues}
-        showClosingAt={true}
         onSuccess={handleSuccess}
       />
     </InterceptDialog>

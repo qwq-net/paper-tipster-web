@@ -1,0 +1,53 @@
+'use client';
+
+import { GuaranteedOddsInputs } from '@/features/admin/shared/ui/guaranteed-odds-inputs';
+import { Button } from '@/shared/ui';
+import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
+import { updateGuaranteedOdds } from '../actions/update-odds';
+
+interface RaceGuaranteedOddsFormProps {
+  raceId: string;
+  initialOdds?: Record<string, number> | null;
+  hideHeader?: boolean;
+}
+
+export function RaceGuaranteedOddsForm({ raceId, initialOdds, hideHeader = false }: RaceGuaranteedOddsFormProps) {
+  const [odds, setOdds] = useState<Record<string, number>>(initialOdds || {});
+  const [isPending, startTransition] = useTransition();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    startTransition(async () => {
+      try {
+        await updateGuaranteedOdds(raceId, odds);
+        toast.success('保証オッズを更新しました');
+      } catch (error) {
+        console.error(error);
+        toast.error('更新に失敗しました');
+      }
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        {!hideHeader && (
+          <>
+            <h3 className="mb-4 text-base font-semibold text-gray-900">保証オッズ設定</h3>
+            <p className="mb-6 text-sm text-gray-500">
+              このレースに適用する保証オッズを設定します。設定された値より配当が低くなることはありません。
+            </p>
+          </>
+        )}
+        <GuaranteedOddsInputs value={odds} onChange={setOdds} />
+      </div>
+
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isPending}>
+          {isPending ? '更新中...' : '設定を保存'}
+        </Button>
+      </div>
+    </form>
+  );
+}

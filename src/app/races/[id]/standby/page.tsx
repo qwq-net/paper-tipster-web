@@ -125,7 +125,7 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
         <StandbyClient
           race={{
             ...race,
-            location: race.location ?? '',
+            location: race.venue?.shortName ?? '',
             closingAt: race.closingAt,
             status: race.status,
           }}

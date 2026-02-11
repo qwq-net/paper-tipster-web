@@ -55,7 +55,9 @@ export async function RaceList() {
                   {race.name}
                 </Link>
               </td>
-              <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-500">{race.location}</td>
+              <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-500">
+                {race.venue?.shortName}
+              </td>
               <td className="px-6 py-4 text-sm whitespace-nowrap">
                 <Badge variant="surface" label={race.surface} />
                 <span className="ml-1.5 text-sm font-semibold text-gray-400">{race.distance}m</span>

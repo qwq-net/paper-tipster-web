@@ -81,7 +81,7 @@ describe('updateRace', () => {
     const formData = new FormData();
     formData.append('eventId', '550e8400-e29b-41d4-a716-446655440000');
     formData.append('date', '2024-01-02');
-    formData.append('location', 'Kyoto');
+
     formData.append('name', 'Kyoto Cup');
     formData.append('distance', '1600');
     formData.append('surface', '芝');

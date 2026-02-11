@@ -12,6 +12,7 @@ export async function getEventsWithRaces() {
         orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber)],
         with: {
           entries: true,
+          venue: true,
         },
       },
     },
@@ -33,6 +34,7 @@ export async function getRaceWithBets(raceId: string) {
     where: (raceInstances, { eq }) => eq(raceInstances.id, raceId),
     with: {
       event: true,
+      venue: true,
     },
   });
 }

@@ -8,11 +8,13 @@ interface Race {
   id: string;
   name: string;
   raceNumber: number | null;
-  location: string | null;
   distance: number;
   surface: string;
   date: string;
   entries: unknown[];
+  venue: {
+    shortName: string;
+  };
 }
 
 interface Event {
@@ -66,7 +68,7 @@ export function EventAccordion({ events }: EventAccordionProps) {
                         <span className="text-sm font-semibold text-blue-600 hover:underline">{race.name}</span>
                       </div>
                       <div className="min-w-[120px]">
-                        <span className="text-sm text-gray-600">{race.location}</span>
+                        <span className="text-sm text-gray-600">{race.venue?.shortName}</span>
                       </div>
                       <div className="min-w-[120px]">
                         <span className="text-sm text-gray-500">

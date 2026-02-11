@@ -15,8 +15,10 @@ interface EntryRaceAccordionProps {
       id: string;
       name: string;
       raceNumber: number | null;
-      location: string | null;
       date: string;
+      venue: {
+        shortName: string;
+      };
     }>;
   }>;
 }
@@ -97,7 +99,7 @@ export function EntryRaceAccordion({ events }: EntryRaceAccordionProps) {
                         <div className="flex items-center gap-2 text-sm text-gray-500">
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            {race.location}
+                            {race.venue?.shortName}
                           </span>
                         </div>
                       </div>

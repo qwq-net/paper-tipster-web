@@ -1,6 +1,7 @@
 import { db } from '@/shared/db';
 import { bets, events, horses, raceInstances, users } from '@/shared/db/schema';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
+import { cn } from '@/shared/utils/cn';
 import { count, sum } from 'drizzle-orm';
 import {
   ArrowRight,
@@ -147,13 +148,45 @@ const COLOR_VARIANTS = {
 
 type ColorVariant = keyof typeof COLOR_VARIANTS;
 
-const QUICK_ACTIONS: {
-  href: string;
-  icon: React.ElementType;
-  label: string;
-  description: string;
-  color: ColorVariant;
-}[] = [
+const OPERATION_ACTIONS = [
+  {
+    href: '/admin/events',
+    icon: Calendar,
+    label: 'イベント管理',
+    description: 'イベントの追加・編集・確定処理',
+    color: 'indigo',
+  },
+  {
+    href: '/admin/races',
+    icon: Trophy,
+    label: 'レース管理',
+    description: 'レースの作成・管理',
+    color: 'purple',
+  },
+  {
+    href: '/admin/entries',
+    icon: ClipboardList,
+    label: '出走馬管理',
+    description: 'レースへの競走馬の割り当て',
+    color: 'emerald',
+  },
+  {
+    href: '/admin/bet5',
+    icon: Crown,
+    label: 'BET5管理',
+    description: 'BET5イベントの作成・結果確定',
+    color: 'rose',
+  },
+  {
+    href: '/admin/bets',
+    icon: Ticket,
+    label: '馬券管理',
+    description: '購入された馬券の確認と管理',
+    color: 'cyan',
+  },
+] as const;
+
+const MASTER_ACTIONS = [
   {
     href: '/admin/venues',
     icon: MapPin,
@@ -172,7 +205,7 @@ const QUICK_ACTIONS: {
     href: '/admin/horses',
     icon: Carrot,
     label: '馬マスタ管理',
-    description: '競走馬の新規登録と情報管理',
+    description: '競走馬の管理',
     color: 'amber',
   },
   {
@@ -183,62 +216,30 @@ const QUICK_ACTIONS: {
     color: 'primary',
   },
   {
-    href: '/admin/events',
-    icon: Calendar,
-    label: 'イベント管理',
-    description: 'イベントの追加・編集・確定処理',
-    color: 'indigo',
-  },
-  {
-    href: '/admin/bet5',
-    icon: Crown,
-    label: 'BET5管理',
-    description: 'BET5イベントの作成・結果確定',
-    color: 'rose',
-  },
-  {
     href: '/admin/settings/odds',
     icon: Coins,
     label: '保証オッズ設定',
-    description: 'システム全体のデフォルト保証オッズ',
+    description: 'デフォルト保証オッズ',
     color: 'amber',
   },
-  {
-    href: '/admin/races',
-    icon: Trophy,
-    label: 'レース管理',
-    description: 'レースの作成・管理',
-    color: 'purple',
-  },
-  {
-    href: '/admin/entries',
-    icon: ClipboardList,
-    label: '出走馬管理',
-    description: 'レースへの競走馬の割り当て',
-    color: 'emerald',
-  },
+] as const;
+
+const SYSTEM_ACTIONS = [
   {
     href: '/admin/users',
     icon: Users,
     label: 'ユーザー管理',
-    description: 'ユーザー一覧の確認と権限変更',
+    description: 'ユーザー確認・権限変更',
     color: 'sky',
   },
   {
     href: '/admin/users/guests',
     icon: Key,
     label: 'ゲストコード管理',
-    description: 'ゲスト専用ログインコードの管理',
+    description: 'ログインコードの管理',
     color: 'slate',
   },
-  {
-    href: '/admin/bets',
-    icon: Ticket,
-    label: '馬券管理',
-    description: '購入された馬券の確認と管理',
-    color: 'cyan',
-  },
-];
+] as const;
 
 export default async function AdminPage() {
   const [
@@ -308,9 +309,7 @@ export default async function AdminPage() {
           return (
             <Card key={stat.label} className={colors.border + ' border-l-4'}>
               <CardContent className="flex items-center gap-4 p-4">
-                <div
-                  className={colors.bg + ' ' + colors.text + ' flex h-9 w-9 items-center justify-center rounded-full'}
-                >
+                <div className={cn(colors.bg, colors.text, 'flex h-9 w-9 items-center justify-center rounded-full')}>
                   <stat.icon className="h-4 w-4" />
                 </div>
                 <div>
@@ -323,36 +322,104 @@ export default async function AdminPage() {
         })}
       </div>
 
+      <Card className="border-indigo-100 bg-indigo-50/50 shadow-sm transition-all hover:bg-indigo-50">
+        <CardContent className="flex flex-col items-center justify-between gap-4 p-6 md:flex-row">
+          <div className="flex items-center gap-4">
+            <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-secondary font-semibold">管理者向けクイックガイド</h2>
+              <p className="max-w-md text-sm text-gray-600">
+                マスタの登録からイベント開催までの流れをステップ形式で解説します。
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/admin/guide"
+            className="text-primary flex shrink-0 items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold shadow-sm ring-1 ring-gray-200 transition-all hover:bg-gray-50 active:scale-95"
+          >
+            使い方を見る
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <Card className="flex flex-col">
+          <CardHeader>
+            <h2 className="text-secondary text-xl font-semibold">運用管理</h2>
+          </CardHeader>
+          <CardContent className="grid flex-1 grid-cols-1 gap-4">
+            {OPERATION_ACTIONS.map((action) => {
+              const colors = COLOR_VARIANTS[action.color as ColorVariant];
+              return <ActionLink key={action.href} action={action} colors={colors} />;
+            })}
+          </CardContent>
+        </Card>
+
+        <Card className="flex flex-col">
+          <CardHeader>
+            <h2 className="text-secondary text-xl font-semibold">マスタデータ</h2>
+          </CardHeader>
+          <CardContent className="grid flex-1 grid-cols-1 gap-4">
+            {MASTER_ACTIONS.map((action) => {
+              const colors = COLOR_VARIANTS[action.color as ColorVariant];
+              return <ActionLink key={action.href} action={action} colors={colors} />;
+            })}
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <h2 className="text-secondary text-xl font-semibold">クイックアクション</h2>
+          <h2 className="text-secondary text-xl font-semibold">システム</h2>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {QUICK_ACTIONS.map((action) => {
-            const colors = COLOR_VARIANTS[action.color];
-            return (
-              <Link
-                key={action.href}
-                href={action.href}
-                className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors group-hover:text-white ${colors.qaBg} ${colors.qaText} ${colors.qaHoverBg}`}
-                  >
-                    <action.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-secondary font-semibold">{action.label}</h4>
-                    <p className="text-sm text-gray-500">{action.description}</p>
-                  </div>
-                </div>
-                <ArrowRight className={`h-5 w-5 text-gray-300 transition-colors ${colors.qaHoverText}`} />
-              </Link>
-            );
+          {SYSTEM_ACTIONS.map((action) => {
+            const colors = COLOR_VARIANTS[action.color as ColorVariant];
+            return <ActionLink key={action.href} action={action} colors={colors} />;
           })}
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function ActionLink({
+  action,
+  colors,
+}: {
+  action: { href: string; icon: React.ElementType; label: string; description: string };
+  colors: {
+    qaBg: string;
+    qaText: string;
+    qaHoverBg: string;
+    qaHoverText: string;
+  };
+}) {
+  return (
+    <Link
+      href={action.href}
+      className="group flex items-center justify-between rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50"
+    >
+      <div className="flex items-center gap-4">
+        <div
+          className={cn(
+            'flex h-10 w-10 items-center justify-center rounded-lg transition-colors group-hover:text-white',
+            colors.qaBg,
+            colors.qaText,
+            colors.qaHoverBg
+          )}
+        >
+          <action.icon className="h-5 w-5" />
+        </div>
+        <div>
+          <h4 className="text-secondary font-semibold">{action.label}</h4>
+          <p className="text-sm text-gray-500">{action.description}</p>
+        </div>
+      </div>
+      <ArrowRight className={cn('h-5 w-5 text-gray-300 transition-colors', colors.qaHoverText)} />
+    </Link>
   );
 }

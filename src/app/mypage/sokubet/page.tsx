@@ -27,6 +27,7 @@ export default async function SokubetPage() {
       orderBy: [desc(raceInstances.date)],
       with: {
         event: true,
+        venue: true,
         entries: true,
       },
     }),
@@ -148,7 +149,7 @@ export default async function SokubetPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="mb-1 flex items-center gap-2">
-                              <span className="text-sm font-semibold text-gray-500">{race.location}</span>
+                              <span className="text-sm font-semibold text-gray-500">{race.venue?.shortName}</span>
                               {race.raceNumber && (
                                 <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
                                   {race.raceNumber}R

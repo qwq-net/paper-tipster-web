@@ -70,7 +70,7 @@ describe('createRace', () => {
     const formData = new FormData();
     formData.append('eventId', '550e8400-e29b-41d4-a716-446655440000');
     formData.append('date', '2024-01-01');
-    formData.append('location', 'Tokyo');
+
     formData.append('name', 'New Year Cup');
     formData.append('distance', '2000');
     formData.append('surface', '芝');

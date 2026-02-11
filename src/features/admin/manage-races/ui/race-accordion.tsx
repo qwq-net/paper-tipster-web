@@ -123,9 +123,7 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
                             {race.name}
                           </Link>
                         </td>
-                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-                          {race.venue?.name || race.location}
-                        </td>
+                        <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{race.venue?.name}</td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">{race.distance}m</td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                           {race.surface} {race.condition || ''}

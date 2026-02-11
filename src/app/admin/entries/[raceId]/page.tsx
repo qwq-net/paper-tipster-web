@@ -34,7 +34,9 @@ export default async function RaceEntryPage({ params }: Props) {
         </Link>
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2 text-sm font-semibold text-gray-500">
-            <span className="flex items-center gap-1">{race.location}</span>
+            <p>
+              {race.date.replace(/-/g, '/')} @ {race.venue?.name}
+            </p>
             <span className="bg-secondary/10 text-secondary rounded-sm px-1.5 py-0.5 text-sm font-semibold">
               {race.raceNumber}R
             </span>
@@ -45,7 +47,9 @@ export default async function RaceEntryPage({ params }: Props) {
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{race.name}</h1>
 
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <span>{race.surface}</span>
+            <span>{race.event.name}</span>
+            <span>•</span>
+            <span>{race.venue?.shortName}</span>
             <span className="text-gray-300">•</span>
             <span>{race.distance}m</span>
             <span className="text-gray-300">•</span>

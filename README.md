@@ -7,8 +7,8 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 
 ## 主要機能
 
-- **ユーザー**: Discordログイン、イベント参加、馬券購入（単勝〜3連単）、リアルタイム結果確認
-- **管理者**: イベント・レース・馬の管理、レース進行（着順・配当確定）
+- **ユーザー**: Discordログイン、イベント参加、馬券購入（単勝〜3連単）、BET5、リアルタイム結果確認
+- **管理者**: クイックガイド、イベント・レース・馬の管理、レース進行（着順・配当確定）、保証オッズ設定
 
 ## 技術スタック
 
@@ -115,4 +115,4 @@ pnpm db:admin -- --user=<username>
 - [UIコンポーネントガイド](docs/UI_COMPONENT_GUIDE.md)
 - [データベース設計](docs/DATABASE_DESIGN.md)
 - [馬券UI設計](docs/BETTING_UI_DESIGN.md)
-- [ランキング機能](docs/RANKING_FEATURE.md)
+- [オッズシステム仕様](docs/ODDS_SYSTEM.md)

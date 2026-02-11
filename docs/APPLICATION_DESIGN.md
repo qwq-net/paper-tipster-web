@@ -49,7 +49,7 @@ Next.jsのApp Router規約に基づくディレクトリです。FSDの「App」
   - `auth`: ログイン・ログアウト処理
   - `betting`: 馬券購入ロジックと購入アクション
   - `admin/manage-venues`: 競馬場マスタの編集・登録アクション
-  - `admin/manage-races`: レースの作成・着順確定アクション
+  - `admin/manage-races`: レースの作成・着順確定・保証オッズ管理アクション
   - `admin/manage-users`: ユーザー・ゲスト・権限管理
   - `admin/guest-codes`: ゲストコード発行・管理
   - `admin/manage-events`: イベント管理

@@ -265,7 +265,7 @@ export const raceInstances = pgTable(
     venueId: uuid('venue_id')
       .references(() => venues.id)
       .notNull(),
-    location: text('location'),
+
     name: text('name').notNull(),
     raceNumber: integer('race_number'),
     distance: integer('distance').notNull(),
@@ -292,21 +292,28 @@ export const raceInstances = pgTable(
 
 export const betStatusEnum = pgEnum('bet_status', ['PENDING', 'HIT', 'LOST', 'REFUNDED']);
 
-export const betGroups = pgTable('bet_group', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  raceId: uuid('race_id')
-    .notNull()
-    .references(() => raceInstances.id, { onDelete: 'cascade' }),
-  walletId: uuid('wallet_id')
-    .notNull()
-    .references(() => wallets.id, { onDelete: 'cascade' }),
-  type: text('type').notNull(),
-  totalAmount: bigint('total_amount', { mode: 'number' }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+export const betGroups = pgTable(
+  'bet_group',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    raceId: uuid('race_id')
+      .notNull()
+      .references(() => raceInstances.id, { onDelete: 'cascade' }),
+    walletId: uuid('wallet_id')
+      .notNull()
+      .references(() => wallets.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(),
+    totalAmount: bigint('total_amount', { mode: 'number' }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    raceIdx: index('bet_group_race_idx').on(table.raceId),
+    userIdx: index('bet_group_user_idx').on(table.userId),
+  })
+);
 
 export const bets = pgTable(
   'bet',
@@ -368,15 +375,21 @@ export const raceEntries = pgTable(
   })
 );
 
-export const payoutResults = pgTable('payout_result', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  raceId: uuid('race_id')
-    .notNull()
-    .references(() => raceInstances.id, { onDelete: 'cascade' }),
-  type: text('type').notNull(),
-  combinations: jsonb('combinations').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+export const payoutResults = pgTable(
+  'payout_result',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    raceId: uuid('race_id')
+      .notNull()
+      .references(() => raceInstances.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(),
+    combinations: jsonb('combinations').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    raceIdx: index('payout_result_race_idx').on(table.raceId),
+  })
+);
 
 export const walletRelations = relations(wallets, ({ one, many }) => ({
   user: one(users, {

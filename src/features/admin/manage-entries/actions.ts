@@ -2,7 +2,7 @@
 
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { horses, raceEntries, raceInstances } from '@/shared/db/schema';
+import { horses, raceEntries, raceInstances, venues } from '@/shared/db/schema';
 import { calculateBracketNumber } from '@/shared/utils/bracket';
 import { eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -18,7 +18,7 @@ export async function getEntries() {
       status: raceEntries.status,
       raceId: raceInstances.id,
       raceDate: raceInstances.date,
-      raceLocation: raceInstances.location,
+      raceLocation: venues.shortName,
       raceName: raceInstances.name,
       horseName: horses.name,
       horseGender: horses.gender,
@@ -26,6 +26,7 @@ export async function getEntries() {
     .from(raceEntries)
     .innerJoin(raceInstances, eq(raceEntries.raceId, raceInstances.id))
     .innerJoin(horses, eq(raceEntries.horseId, horses.id))
+    .leftJoin(venues, eq(raceInstances.venueId, venues.id))
     .orderBy(raceInstances.date, raceInstances.name, raceEntries.horseNumber);
 
   return entries;
@@ -34,11 +35,31 @@ export async function getEntries() {
 export async function getRacesForSelect() {
   const allRaces = await db.query.raceInstances.findMany({
     where: eq(raceInstances.status, 'SCHEDULED'),
+    columns: {
+      id: true,
+      eventId: true,
+      name: true,
+      raceNumber: true,
+      distance: true,
+      surface: true,
+      finalizedAt: true,
+      date: true,
+    },
     with: {
       event: true,
+      venue: {
+        columns: {
+          shortName: true,
+        },
+      },
     },
     orderBy: (raceInstances, { asc }) => [asc(raceInstances.date), asc(raceInstances.name)],
   });
+
+  const races = allRaces.map((race) => ({
+    ...race,
+    raceLocation: race.venue?.shortName,
+  }));
 
   const eventsMap = new Map<
     string,
@@ -56,7 +77,7 @@ export async function getRacesForSelect() {
     }
   >();
 
-  for (const race of allRaces) {
+  for (const race of races) {
     if (!eventsMap.has(race.eventId)) {
       eventsMap.set(race.eventId, {
         id: race.event.id,
@@ -69,7 +90,7 @@ export async function getRacesForSelect() {
       id: race.id,
       name: race.name,
       raceNumber: race.raceNumber,
-      location: race.location,
+      location: race.raceLocation ?? null,
       date: race.date,
     });
   }
@@ -86,6 +107,7 @@ export async function getRaceById(raceId: string) {
     where: eq(raceInstances.id, raceId),
     with: {
       event: true,
+      venue: true,
     },
   });
 }

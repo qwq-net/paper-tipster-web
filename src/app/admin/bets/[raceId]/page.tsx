@@ -39,7 +39,7 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
         <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
           <span>{race.event.name}</span>
           <span>•</span>
-          <span>{race.location}</span>
+          <span>{race.venue?.shortName}</span>
           <span>•</span>
           <span>
             {race.surface} {race.distance}m

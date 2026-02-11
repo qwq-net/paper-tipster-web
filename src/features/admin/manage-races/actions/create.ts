@@ -66,7 +66,7 @@ export async function createRace(formData: FormData) {
     eventId,
     date: formData.get('date') as string,
     venueId,
-    location: venue?.shortName || null,
+
     raceDefinitionId: (formData.get('raceDefinitionId') as string) || null,
     name: formData.get('name') as string,
     raceNumber,

@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   return {
     title: race.name,
-    description: `${race.location} ${race.raceNumber ? race.raceNumber + 'R' : ''} ${race.name}の予想・オッズ情報`,
+    description: `${race.venue?.shortName} ${race.raceNumber ? race.raceNumber + 'R' : ''} ${race.name}の予想・オッズ情報`,
   };
 }
 
@@ -66,7 +66,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
         <div className="mb-8 space-y-4">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-gray-500">{race.location}</span>
+              <span className="text-sm font-semibold text-gray-500">{race.venue?.shortName}</span>
               {race.raceNumber && (
                 <span className="flex h-5 w-7 items-center justify-center rounded bg-gray-100 text-sm font-semibold text-gray-600">
                   {race.raceNumber}R

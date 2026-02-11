@@ -58,7 +58,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
             <h1 className="text-2xl font-semibold text-gray-900">{race.name}</h1>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <p>
-                {race.date.replace(/-/g, '/')} @ {race.venue?.name || race.location}
+                {race.date.replace(/-/g, '/')} @ {race.venue?.name}
               </p>
             </div>
           </div>
@@ -149,7 +149,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 id: race.id,
                 eventId: race.eventId,
                 date: race.date,
-                location: race.venue?.name || race.location || '',
+                location: race.venue?.name || '',
                 name: race.name,
                 raceNumber: race.raceNumber,
                 status: race.status,

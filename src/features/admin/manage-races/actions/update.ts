@@ -58,7 +58,7 @@ export async function updateRace(id: string, formData: FormData) {
         eventId: parse.data.eventId,
         date: parse.data.date,
         venueId: parse.data.venueId,
-        location: venue?.shortName || null,
+
         raceDefinitionId: parse.data.raceDefinitionId,
         direction: parse.data.direction,
         name: parse.data.name,

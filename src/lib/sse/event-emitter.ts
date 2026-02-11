@@ -25,3 +25,13 @@ export const RACE_EVENTS = {
   RANKING_UPDATED: 'RANKING_UPDATED',
   RACE_RESULT_UPDATED: 'RACE_RESULT_UPDATED',
 } as const;
+
+export type EventPayloads = {
+  [RACE_EVENTS.RACE_FINALIZED]: { raceId: string };
+  [RACE_EVENTS.RACE_BROADCAST]: { raceId: string };
+  [RACE_EVENTS.RACE_CLOSED]: { raceId: string };
+  [RACE_EVENTS.RACE_REOPENED]: { raceId: string };
+  [RACE_EVENTS.RACE_ODDS_UPDATED]: { raceId: string; winOdds: unknown; placeOdds: unknown };
+  [RACE_EVENTS.RANKING_UPDATED]: { eventId: string; mode: 'HIDDEN' | 'ANONYMOUS' | 'FULL' };
+  [RACE_EVENTS.RACE_RESULT_UPDATED]: { raceId: string; results: unknown[]; timestamp: number };
+};

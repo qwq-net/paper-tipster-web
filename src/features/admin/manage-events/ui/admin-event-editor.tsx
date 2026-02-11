@@ -1,9 +1,9 @@
 'use client';
 
-import { toggleRankingVisibility } from '@/features/ranking/actions';
+import { updateRankingDisplayMode } from '@/features/ranking/actions';
 import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/constants/status';
 import { Button, Card, CardContent } from '@/shared/ui';
-import { Pause, Play, RefreshCw, Square, Trophy } from 'lucide-react';
+import { EyeOff, Pause, Play, RefreshCw, Square, Trophy, Users } from 'lucide-react';
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
 import { EventForm } from './event-form';
@@ -15,7 +15,7 @@ type Event = {
   status: EventStatus;
   distributeAmount: number;
   date: string;
-  rankingPublished: boolean;
+  rankingDisplayMode: 'HIDDEN' | 'ANONYMOUS' | 'FULL';
 };
 
 interface AdminEventEditorProps {
@@ -32,10 +32,23 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
     });
   };
 
-  const handleRankingToggle = () => {
+  const handleModeChange = (mode: 'HIDDEN' | 'ANONYMOUS' | 'FULL') => {
     startTransition(async () => {
-      await toggleRankingVisibility(event.id, !event.rankingPublished);
+      await updateRankingDisplayMode(event.id, mode);
     });
+  };
+
+  const getRankingModeLabel = (mode: string) => {
+    switch (mode) {
+      case 'HIDDEN':
+        return '非公開';
+      case 'ANONYMOUS':
+        return '匿名公開';
+      case 'FULL':
+        return '完全公開';
+      default:
+        return mode;
+    }
   };
 
   return (
@@ -112,8 +125,7 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => (window.location.href = `/admin/events/${event.id}/bet5`)} // Using window.location for simplicity or Link if preferred but outside router context issues? No, standard Link or useRouter works.
-                // But this is client component.
+                onClick={() => (window.location.href = `/admin/events/${event.id}/bet5`)}
               >
                 設定へ移動
               </Button>
@@ -121,21 +133,47 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
           </Card>
 
           <Card className="bg-gray-50">
-            <CardContent className="flex items-center justify-between p-4">
+            <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="font-medium text-gray-900">ランキング公開設定</p>
-                <p className="text-sm text-gray-500">{event.rankingPublished ? '現在公開中です' : '現在非公開です'}</p>
+                <p className="text-sm text-gray-500">現在の設定: {getRankingModeLabel(event.rankingDisplayMode)}</p>
               </div>
-              <Button
-                size="sm"
-                variant={event.rankingPublished ? 'secondary' : 'outline'}
-                disabled={isPending}
-                onClick={handleRankingToggle}
-                className={event.rankingPublished ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : ''}
-              >
-                <Trophy className={`mr-2 h-4 w-4 ${event.rankingPublished ? 'text-amber-600' : 'text-gray-500'}`} />
-                {event.rankingPublished ? '非公開にする' : '公開する'}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  variant={event.rankingDisplayMode === 'HIDDEN' ? 'secondary' : 'outline'}
+                  disabled={isPending}
+                  onClick={() => handleModeChange('HIDDEN')}
+                  className={event.rankingDisplayMode === 'HIDDEN' ? 'bg-gray-200 text-gray-900' : ''}
+                >
+                  <EyeOff className="mr-2 h-4 w-4" />
+                  非公開
+                </Button>
+                <Button
+                  size="sm"
+                  variant={event.rankingDisplayMode === 'ANONYMOUS' ? 'secondary' : 'outline'}
+                  disabled={isPending}
+                  onClick={() => handleModeChange('ANONYMOUS')}
+                  className={
+                    event.rankingDisplayMode === 'ANONYMOUS' ? 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200' : ''
+                  }
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  匿名公開
+                </Button>
+                <Button
+                  size="sm"
+                  variant={event.rankingDisplayMode === 'FULL' ? 'secondary' : 'outline'}
+                  disabled={isPending}
+                  onClick={() => handleModeChange('FULL')}
+                  className={
+                    event.rankingDisplayMode === 'FULL' ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : ''
+                  }
+                >
+                  <Trophy className="mr-2 h-4 w-4" />
+                  完全公開
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

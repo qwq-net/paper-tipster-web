@@ -1,29 +1,30 @@
 import { SSEMessage, useSSE } from '@/shared/hooks/use-sse';
+import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-import { RankingData } from '../actions';
-
 interface UseRankingEventsProps {
   eventId: string;
-  onRankingUpdated?: (data: { published: boolean; ranking?: RankingData[] }) => void;
 }
 
-export function useRankingEvents({ eventId, onRankingUpdated }: UseRankingEventsProps) {
+export function useRankingEvents({ eventId }: UseRankingEventsProps) {
+  const router = useRouter();
+
   const handleMessage = useCallback(
     (data: SSEMessage) => {
       if (data.type === 'RANKING_UPDATED' && data.eventId === eventId) {
-        if (data.published) {
-          toast.success('ランキングが公開されました！');
-        } else {
+        const mode = data.mode as 'HIDDEN' | 'ANONYMOUS' | 'FULL';
+        if (mode === 'HIDDEN') {
           toast.info('ランキングが非公開になりました');
+        } else if (mode === 'ANONYMOUS') {
+          toast.info('ランキングが更新されました（匿名公開）');
+        } else {
+          toast.success('ランキングが公開されました！');
         }
-        onRankingUpdated?.({
-          published: data.published as boolean,
-          ranking: data.ranking as RankingData[],
-        });
+
+        router.refresh();
       }
     },
-    [eventId, onRankingUpdated]
+    [eventId, router]
   );
 
   const { connectionStatus } = useSSE({

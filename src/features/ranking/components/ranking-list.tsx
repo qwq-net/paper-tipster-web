@@ -3,41 +3,48 @@
 import { useRankingEvents } from '@/features/ranking/hooks/use-ranking-events';
 import { Badge, LiveConnectionStatus } from '@/shared/ui';
 import { Trophy, Users } from 'lucide-react';
-import { useCallback, useState } from 'react';
 import { RankingData } from '../actions';
 
 interface RankingListProps {
   eventId: string;
   initialRanking: RankingData[];
   initialPublished: boolean;
+  initialDisplayMode: 'HIDDEN' | 'ANONYMOUS' | 'FULL';
   distributeAmount: number;
 }
 
-export function RankingList({ eventId, initialRanking, initialPublished, distributeAmount }: RankingListProps) {
-  const [ranking, setRanking] = useState<RankingData[]>(initialRanking);
-  const [published, setPublished] = useState(initialPublished);
-
-  const handleRankingUpdated = useCallback((data: { published: boolean; ranking?: RankingData[] }) => {
-    setPublished(data.published);
-    if (data.ranking) {
-      setRanking(data.ranking);
-    }
-  }, []);
+export function RankingList({
+  eventId,
+  initialRanking,
+  initialPublished,
+  initialDisplayMode,
+  distributeAmount,
+}: RankingListProps) {
+  const ranking = initialRanking;
+  const published = initialPublished;
+  const displayMode = initialDisplayMode;
 
   const { connectionStatus } = useRankingEvents({
     eventId,
-    onRankingUpdated: handleRankingUpdated,
   });
+
+  const getStatusLabel = () => {
+    if (!published) return '待機中';
+    if (displayMode === 'ANONYMOUS') return '匿名公開中';
+    return '公開中';
+  };
+
+  const getStatusColor = () => {
+    if (!published) return 'bg-gray-200 text-gray-700';
+    if (displayMode === 'ANONYMOUS') return 'bg-indigo-100 text-indigo-800';
+    return 'bg-green-100 text-green-800';
+  };
 
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4">
         <div className="flex items-center gap-2">
-          <Badge
-            variant="status"
-            label={published ? '公開中' : '待機中'}
-            className={published ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}
-          />
+          <Badge variant="status" label={getStatusLabel()} className={getStatusColor()} />
           <span className="text-sm text-gray-500">{published ? '現在の順位' : '結果発表までお待ちください'}</span>
         </div>
         <LiveConnectionStatus status={connectionStatus} showText={false} />
@@ -87,15 +94,20 @@ export function RankingList({ eventId, initialRanking, initialPublished, distrib
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="font-semibold text-gray-900">{user.balance.toLocaleString()}円</div>
-                  <div
-                    className={`text-sm font-medium ${
-                      user.balance - distributeAmount >= 0 ? 'text-green-600' : 'text-red-500'
-                    }`}
-                  >
-                    ({user.balance - distributeAmount >= 0 ? '+' : ''}
-                    {(user.balance - distributeAmount).toLocaleString()})
+                  <div className="font-semibold text-gray-900">
+                    {typeof user.balance === 'number' ? user.balance.toLocaleString() : user.balance}
+                    {typeof user.balance === 'number' && '円'}
                   </div>
+                  {typeof user.balance === 'number' && (
+                    <div
+                      className={`text-sm font-medium ${
+                        user.balance - distributeAmount >= 0 ? 'text-green-600' : 'text-red-500'
+                      }`}
+                    >
+                      ({user.balance - distributeAmount >= 0 ? '+' : ''}
+                      {(user.balance - distributeAmount).toLocaleString()})
+                    </div>
+                  )}
                 </div>
               </div>
             ))

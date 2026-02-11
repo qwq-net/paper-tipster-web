@@ -122,6 +122,8 @@ export const venues = pgTable('venue', {
 
 export const eventStatusEnum = pgEnum('event_status', ['SCHEDULED', 'ACTIVE', 'COMPLETED']);
 
+export const rankingDisplayModeEnum = pgEnum('ranking_display_mode', ['HIDDEN', 'ANONYMOUS', 'FULL']);
+
 export const events = pgTable('event', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
@@ -129,7 +131,7 @@ export const events = pgTable('event', {
   distributeAmount: bigint('distribute_amount', { mode: 'number' }).notNull(),
   carryoverAmount: bigint('carryover_amount', { mode: 'number' }).default(0).notNull(),
   status: eventStatusEnum('status').default('SCHEDULED').notNull(),
-  rankingPublished: boolean('ranking_published').default(false).notNull(),
+  rankingDisplayMode: rankingDisplayModeEnum('ranking_display_mode').default('HIDDEN').notNull(),
   date: date('date').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true })

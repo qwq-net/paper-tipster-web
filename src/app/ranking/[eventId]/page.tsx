@@ -53,6 +53,7 @@ export default async function RankingPage({ params }: RankingPageProps) {
             eventId={eventId}
             initialRanking={ranking}
             initialPublished={published}
+            initialDisplayMode={rankingData.displayMode}
             distributeAmount={rankingData.distributeAmount}
           />
         </div>

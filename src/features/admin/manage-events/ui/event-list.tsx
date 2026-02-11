@@ -1,9 +1,9 @@
 'use client';
 
-import { toggleRankingVisibility } from '@/features/ranking/actions';
+import { updateRankingDisplayMode } from '@/features/ranking/actions';
 import { type EventStatus } from '@/shared/constants/status';
 import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui';
-import { ChevronDown, Pause, Play, RefreshCw, Square, Trophy } from 'lucide-react';
+import { ChevronDown, EyeOff, Pause, Play, RefreshCw, Square, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
@@ -15,7 +15,7 @@ type Event = {
   status: EventStatus;
   distributeAmount: number;
   date: string;
-  rankingPublished: boolean;
+  rankingDisplayMode: 'HIDDEN' | 'ANONYMOUS' | 'FULL';
 };
 
 export function EventList({ events }: { events: Event[] }) {
@@ -27,9 +27,9 @@ export function EventList({ events }: { events: Event[] }) {
     });
   };
 
-  const handleRankingToggle = (eventId: string, currentPublished: boolean) => {
+  const handleModeChange = (eventId: string, mode: 'HIDDEN' | 'ANONYMOUS' | 'FULL') => {
     startTransition(async () => {
-      await toggleRankingVisibility(eventId, !currentPublished);
+      await updateRankingDisplayMode(eventId, mode);
     });
   };
 
@@ -113,16 +113,44 @@ export function EventList({ events }: { events: Event[] }) {
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button
-                    size="sm"
-                    variant={event.rankingPublished ? 'primary' : 'outline'}
-                    disabled={isPending}
-                    onClick={() => handleRankingToggle(event.id, event.rankingPublished)}
-                    className={event.rankingPublished ? 'bg-amber-500 hover:bg-amber-600' : ''}
-                    title={event.rankingPublished ? 'ランキング公開中' : 'ランキング非公開'}
-                  >
-                    <Trophy className={`h-4 w-4 ${event.rankingPublished ? 'text-white' : 'text-gray-500'}`} />
-                  </Button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant={event.rankingDisplayMode === 'HIDDEN' ? 'outline' : 'secondary'}
+                        disabled={isPending}
+                        className={
+                          event.rankingDisplayMode !== 'HIDDEN' ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : ''
+                        }
+                        title={
+                          event.rankingDisplayMode === 'HIDDEN'
+                            ? 'ランキング非公開'
+                            : event.rankingDisplayMode === 'ANONYMOUS'
+                              ? 'ランキング匿名公開中'
+                              : 'ランキング完全公開中'
+                        }
+                      >
+                        <Trophy
+                          className={`h-4 w-4 ${event.rankingDisplayMode !== 'HIDDEN' ? 'text-amber-600' : 'text-gray-500'}`}
+                        />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleModeChange(event.id, 'HIDDEN')}>
+                        <EyeOff className="mr-2 h-4 w-4" />
+                        非公開
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleModeChange(event.id, 'ANONYMOUS')}>
+                        <Users className="mr-2 h-4 w-4" />
+                        匿名公開
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleModeChange(event.id, 'FULL')}>
+                        <Trophy className="mr-2 h-4 w-4" />
+                        完全公開
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </td>
             </tr>

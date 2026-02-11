@@ -8,16 +8,19 @@ import { desc, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export interface RankingData {
-  rank: number;
+  rank: number | string;
   userId: string;
   name: string;
-  balance: number;
+  balance: number | string;
   isCurrentUser: boolean;
 }
 
-export async function getEventRanking(
-  eventId: string
-): Promise<{ ranking: RankingData[]; published: boolean; distributeAmount: number }> {
+export async function getEventRanking(eventId: string): Promise<{
+  ranking: RankingData[];
+  published: boolean;
+  distributeAmount: number;
+  displayMode: 'HIDDEN' | 'ANONYMOUS' | 'FULL';
+}> {
   const session = await auth();
   const currentUserId = session?.user?.id;
 
@@ -46,61 +49,49 @@ export async function getEventRanking(
 
   const ranking: RankingData[] = eventWallets.map((wallet, index) => {
     const isCurrentUser = wallet.userId === currentUserId;
-    const shouldMask = !event.rankingPublished && !isCurrentUser;
+    const isHidden = event.rankingDisplayMode === 'HIDDEN';
+    const isAnonymous = event.rankingDisplayMode === 'ANONYMOUS';
+
+    let name = wallet.user.name || 'Unknown';
+    let rank: number | string = index + 1;
+    let balance: number | string = wallet.balance;
+
+    if (isHidden) {
+      name = '???';
+      rank = '?';
+      balance = '???';
+    } else if (isAnonymous && !isCurrentUser) {
+      name = '???';
+    }
 
     return {
-      rank: index + 1,
+      rank,
       userId: wallet.userId,
-      name: shouldMask ? '???' : wallet.user.name || 'Unknown',
-      balance: wallet.balance,
+      name,
+      balance,
       isCurrentUser,
     };
   });
 
   return {
     ranking,
-    published: event.rankingPublished,
+    published: event.rankingDisplayMode !== 'HIDDEN',
+    displayMode: event.rankingDisplayMode,
     distributeAmount,
   };
 }
 
-export async function toggleRankingVisibility(eventId: string, published: boolean) {
+export async function updateRankingDisplayMode(eventId: string, mode: 'HIDDEN' | 'ANONYMOUS' | 'FULL') {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
     throw new Error('Unauthorized');
   }
 
-  await db.update(events).set({ rankingPublished: published }).where(eq(events.id, eventId));
-
-  let payloadRanking: RankingData[] = [];
-
-  if (published) {
-    const eventWallets = await db.query.wallets.findMany({
-      where: eq(wallets.eventId, eventId),
-      with: {
-        user: {
-          columns: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: [desc(wallets.balance)],
-    });
-
-    payloadRanking = eventWallets.map((wallet, index) => ({
-      rank: index + 1,
-      userId: wallet.userId,
-      name: wallet.user.name || 'Unknown',
-      balance: wallet.balance,
-      isCurrentUser: false,
-    }));
-  }
+  await db.update(events).set({ rankingDisplayMode: mode }).where(eq(events.id, eventId));
 
   raceEventEmitter.emit(RACE_EVENTS.RANKING_UPDATED, {
     eventId,
-    published,
-    ranking: published ? payloadRanking : undefined,
+    mode,
   });
 
   revalidatePath('/ranking/[eventId]', 'page');

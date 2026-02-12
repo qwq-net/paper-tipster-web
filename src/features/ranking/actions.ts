@@ -4,8 +4,11 @@ import { RACE_EVENTS, raceEventEmitter } from '@/lib/sse/event-emitter';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, wallets } from '@/shared/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { calculateNetBalance } from '../economy/loan/lib/logic';
+
+export type RankingDisplayMode = 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';
 
 export interface RankingData {
   rank: number | string;
@@ -13,13 +16,14 @@ export interface RankingData {
   name: string;
   balance: number | string;
   isCurrentUser: boolean;
+  totalLoaned?: number;
 }
 
 export async function getEventRanking(eventId: string): Promise<{
   ranking: RankingData[];
   published: boolean;
   distributeAmount: number;
-  displayMode: 'HIDDEN' | 'ANONYMOUS' | 'FULL';
+  displayMode: RankingDisplayMode;
 }> {
   const session = await auth();
   const currentUserId = session?.user?.id;
@@ -33,6 +37,7 @@ export async function getEventRanking(eventId: string): Promise<{
   }
 
   const distributeAmount = event.distributeAmount;
+  const isFullWithLoan = event.rankingDisplayMode === 'FULL_WITH_LOAN';
 
   const eventWallets = await db.query.wallets.findMany({
     where: eq(wallets.eventId, eventId),
@@ -44,7 +49,7 @@ export async function getEventRanking(eventId: string): Promise<{
         },
       },
     },
-    orderBy: [desc(wallets.balance)],
+    orderBy: isFullWithLoan ? [desc(sql`${wallets.balance} - ${wallets.totalLoaned}`)] : [desc(wallets.balance)],
   });
 
   const ranking: RankingData[] = eventWallets.map((wallet, index) => {
@@ -55,6 +60,14 @@ export async function getEventRanking(eventId: string): Promise<{
     let name = wallet.user.name || 'Unknown';
     let rank: number | string = index + 1;
     let balance: number | string = wallet.balance;
+    let totalLoaned: number | undefined = undefined;
+
+    if (isFullWithLoan) {
+      balance = calculateNetBalance(wallet.balance, wallet.totalLoaned);
+      if (wallet.totalLoaned > 0) {
+        totalLoaned = wallet.totalLoaned;
+      }
+    }
 
     if (isHidden) {
       name = '???';
@@ -70,6 +83,7 @@ export async function getEventRanking(eventId: string): Promise<{
       name,
       balance,
       isCurrentUser,
+      totalLoaned,
     };
   });
 
@@ -81,7 +95,7 @@ export async function getEventRanking(eventId: string): Promise<{
   };
 }
 
-export async function updateRankingDisplayMode(eventId: string, mode: 'HIDDEN' | 'ANONYMOUS' | 'FULL') {
+export async function updateRankingDisplayMode(eventId: string, mode: RankingDisplayMode) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {
     throw new Error('Unauthorized');

@@ -122,13 +122,14 @@ export const venues = pgTable('venue', {
 
 export const eventStatusEnum = pgEnum('event_status', ['SCHEDULED', 'ACTIVE', 'COMPLETED']);
 
-export const rankingDisplayModeEnum = pgEnum('ranking_display_mode', ['HIDDEN', 'ANONYMOUS', 'FULL']);
+export const rankingDisplayModeEnum = pgEnum('ranking_display_mode', ['HIDDEN', 'ANONYMOUS', 'FULL', 'FULL_WITH_LOAN']);
 
 export const events = pgTable('event', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   description: text('description'),
   distributeAmount: bigint('distribute_amount', { mode: 'number' }).notNull(),
+  loanAmount: bigint('loan_amount', { mode: 'number' }),
   carryoverAmount: bigint('carryover_amount', { mode: 'number' }).default(0).notNull(),
   status: eventStatusEnum('status').default('SCHEDULED').notNull(),
   rankingDisplayMode: rankingDisplayModeEnum('ranking_display_mode').default('HIDDEN').notNull(),
@@ -165,6 +166,7 @@ export const wallets = pgTable(
       .notNull()
       .references(() => events.id, { onDelete: 'cascade' }),
     balance: bigint('balance', { mode: 'number' }).default(0).notNull(),
+    totalLoaned: bigint('total_loaned', { mode: 'number' }).default(0).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
@@ -178,6 +180,7 @@ export const transactionTypeEnum = pgEnum('transaction_type', [
   'PAYOUT',
   'REFUND',
   'ADJUSTMENT',
+  'LOAN',
 ]);
 
 export const transactions = pgTable(

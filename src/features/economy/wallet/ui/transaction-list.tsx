@@ -26,6 +26,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
     REFUND: '払戻',
     WIN: '配当',
     BONUS: 'ボーナス',
+    LOAN: '借入金',
   };
 
   return (

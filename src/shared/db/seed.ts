@@ -505,9 +505,14 @@ async function main() {
   });
 
   console.log('--- Seeder Completed Successfully ---');
+  return;
 }
 
-main().catch((err) => {
-  console.error('Seeder failed:', err);
-  process.exit(1);
-});
+main()
+  .catch((err) => {
+    console.error('Seeder failed:', err);
+    process.exit(1);
+  })
+  .finally(() => {
+    process.exit(1);
+  });

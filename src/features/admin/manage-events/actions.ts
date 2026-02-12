@@ -12,6 +12,7 @@ const eventSchema = z.object({
   name: z.string().min(1, 'イベント名は必須です'),
   description: z.string().optional(),
   distributeAmount: z.coerce.number().min(0, '金額は0以上である必要があります'),
+  loanAmount: z.coerce.number().min(0).optional().nullable(),
   date: z.string(),
 });
 
@@ -25,6 +26,7 @@ export async function createEvent(formData: FormData) {
     name: formData.get('name'),
     description: formData.get('description')?.toString() || undefined,
     distributeAmount: formData.get('distributeAmount'),
+    loanAmount: formData.get('loanAmount') || undefined,
     date: formData.get('date'),
   });
 
@@ -45,6 +47,7 @@ export async function createEvent(formData: FormData) {
     date: parse.data.date,
     status: 'SCHEDULED',
     carryoverAmount: carryover,
+    loanAmount: parse.data.loanAmount ?? null,
   });
 
   revalidatePath('/admin/events');
@@ -60,6 +63,7 @@ export async function updateEvent(id: string, formData: FormData) {
     name: formData.get('name'),
     description: formData.get('description')?.toString() || undefined,
     distributeAmount: formData.get('distributeAmount'),
+    loanAmount: formData.get('loanAmount') || undefined,
     date: formData.get('date'),
   });
 
@@ -73,6 +77,7 @@ export async function updateEvent(id: string, formData: FormData) {
       name: parse.data.name,
       description: parse.data.description,
       distributeAmount: parse.data.distributeAmount,
+      loanAmount: parse.data.loanAmount ?? null,
       date: parse.data.date,
     })
     .where(eq(events.id, id));

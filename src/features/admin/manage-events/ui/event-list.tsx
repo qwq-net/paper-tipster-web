@@ -1,9 +1,10 @@
 'use client';
 
+import type { RankingDisplayMode } from '@/features/ranking/actions';
 import { updateRankingDisplayMode } from '@/features/ranking/actions';
 import { type EventStatus } from '@/shared/constants/status';
 import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui';
-import { ChevronDown, EyeOff, Pause, Play, RefreshCw, Square, Trophy, Users } from 'lucide-react';
+import { Banknote, ChevronDown, EyeOff, Pause, Play, RefreshCw, Square, Trophy, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
@@ -15,7 +16,7 @@ type Event = {
   status: EventStatus;
   distributeAmount: number;
   date: string;
-  rankingDisplayMode: 'HIDDEN' | 'ANONYMOUS' | 'FULL';
+  rankingDisplayMode: RankingDisplayMode;
 };
 
 export function EventList({ events }: { events: Event[] }) {
@@ -27,7 +28,7 @@ export function EventList({ events }: { events: Event[] }) {
     });
   };
 
-  const handleModeChange = (eventId: string, mode: 'HIDDEN' | 'ANONYMOUS' | 'FULL') => {
+  const handleModeChange = (eventId: string, mode: RankingDisplayMode) => {
     startTransition(async () => {
       await updateRankingDisplayMode(eventId, mode);
     });
@@ -128,7 +129,9 @@ export function EventList({ events }: { events: Event[] }) {
                             ? 'ランキング非公開'
                             : event.rankingDisplayMode === 'ANONYMOUS'
                               ? 'ランキング匿名公開中'
-                              : 'ランキング完全公開中'
+                              : event.rankingDisplayMode === 'FULL_WITH_LOAN'
+                                ? 'ランキング公開中 (借金込み)'
+                                : 'ランキング完全公開中'
                         }
                       >
                         <Trophy
@@ -148,6 +151,10 @@ export function EventList({ events }: { events: Event[] }) {
                       <DropdownMenuItem onClick={() => handleModeChange(event.id, 'FULL')}>
                         <Trophy className="mr-2 h-4 w-4" />
                         完全公開
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleModeChange(event.id, 'FULL_WITH_LOAN')}>
+                        <Banknote className="mr-2 h-4 w-4" />
+                        公開 (借金込み)
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

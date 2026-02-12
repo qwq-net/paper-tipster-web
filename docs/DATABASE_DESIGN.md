@@ -45,13 +45,14 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 
 ユーザーの所持金（イベント通貨）を管理するウォレット。
 
-| カラム名    | 型        | 必須 | 説明                       |
-| :---------- | :-------- | :--- | :------------------------- |
-| `id`        | UUID      | Yes  | 主キー                     |
-| `userId`    | Text      | Yes  | `user.id` への外部キー     |
-| `eventId`   | UUID      | Yes  | `event.id` への外部キー    |
-| `balance`   | BigInt    | Yes  | 現在の残高 (デフォルト: 0) |
-| `createdAt` | Timestamp | Yes  | 作成日時                   |
+| カラム名      | 型        | 必須 | 説明                         |
+| :------------ | :-------- | :--- | :--------------------------- |
+| `id`          | UUID      | Yes  | 主キー                       |
+| `userId`      | Text      | Yes  | `user.id` への外部キー       |
+| `eventId`     | UUID      | Yes  | `event.id` への外部キー      |
+| `balance`     | BigInt    | Yes  | 現在の残高 (デフォルト: 0)   |
+| `totalLoaned` | BigInt    | Yes  | 借入累計金額 (デフォルト: 0) |
+| `createdAt`   | Timestamp | Yes  | 作成日時                     |
 
 **インデックス**: `(userId, eventId)` 複合インデックス
 
@@ -59,14 +60,14 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 
 口座の資金移動履歴。
 
-| カラム名      | 型        | 必須 | 説明                                                    |
-| :------------ | :-------- | :--- | :------------------------------------------------------ |
-| `id`          | UUID      | Yes  | 主キー                                                  |
-| `walletId`    | UUID      | Yes  | `wallet.id` への外部キー                                |
-| `type`        | Enum      | Yes  | 'DISTRIBUTION', 'BET', 'PAYOUT', 'REFUND', 'ADJUSTMENT' |
-| `amount`      | BigInt    | Yes  | 変動金額（差分）                                        |
-| `referenceId` | UUID      | No   | 関連するID (レースIDやチケットID等)                     |
-| `createdAt`   | Timestamp | Yes  | 取引日時                                                |
+| カラム名      | 型        | 必須 | 説明                                                            |
+| :------------ | :-------- | :--- | :-------------------------------------------------------------- |
+| `id`          | UUID      | Yes  | 主キー                                                          |
+| `walletId`    | UUID      | Yes  | `wallet.id` への外部キー                                        |
+| `type`        | Enum      | Yes  | 'DISTRIBUTION', 'BET', 'PAYOUT', 'REFUND', 'ADJUSTMENT', 'LOAN' |
+| `amount`      | BigInt    | Yes  | 変動金額（差分）                                                |
+| `referenceId` | UUID      | No   | 関連するID (レースIDやチケットID等)                             |
+| `createdAt`   | Timestamp | Yes  | 取引日時                                                        |
 
 **インデックス**: `referenceId`, `walletId`
 
@@ -160,18 +161,19 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 
 一連のレースをまとめた開催単位。
 
-| カラム名             | 型        | 必須 | 説明                                               |
-| :------------------- | :-------- | :--- | :------------------------------------------------- |
-| `id`                 | UUID      | Yes  | 主キー                                             |
-| `name`               | Text      | Yes  | イベント名                                         |
-| `description`        | Text      | No   | 説明                                               |
-| `distributeAmount`   | BigInt    | Yes  | 参加時の初期配布金額                               |
-| `carryoverAmount`    | BigInt    | Yes  | キャリーオーバー額 (デフォルト: 0)                 |
-| `status`             | Enum      | Yes  | 'SCHEDULED', 'ACTIVE', 'COMPLETED'                 |
-| `rankingDisplayMode` | Enum      | Yes  | 'HIDDEN', 'ANONYMOUS', 'FULL' (デフォルト: HIDDEN) |
-| `date`               | Date      | Yes  | 開催日                                             |
-| `createdAt`          | Timestamp | Yes  | 作成日時                                           |
-| `updatedAt`          | Timestamp | Yes  | 更新日時                                           |
+| カラム名             | 型        | 必須 | 説明                                                                 |
+| :------------------- | :-------- | :--- | :------------------------------------------------------------------- |
+| `id`                 | UUID      | Yes  | 主キー                                                               |
+| `name`               | Text      | Yes  | イベント名                                                           |
+| `description`        | Text      | No   | 説明                                                                 |
+| `distributeAmount`   | BigInt    | Yes  | 参加時の初期配布金額                                                 |
+| `loanAmount`         | BigInt    | No   | 借入可能金額 (NULL時は`distributeAmount`と同額)                      |
+| `carryoverAmount`    | BigInt    | Yes  | キャリーオーバー額 (デフォルト: 0)                                   |
+| `status`             | Enum      | Yes  | 'SCHEDULED', 'ACTIVE', 'COMPLETED'                                   |
+| `rankingDisplayMode` | Enum      | Yes  | 'HIDDEN', 'ANONYMOUS', 'FULL', 'FULL_WITH_LOAN' (デフォルト: HIDDEN) |
+| `date`               | Date      | Yes  | 開催日                                                               |
+| `createdAt`          | Timestamp | Yes  | 作成日時                                                             |
+| `updatedAt`          | Timestamp | Yes  | 更新日時                                                             |
 
 ### `guaranteed_odds_master` (保証オッズマスタ)
 

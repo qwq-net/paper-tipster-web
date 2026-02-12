@@ -3,13 +3,13 @@
 import { useRankingEvents } from '@/features/ranking/hooks/use-ranking-events';
 import { Badge, LiveConnectionStatus } from '@/shared/ui';
 import { Trophy, Users } from 'lucide-react';
-import { RankingData } from '../actions';
+import type { RankingData, RankingDisplayMode } from '../actions';
 
 interface RankingListProps {
   eventId: string;
   initialRanking: RankingData[];
   initialPublished: boolean;
-  initialDisplayMode: 'HIDDEN' | 'ANONYMOUS' | 'FULL';
+  initialDisplayMode: RankingDisplayMode;
   distributeAmount: number;
 }
 
@@ -31,12 +31,14 @@ export function RankingList({
   const getStatusLabel = () => {
     if (!published) return '待機中';
     if (displayMode === 'ANONYMOUS') return '匿名公開中';
+    if (displayMode === 'FULL_WITH_LOAN') return '公開中 (借金込み)';
     return '公開中';
   };
 
   const getStatusColor = () => {
     if (!published) return 'bg-gray-200 text-gray-700';
     if (displayMode === 'ANONYMOUS') return 'bg-indigo-100 text-indigo-800';
+    if (displayMode === 'FULL_WITH_LOAN') return 'bg-orange-100 text-orange-800';
     return 'bg-green-100 text-green-800';
   };
 
@@ -94,20 +96,27 @@ export function RankingList({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="font-semibold text-gray-900">
-                    {typeof user.balance === 'number' ? user.balance.toLocaleString() : user.balance}
-                    {typeof user.balance === 'number' && '円'}
-                  </div>
-                  {typeof user.balance === 'number' && (
-                    <div
-                      className={`text-sm font-medium ${
-                        user.balance - distributeAmount >= 0 ? 'text-green-600' : 'text-red-500'
-                      }`}
-                    >
-                      ({user.balance - distributeAmount >= 0 ? '+' : ''}
-                      {(user.balance - distributeAmount).toLocaleString()})
-                    </div>
+                  {user.totalLoaned !== undefined && user.totalLoaned > 0 && (
+                    <span className="mr-1 rounded-full bg-orange-100 px-2 py-0.5 text-sm font-semibold text-orange-700">
+                      借入 {user.totalLoaned.toLocaleString()}円
+                    </span>
                   )}
+                  <div className="text-right">
+                    <div className="font-semibold text-gray-900">
+                      {typeof user.balance === 'number' ? user.balance.toLocaleString() : user.balance}
+                      {typeof user.balance === 'number' && '円'}
+                    </div>
+                    {typeof user.balance === 'number' && (
+                      <div
+                        className={`text-sm font-medium ${
+                          user.balance - distributeAmount >= 0 ? 'text-green-600' : 'text-red-500'
+                        }`}
+                      >
+                        ({user.balance - distributeAmount >= 0 ? '+' : ''}
+                        {(user.balance - distributeAmount).toLocaleString()})
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))

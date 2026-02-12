@@ -1,9 +1,10 @@
 'use client';
 
+import type { RankingDisplayMode } from '@/features/ranking/actions';
 import { updateRankingDisplayMode } from '@/features/ranking/actions';
 import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/constants/status';
 import { Button, Card, CardContent } from '@/shared/ui';
-import { EyeOff, Pause, Play, RefreshCw, Square, Trophy, Users } from 'lucide-react';
+import { Banknote, EyeOff, Pause, Play, RefreshCw, Square, Trophy, Users } from 'lucide-react';
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
 import { EventForm } from './event-form';
@@ -15,7 +16,8 @@ type Event = {
   status: EventStatus;
   distributeAmount: number;
   date: string;
-  rankingDisplayMode: 'HIDDEN' | 'ANONYMOUS' | 'FULL';
+  rankingDisplayMode: RankingDisplayMode;
+  loanAmount: number | null;
 };
 
 interface AdminEventEditorProps {
@@ -32,7 +34,7 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
     });
   };
 
-  const handleModeChange = (mode: 'HIDDEN' | 'ANONYMOUS' | 'FULL') => {
+  const handleModeChange = (mode: RankingDisplayMode) => {
     startTransition(async () => {
       await updateRankingDisplayMode(event.id, mode);
     });
@@ -46,6 +48,8 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
         return '匿名公開';
       case 'FULL':
         return '完全公開';
+      case 'FULL_WITH_LOAN':
+        return '公開 (借金込み)';
       default:
         return mode;
     }
@@ -172,6 +176,20 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
                 >
                   <Trophy className="mr-2 h-4 w-4" />
                   完全公開
+                </Button>
+                <Button
+                  size="sm"
+                  variant={event.rankingDisplayMode === 'FULL_WITH_LOAN' ? 'secondary' : 'outline'}
+                  disabled={isPending}
+                  onClick={() => handleModeChange('FULL_WITH_LOAN')}
+                  className={
+                    event.rankingDisplayMode === 'FULL_WITH_LOAN'
+                      ? 'bg-orange-100 text-orange-900 hover:bg-orange-200'
+                      : ''
+                  }
+                >
+                  <Banknote className="mr-2 h-4 w-4" />
+                  公開 (借金込み)
                 </Button>
               </div>
             </CardContent>

@@ -1,3 +1,4 @@
+import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
@@ -51,6 +52,7 @@ export default async function SokubetPage() {
           event: race.event,
           races: [],
           balance: wallet?.balance ?? 0,
+          totalLoaned: wallet?.totalLoaned ?? 0,
           bet5Id: bet5?.id,
         };
       }
@@ -59,7 +61,13 @@ export default async function SokubetPage() {
     },
     {} as Record<
       string,
-      { event: (typeof activeRaces)[0]['event']; races: typeof activeRaces; balance: number; bet5Id?: string }
+      {
+        event: (typeof activeRaces)[0]['event'];
+        races: typeof activeRaces;
+        balance: number;
+        totalLoaned: number;
+        bet5Id?: string;
+      }
     >
   );
 
@@ -97,7 +105,7 @@ export default async function SokubetPage() {
           <Card className="p-12 text-center text-gray-500">現在、開催中のイベントはありません。</Card>
         ) : (
           <div className="space-y-8">
-            {sortedEventGroups.map(({ event, races, balance, bet5Id }) => (
+            {sortedEventGroups.map(({ event, races, balance, totalLoaned, bet5Id }) => (
               <section key={event.id}>
                 <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
@@ -142,6 +150,15 @@ export default async function SokubetPage() {
                     </Link>
                   </div>
                 )}
+                <div className="mb-4">
+                  <LoanBanner
+                    eventId={event.id}
+                    balance={balance}
+                    distributeAmount={event.distributeAmount}
+                    loanAmount={event.loanAmount ?? event.distributeAmount}
+                    hasLoaned={totalLoaned > 0}
+                  />
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   {races.map((race) => (
                     <Link key={race.id} href={`/races/${race.id}`}>

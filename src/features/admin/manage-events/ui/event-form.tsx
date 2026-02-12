@@ -13,6 +13,7 @@ interface EventFormProps {
     name: string;
     description: string | null;
     distributeAmount: number;
+    loanAmount: number | null;
     date: string;
     defaultGuaranteedOdds?: Record<string, number> | null;
   };
@@ -26,10 +27,14 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
     initialData?.defaultGuaranteedOdds || {}
   );
   const [distributeAmount, setDistributeAmount] = useState(initialData?.distributeAmount ?? 100000);
+  const [loanAmount, setLoanAmount] = useState<number | null>(initialData?.loanAmount ?? null);
 
   async function handleSubmit(formData: FormData) {
     try {
       formData.set('distributeAmount', distributeAmount.toString());
+      if (loanAmount !== null) {
+        formData.set('loanAmount', loanAmount.toString());
+      }
       if (initialData) {
         await updateEvent(initialData.id, formData);
         toast.success('イベント情報を更新しました');
@@ -38,6 +43,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
         formRef.current?.reset();
         setDate(new Date().toISOString().split('T')[0]);
         setDistributeAmount(100000);
+        setLoanAmount(null);
         toast.success('イベントを作成しました');
       }
       onSuccess?.();
@@ -72,6 +78,21 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             <span className="absolute top-2 right-3 text-sm text-gray-400">円</span>
           </div>
           <p className="mt-1 text-sm text-gray-500">初期資金として配布されます</p>
+        </div>
+
+        <div>
+          <Label>借入金額 (任意)</Label>
+          <div className="relative">
+            <NumericInput
+              value={loanAmount ?? 0}
+              onChange={(v) => setLoanAmount(v === 0 ? null : v)}
+              min={0}
+              className="pr-8"
+              placeholder="配布金額と同額"
+            />
+            <span className="absolute top-2 right-3 text-sm text-gray-400">円</span>
+          </div>
+          <p className="mt-1 text-sm text-gray-500">空欄の場合は配布金額と同額</p>
         </div>
 
         <div>

@@ -1,0 +1,98 @@
+'use client';
+
+import { Button, Card } from '@/shared/ui';
+import { AlertTriangle, Banknote } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { borrowLoan } from '../actions';
+
+interface LoanBannerProps {
+  eventId: string;
+  balance: number;
+  distributeAmount: number;
+  loanAmount: number;
+  hasLoaned: boolean;
+}
+
+export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, hasLoaned }: LoanBannerProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [completed, setCompleted] = useState(false);
+
+  const threshold = distributeAmount * 0.6;
+  const shouldShow = balance < threshold && !hasLoaned && !completed;
+
+  if (!shouldShow) return null;
+
+  const handleBorrow = () => {
+    startTransition(async () => {
+      try {
+        await borrowLoan(eventId);
+        setCompleted(true);
+        setShowConfirm(false);
+        router.refresh();
+      } catch {
+        setShowConfirm(false);
+      }
+    });
+  };
+
+  if (showConfirm) {
+    return (
+      <Card className="border-0 bg-linear-to-r from-orange-500 to-amber-500 p-4 text-white shadow-md">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            <h3 className="font-semibold">逆転への招待状</h3>
+          </div>
+          <p className="text-sm text-orange-50">
+            勝利まであと一歩かもしれません。今ここで諦めるのはもったいない。
+            <span className="font-semibold">{loanAmount.toLocaleString()}円</span> の特別融資で、栄光をその手に。
+            手続きは一瞬、夢は永遠です。借り入れはイベントにつき1回のみ可能です。
+          </p>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={isPending}
+              onClick={handleBorrow}
+              className="bg-white font-semibold text-orange-600 hover:bg-orange-50"
+            >
+              {isPending ? '処理中...' : '栄光を掴みに行く'}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={isPending}
+              onClick={() => setShowConfirm(false)}
+              className="text-white hover:bg-white/20"
+            >
+              今は見送る
+            </Button>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card
+      className="cursor-pointer border-0 bg-linear-to-r from-orange-500 to-amber-500 p-4 text-white shadow-md transition-opacity hover:opacity-90"
+      onClick={() => setShowConfirm(true)}
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="flex items-center gap-2 text-lg font-semibold">
+            <span className="rounded bg-white px-2 py-0.5 text-sm text-orange-600">特別提案</span>
+            資金が少し不足していませんか？
+          </h3>
+          <p className="mt-1 text-sm text-orange-100">
+            <span className="font-semibold">{loanAmount.toLocaleString()}円</span>{' '}
+            の追加資金で、大きな夢を掴みましょう。
+          </p>
+        </div>
+        <Banknote className="h-8 w-8 text-orange-200" />
+      </div>
+    </Card>
+  );
+}

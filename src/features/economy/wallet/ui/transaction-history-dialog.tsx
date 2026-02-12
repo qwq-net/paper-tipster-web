@@ -43,6 +43,8 @@ export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChan
                 }
               } else if (tx.type === 'DISTRIBUTION') {
                 description = tx.event?.name || '配布金';
+              } else if (tx.type === 'LOAN') {
+                description = tx.event?.name ? `${tx.event.name} 借入金` : '借入金';
               }
 
               return {

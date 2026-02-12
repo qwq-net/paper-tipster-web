@@ -1,6 +1,7 @@
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { fetchRaceOdds } from '@/features/betting/actions';
 import { BetTable } from '@/features/betting/ui/bet-table';
+import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
@@ -93,6 +94,14 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
             </div>
           </div>
         </div>
+
+        <LoanBanner
+          eventId={race.eventId}
+          balance={wallet.balance}
+          distributeAmount={race.event?.distributeAmount ?? 0}
+          loanAmount={race.event?.loanAmount ?? race.event?.distributeAmount ?? 0}
+          hasLoaned={wallet.totalLoaned > 0}
+        />
 
         <BetTable
           raceId={race.id}

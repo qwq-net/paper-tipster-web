@@ -1,7 +1,7 @@
 'use client';
 
 import { createBet5EventAction } from '@/features/betting/actions/bet5';
-import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@/shared/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Label, NumericInput } from '@/shared/ui';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -16,15 +16,15 @@ type Race = {
 interface Bet5ConfigFormProps {
   eventId: string;
   races: Race[];
+  carryoverAmount?: number;
 }
 
-export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
+export function Bet5ConfigForm({ eventId, races, carryoverAmount = 0 }: Bet5ConfigFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [initialPot, setInitialPot] = useState(0);
   const [selectedRaces, setSelectedRaces] = useState<string[]>([]);
 
-  // Sort races by raceNumber
   const sortedRaces = [...races].sort((a, b) => (a.raceNumber || 0) - (b.raceNumber || 0));
 
   const handleRaceSelection = (raceId: string) => {
@@ -47,11 +47,17 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
       return;
     }
 
+    const sortedSelectedIds = [...selectedRaces].sort((a, b) => {
+      const raceA = races.find((r) => r.id === a);
+      const raceB = races.find((r) => r.id === b);
+      return (raceA?.raceNumber || 0) - (raceB?.raceNumber || 0);
+    });
+
     startTransition(async () => {
       try {
         await createBet5EventAction({
           eventId,
-          raceIds: selectedRaces as [string, string, string, string, string],
+          raceIds: sortedSelectedIds as [string, string, string, string, string],
           initialPot,
         });
         toast.success('BET5を作成しました');
@@ -70,13 +76,23 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {carryoverAmount > 0 && (
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
+              <p className="text-sm font-semibold text-indigo-700">現在のキャリーオーバー残額</p>
+              <p className="text-2xl font-semibold text-indigo-900">{carryoverAmount.toLocaleString()}円</p>
+              <p className="mt-1 text-sm text-indigo-600">
+                ※設定した「初期キャリーオーバー」はこの金額に加算されます。
+              </p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>対象レース選択 (5レース)</Label>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {sortedRaces.map((race) => (
                 <div
                   key={race.id}
-                  className={`cursor-pointer rounded-lg border p-3 hover:bg-gray-50 ${
+                  className={`cursor-pointer rounded-lg border p-3 transition-all hover:bg-gray-50 ${
                     selectedRaces.includes(race.id)
                       ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500'
                       : 'border-gray-200'
@@ -88,8 +104,8 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
                       {race.raceNumber ? `${race.raceNumber}R` : 'Ex'} {race.name}
                     </span>
                     {selectedRaces.includes(race.id) && (
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-xs text-white">
-                        {selectedRaces.indexOf(race.id) + 1}
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500 text-sm text-white">
+                        ✓
                       </span>
                     )}
                   </div>
@@ -100,15 +116,9 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="initialPot">初期キャリーオーバー金額 (ボーナス)</Label>
-            <Input
-              id="initialPot"
-              type="number"
-              min={0}
-              value={initialPot}
-              onChange={(e) => setInitialPot(Number(e.target.value))}
-            />
-            <p className="text-sm text-gray-500">ユーザーへの還元額に加算される金額です。</p>
+            <Label htmlFor="initialPot">追加ボーナス金額 (任意)</Label>
+            <NumericInput id="initialPot" value={initialPot} onChange={setInitialPot} min={0} />
+            <p className="text-sm text-gray-500">キャリーオーバーとは別に、今回特別に設定するボーナス金額です。</p>
           </div>
 
           <Button type="submit" disabled={isPending || selectedRaces.length !== 5}>

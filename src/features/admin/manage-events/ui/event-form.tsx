@@ -1,7 +1,7 @@
 'use client';
 
 import { GuaranteedOddsInputs } from '@/features/admin/shared/ui/guaranteed-odds-inputs';
-import { Button, Input, Label, Textarea } from '@/shared/ui';
+import { Button, Input, Label, NumericInput, Textarea } from '@/shared/ui';
 import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -25,9 +25,11 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
   const [guaranteedOdds, setGuaranteedOdds] = useState<Record<string, number>>(
     initialData?.defaultGuaranteedOdds || {}
   );
+  const [distributeAmount, setDistributeAmount] = useState(initialData?.distributeAmount ?? 100000);
 
   async function handleSubmit(formData: FormData) {
     try {
+      formData.set('distributeAmount', distributeAmount.toString());
       if (initialData) {
         await updateEvent(initialData.id, formData);
         toast.success('イベント情報を更新しました');
@@ -35,6 +37,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
         await createEvent(formData);
         formRef.current?.reset();
         setDate(new Date().toISOString().split('T')[0]);
+        setDistributeAmount(100000);
         toast.success('イベントを作成しました');
       }
       onSuccess?.();
@@ -65,13 +68,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
         <div>
           <Label>配布金額</Label>
           <div className="relative">
-            <Input
-              name="distributeAmount"
-              type="number"
-              required
-              defaultValue={initialData?.distributeAmount ?? 100000}
-              className="pr-8"
-            />
+            <NumericInput value={distributeAmount} onChange={setDistributeAmount} min={0} className="pr-8" />
             <span className="absolute top-2 right-3 text-sm text-gray-400">円</span>
           </div>
           <p className="mt-1 text-sm text-gray-500">初期資金として配布されます</p>

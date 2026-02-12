@@ -18,7 +18,6 @@ interface RaceAccordionProps {
       id: string;
       name: string;
       raceNumber: number | null;
-      location: string | null;
       distance: number;
       surface: string;
       condition: string | null;

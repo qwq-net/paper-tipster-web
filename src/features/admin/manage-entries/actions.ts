@@ -71,7 +71,9 @@ export async function getRacesForSelect() {
         id: string;
         name: string;
         raceNumber: number | null;
-        location: string | null;
+        venue: {
+          shortName: string;
+        };
         date: string;
       }>;
     }
@@ -90,7 +92,9 @@ export async function getRacesForSelect() {
       id: race.id,
       name: race.name,
       raceNumber: race.raceNumber,
-      location: race.raceLocation ?? null,
+      venue: {
+        shortName: race.venue?.shortName || '',
+      },
       date: race.date,
     });
   }

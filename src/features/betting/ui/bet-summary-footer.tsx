@@ -1,4 +1,4 @@
-import { Button, Input } from '@/shared/ui';
+import { Button, NumericInput } from '@/shared/ui';
 import { Calculator, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { NumericKeypad } from './numeric-keypad';
@@ -42,15 +42,13 @@ export function BetSummaryFooter({
             <label className="text-sm font-semibold text-gray-500">1点あたり</label>
             <div className="flex items-center gap-2">
               <div className="relative flex items-center">
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  step={1}
+                <NumericInput
                   value={amount / 100}
-                  onChange={(e) => onAmountChange((parseInt(e.target.value, 10) || 0) * 100)}
+                  onChange={(val) => onAmountChange((val || 0) * 100)}
+                  min={1}
+                  max={999999}
                   disabled={isClosed || isPending}
-                  className="w-24 pr-11 text-right font-semibold disabled:bg-gray-100"
+                  className="w-28 pr-11 text-right font-semibold disabled:bg-gray-100"
                 />
                 <span className="pointer-events-none absolute right-3 text-sm font-semibold text-gray-400">00円</span>
               </div>

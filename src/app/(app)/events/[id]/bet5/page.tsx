@@ -68,7 +68,7 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
     orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber)],
   });
 
-  const orderedRaces = targetRaceIds.map((rid) => races.find((r) => r.id === rid)!);
+  const orderedRaces = races;
 
   return (
     <div className="container mx-auto max-w-4xl space-y-6 py-6">

@@ -1,5 +1,5 @@
 import { db } from '@/shared/db';
-import { bet5Events, bet5Tickets, transactions, wallets } from '@/shared/db/schema';
+import { bet5Events, bet5Tickets, events, transactions, wallets } from '@/shared/db/schema';
 import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -190,6 +190,12 @@ export async function calculateBet5Payout(bet5EventId: string) {
           referenceId: ticket.id,
         });
       }
+
+      if (Number(event.carryoverAmount) > 0) {
+        await tx.update(events).set({ carryoverAmount: 0 }).where(eq(events.id, event.id));
+      }
+    } else {
+      await tx.update(events).set({ carryoverAmount: totalPot }).where(eq(events.id, event.id));
     }
 
     await tx.update(bet5Events).set({ status: 'FINALIZED' }).where(eq(bet5Events.id, bet5EventId));

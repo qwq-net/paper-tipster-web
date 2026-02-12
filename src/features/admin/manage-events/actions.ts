@@ -32,12 +32,19 @@ export async function createEvent(formData: FormData) {
     throw new Error('無効な入力です: ' + JSON.stringify(parse.error.flatten()));
   }
 
+  const lastEvent = await db.query.events.findFirst({
+    orderBy: (events, { desc }) => [desc(events.date), desc(events.createdAt)],
+  });
+
+  const carryover = lastEvent ? Number(lastEvent.carryoverAmount) : 0;
+
   await db.insert(events).values({
     name: parse.data.name,
     description: parse.data.description,
     distributeAmount: parse.data.distributeAmount,
     date: parse.data.date,
     status: 'SCHEDULED',
+    carryoverAmount: carryover,
   });
 
   revalidatePath('/admin/events');

@@ -1,4 +1,5 @@
 import { cn } from '@/shared/utils/cn';
+import { getPasswordManagerIgnoreAttributes } from '@/shared/utils/form';
 import React from 'react';
 
 export const Label = ({ children, htmlFor, className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
@@ -7,17 +8,25 @@ export const Label = ({ children, htmlFor, className, ...props }: React.LabelHTM
   </label>
 );
 
-export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, ...props }, ref) => (
-    <input
-      ref={ref}
-      className={cn(
-        'focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
-        className
-      )}
-      {...props}
-    />
-  )
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  ignorePasswordManager?: boolean;
+}
+
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, ignorePasswordManager = true, ...props }, ref) => {
+    const ignoreAttrs = getPasswordManagerIgnoreAttributes(ignorePasswordManager);
+    return (
+      <input
+        ref={ref}
+        className={cn(
+          'focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+          className
+        )}
+        {...ignoreAttrs}
+        {...props}
+      />
+    );
+  }
 );
 Input.displayName = 'Input';
 

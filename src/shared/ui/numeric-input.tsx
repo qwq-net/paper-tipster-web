@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/shared/utils/cn';
+import { getPasswordManagerIgnoreAttributes } from '@/shared/utils/form';
 import React, { useCallback, useRef } from 'react';
 
 function formatWithCommas(value: number): string {
@@ -25,10 +26,27 @@ interface NumericInputProps {
   allowDecimal?: boolean;
   placeholder?: string;
   name?: string;
+  ignorePasswordManager?: boolean;
 }
 
 export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps>(
-  ({ value, onChange, id, min, max, disabled, className, allowDecimal = false, placeholder, name }, ref) => {
+  (
+    {
+      value,
+      onChange,
+      id,
+      min,
+      max,
+      disabled,
+      className,
+      allowDecimal = false,
+      placeholder,
+      name,
+      ignorePasswordManager = true,
+    },
+    ref
+  ) => {
+    const ignoreAttrs = getPasswordManagerIgnoreAttributes(ignorePasswordManager);
     const innerRef = useRef<HTMLInputElement>(null);
     const inputRef = (ref as React.RefObject<HTMLInputElement>) || innerRef;
     const isComposing = useRef(false);
@@ -125,6 +143,7 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
           'focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
           className
         )}
+        {...ignoreAttrs}
       />
     );
   }

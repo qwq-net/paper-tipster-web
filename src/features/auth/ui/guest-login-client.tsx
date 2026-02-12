@@ -4,6 +4,7 @@ import { checkIpLockStatus } from '@/features/auth/actions/auth-actions';
 import { EmojiKeypad } from '@/features/auth/ui/emoji-keypad';
 import { GuestAuthTabs } from '@/features/auth/ui/guest-auth-tabs';
 import { TermsAgreement } from '@/features/auth/ui/terms-agreement';
+import { Input } from '@/shared/ui/forms';
 import { Loader2 } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
@@ -126,7 +127,7 @@ export function GuestLoginClient() {
                 <span className="ml-2 text-sm font-normal text-gray-500">（英数字、ひらがな、カタカナ、漢字）</span>
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="username"
                   name="username"
                   type="text"
@@ -134,8 +135,8 @@ export function GuestLoginClient() {
                   autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
                   placeholder="表示名を入力"
+                  ignorePasswordManager={false}
                 />
               </div>
             </div>
@@ -146,7 +147,7 @@ export function GuestLoginClient() {
                 <span className="ml-2 text-sm font-normal text-gray-500">（3〜6文字）</span>
               </label>
 
-              <input
+              <Input
                 type="password"
                 name="password"
                 autoComplete="current-password"
@@ -155,6 +156,7 @@ export function GuestLoginClient() {
                 className="sr-only"
                 tabIndex={-1}
                 aria-hidden="true"
+                ignorePasswordManager={false}
               />
 
               <div className="mb-4 flex min-h-[50px] items-center justify-center rounded-lg border border-gray-200 bg-gray-100 p-3 text-center text-xl tracking-widest">

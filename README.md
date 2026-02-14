@@ -12,12 +12,14 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 
 ## 技術スタック
 
-- **Framework**: Next.js 15+ (App Router)
+- **Framework**: Next.js 16+ (App Router)
 - **Database**: PostgreSQL
 - **ORM**: Drizzle ORM
 - **Session**: Redis
 - **Styling**: Tailwind CSS v4
 - **Auth**: Auth.js (Discord OAuth)
+- **Testing**: Vitest
+- **UI**: Radix UI, Lucide React, dnd-kit, sonner
 - **Infrastructure**: Docker Compose
 
 ## 開発環境セットアップ
@@ -30,7 +32,7 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 ### 起動手順 (Docker)
 
 1. 環境変数の設定
-   `.env.example` をコピーして `.env` を作成し、必要な値を設定してください。
+   `.env.sample` をコピーして `.env` を作成し、必要な値を設定してください。
 
 2. 開発環境の起動
 
@@ -38,7 +40,7 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
    pnpm d:up
    ```
 
-   コンテナが起動し、Next.jsアプリ、PostgreSQL、Drizzle Studioが立ち上がります。
+   コンテナが起動し、Next.jsアプリ、PostgreSQL、Redisが立ち上がります。
 
 3. データベースのセットアップ
    初回起動時やリセット時は以下を実行します。
@@ -52,21 +54,26 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 
 `package.json` に定義されている主要なスクリプトです。
 
-| コマンド         | 説明                                        |
-| :--------------- | :------------------------------------------ |
-| `pnpm dev`       | ローカルで開発サーバーを起動                |
-| `pnpm d:up`      | Docker環境を起動 (バックグラウンド)         |
-| `pnpm d:down`    | Docker環境を停止                            |
-| `pnpm d:restart` | Docker環境を再起動                          |
-| `pnpm d:logs`    | Dockerコンテナのログを表示                  |
-| `pnpm d:clean`   | Docker環境を完全にリセット (Volume削除含む) |
-| `pnpm d:test`    | **Dockerコンテナ内でテストを実行** (推奨)   |
-| `pnpm d:check`   | Dockerコンテナ内で型チェックを実行          |
-| `pnpm db:setup`  | DBスキーマの適用とシードデータの投入        |
-| `pnpm db:reset`  | DBのリセット                                |
-| `pnpm test`      | テストの実行 (ローカル環境)                 |
-| `pnpm lint:fix`  | Lintエラーの自動修正                        |
-| `pnpm format`    | Prettierによるコード整形                    |
+| コマンド              | 説明                                        |
+| :-------------------- | :------------------------------------------ |
+| `pnpm dev`            | ローカルで開発サーバーを起動                |
+| `pnpm d:up`           | Docker環境を起動 (バックグラウンド)         |
+| `pnpm d:down`         | Docker環境を停止                            |
+| `pnpm d:restart`      | Docker環境を再起動                          |
+| `pnpm d:build`        | Docker環境をビルドして起動                  |
+| `pnpm d:logs`         | Dockerコンテナのログを表示                  |
+| `pnpm d:clean`        | Docker環境を完全にリセット (Volume削除含む) |
+| `pnpm d:test`         | **Dockerコンテナ内でテストを実行** (推奨)   |
+| `pnpm d:check`        | Dockerコンテナ内で型チェック・整形を実行    |
+| `pnpm db:setup`       | DBスキーマの適用とシードデータの投入        |
+| `pnpm db:seed`        | シードデータの投入                          |
+| `pnpm db:seed:master` | マスタデータのみ投入                        |
+| `pnpm db:reset`       | DBのリセット                                |
+| `pnpm redis:reset`    | Redisのリセット                             |
+| `pnpm check`          | 型チェック + Prettier整形 (ローカル環境)    |
+| `pnpm test`           | テストの実行 (ローカル環境)                 |
+| `pnpm lint:fix`       | Lintエラーの自動修正                        |
+| `pnpm format`         | Prettierによるコード整形                    |
 
 ## シードデータ
 
@@ -113,9 +120,11 @@ pnpm db:admin -- --user=<username>
 詳細は [docs/APPLICATION_DESIGN.md](docs/APPLICATION_DESIGN.md) を参照してください。
 
 - `src/app`: App Router Pages
-- `src/features`: 機能モジュール (Auth, Betting, Admin, Economy)
-- `src/entities`: ドメインモデル (User, Horse, Race)
-- `src/shared`: 共有コンポーネント・ユーティリティ
+- `src/features`: 機能モジュール (admin, auth, betting, economy, race, ranking, user)
+- `src/entities`: ドメインモデル (user)
+- `src/shared`: 共有コンポーネント・ユーティリティ・DB
+- `src/lib`: ライブラリ設定
+- `src/types`: 型定義
 
 ## ドキュメント
 

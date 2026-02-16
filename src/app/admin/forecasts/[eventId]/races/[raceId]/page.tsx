@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 export default async function ForecastInputPage({ params }: { params: Promise<{ eventId: string; raceId: string }> }) {
-  const { eventId, raceId } = await params;
+  const { raceId } = await params;
 
   const [race, entries, myForecast] = await Promise.all([
     getRaceById(raceId),

@@ -75,7 +75,7 @@ tasks:
     cmds:
       - task: install
       - docker compose exec {{.TTY}} app pnpm drizzle-kit push
-      - docker compose exec {{.TTY}} app pnpm db:seed
+      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/seed.ts
 
   db:reset:
     desc: データベースをリセットします

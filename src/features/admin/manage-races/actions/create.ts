@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/shared/db';
-import { raceInstances, venues } from '@/shared/db/schema';
+import { raceInstances } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireAdmin } from '@/shared/utils/admin';
 import { parseJSTToUTC } from '@/shared/utils/date';
 import { eq } from 'drizzle-orm';
@@ -46,13 +46,7 @@ export async function createRace(formData: FormData) {
   const venueId = formData.get('venueId') as string;
   const eventId = formData.get('eventId') as string;
 
-  const [venue, guaranteedOddsMaster] = await Promise.all([
-    db.query.venues.findFirst({
-      where: eq(venues.id, venueId),
-      columns: { shortName: true },
-    }),
-    db.query.guaranteedOddsMaster.findMany(),
-  ]);
+  const guaranteedOddsMaster = await db.query.guaranteedOddsMaster.findMany();
 
   const defaultGuaranteedOdds = guaranteedOddsMaster.reduce(
     (acc, item) => {

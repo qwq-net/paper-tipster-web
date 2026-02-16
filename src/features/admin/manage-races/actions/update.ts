@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/shared/db';
-import { raceInstances, venues } from '@/shared/db/schema';
+import { raceInstances } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { parseJSTToUTC } from '@/shared/utils/date';
 import { eq } from 'drizzle-orm';
@@ -46,11 +46,6 @@ export async function updateRace(id: string, formData: FormData) {
     if (race.status === 'CLOSED' && newClosingAt && newClosingAt > now) {
       newStatus = 'SCHEDULED';
     }
-
-    const venue = await tx.query.venues.findFirst({
-      where: eq(venues.id, parse.data.venueId),
-      columns: { shortName: true },
-    });
 
     await tx
       .update(raceInstances)

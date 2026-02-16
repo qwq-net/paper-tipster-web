@@ -1,6 +1,6 @@
 'use client';
 
-import { createBet5EventAction } from '@/features/betting/actions/bet5';
+import { createBet5EventAction } from '@/features/betting';
 import { Button, Card, CardContent, CardHeader, CardTitle, Label, NumericInput } from '@/shared/ui';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';

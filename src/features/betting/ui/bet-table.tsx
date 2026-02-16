@@ -1,6 +1,7 @@
 'use client';
 
 import { BET_TYPES, getValidBetCombinations } from '@/entities/bet';
+import { useRaceOdds as useRaceOddsData } from '@/features/betting';
 import { fetchRaceOdds, placeBets } from '@/features/betting/actions';
 import { useBetSelections } from '@/features/betting/hooks/use-bet-selections';
 import { useRaceTimer } from '@/features/betting/hooks/use-race-timer';
@@ -8,7 +9,6 @@ import { validateBetSubmission } from '@/features/betting/lib/validation';
 import { getBetTypeColumnLabels } from '@/features/betting/model/bet-types';
 import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
 import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
-import { useRaceOdds as useRaceOddsData } from '@/features/race/hooks/use-race-odds';
 import { useSSE } from '@/shared/hooks/use-sse';
 import { Badge, Checkbox, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';

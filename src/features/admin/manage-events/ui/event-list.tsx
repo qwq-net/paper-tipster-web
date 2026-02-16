@@ -1,7 +1,6 @@
 'use client';
 
-import type { RankingDisplayMode } from '@/features/ranking/actions';
-import { updateRankingDisplayMode } from '@/features/ranking/actions';
+import { updateRankingDisplayMode, type RankingDisplayMode } from '@/features/ranking';
 import { type EventStatus } from '@/shared/constants/status';
 import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui';
 import { Banknote, ChevronDown, EyeOff, Pause, Play, RefreshCw, Square, Trophy, Users } from 'lucide-react';

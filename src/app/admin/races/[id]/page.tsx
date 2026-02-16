@@ -1,4 +1,5 @@
-import { getPayoutResults, getRaceById } from '@/features/admin/manage-races/actions';
+import { getPayoutResults } from '@/entities/race/actions';
+import { getRaceById } from '@/features/admin/manage-races/actions';
 import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';

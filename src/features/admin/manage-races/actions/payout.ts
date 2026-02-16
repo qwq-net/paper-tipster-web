@@ -5,7 +5,7 @@ import { db } from '@/shared/db';
 import { bets, payoutResults as payoutResultsTable, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { normalizeSelections, ODDS_UNIT } from '@/shared/utils/payout';
-import { eq, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 
 export async function finalizePayout(raceId: string) {
   await requireAdmin();
@@ -29,10 +29,20 @@ export async function finalizePayout(raceId: string) {
       where: eq(bets.raceId, raceId),
     });
 
+    if (allBets.length === 0) {
+      await tx
+        .update(raceInstances)
+        .set({
+          status: 'FINALIZED',
+          finalizedAt: new Date(),
+        })
+        .where(eq(raceInstances.id, raceId));
+      return;
+    }
+
     const walletPayouts = new Map<string, number>();
-    const payoutDetails: {
-      betId: string;
-      walletId: string;
+    const betUpdates: {
+      id: string;
       status: 'HIT' | 'LOST' | 'REFUNDED';
       payout: number;
       odds: string;
@@ -60,7 +70,7 @@ export async function finalizePayout(raceId: string) {
         odds = (refundResult.payout / ODDS_UNIT).toFixed(1);
       }
 
-      payoutDetails.push({ betId: bet.id, walletId: bet.walletId, status, payout, odds });
+      betUpdates.push({ id: bet.id, status, payout, odds });
 
       if (payout > 0) {
         const currentTotal = walletPayouts.get(bet.walletId) || 0;
@@ -68,11 +78,31 @@ export async function finalizePayout(raceId: string) {
       }
     }
 
-    for (const detail of payoutDetails) {
-      await tx
-        .update(bets)
-        .set({ status: detail.status, payout: detail.payout, odds: detail.odds })
-        .where(eq(bets.id, detail.betId));
+    if (betUpdates.length > 0) {
+      const CHUNK_SIZE = 1000;
+      for (let i = 0; i < betUpdates.length; i += CHUNK_SIZE) {
+        const chunk = betUpdates.slice(i, i + CHUNK_SIZE);
+        const chunkIds = chunk.map((b) => b.id);
+
+        const chunkStatusCase = sql<
+          'HIT' | 'LOST' | 'REFUNDED'
+        >`CASE id ${sql.raw(chunk.map((b) => `WHEN '${b.id}' THEN '${b.status}'`).join(' '))} END::bet_status`;
+        const chunkPayoutCase = sql<number>`CASE id ${sql.raw(
+          chunk.map((b) => `WHEN '${b.id}' THEN ${b.payout}`).join(' ')
+        )} END::bigint`;
+        const chunkOddsCase = sql<string>`CASE id ${sql.raw(
+          chunk.map((b) => `WHEN '${b.id}' THEN ${b.odds}`).join(' ')
+        )} END::numeric`;
+
+        await tx
+          .update(bets)
+          .set({
+            status: chunkStatusCase,
+            payout: chunkPayoutCase,
+            odds: chunkOddsCase,
+          })
+          .where(inArray(bets.id, chunkIds));
+      }
     }
 
     for (const [walletId, totalPayout] of walletPayouts.entries()) {
@@ -84,16 +114,20 @@ export async function finalizePayout(raceId: string) {
       }
     }
 
-    const transactionValues = payoutDetails
+    const transactionValues = betUpdates
       .filter((d) => d.payout > 0)
       .map((d) => ({
-        walletId: d.walletId,
+        walletId: allBets.find((b) => b.id === d.id)!.walletId,
         type: 'PAYOUT' as const,
         amount: d.payout,
-        referenceId: d.betId,
+        referenceId: d.id,
       }));
+
     if (transactionValues.length > 0) {
-      await tx.insert(transactions).values(transactionValues);
+      const TX_BATCH_SIZE = 1000;
+      for (let i = 0; i < transactionValues.length; i += TX_BATCH_SIZE) {
+        await tx.insert(transactions).values(transactionValues.slice(i, i + TX_BATCH_SIZE));
+      }
     }
 
     await tx
@@ -111,8 +145,4 @@ export async function finalizePayout(raceId: string) {
   revalidateRacePaths(raceId);
 
   return { success: true };
-}
-
-export async function getPayoutResults(raceId: string) {
-  return db.select().from(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
 }

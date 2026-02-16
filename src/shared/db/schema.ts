@@ -132,22 +132,28 @@ export const eventStatusEnum = pgEnum('event_status', ['SCHEDULED', 'ACTIVE', 'C
 
 export const rankingDisplayModeEnum = pgEnum('ranking_display_mode', ['HIDDEN', 'ANONYMOUS', 'FULL', 'FULL_WITH_LOAN']);
 
-export const events = pgTable('event', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: text('name').notNull(),
-  description: text('description'),
-  distributeAmount: bigint('distribute_amount', { mode: 'number' }).notNull(),
-  loanAmount: bigint('loan_amount', { mode: 'number' }),
-  carryoverAmount: bigint('carryover_amount', { mode: 'number' }).default(0).notNull(),
-  status: eventStatusEnum('status').default('SCHEDULED').notNull(),
-  rankingDisplayMode: rankingDisplayModeEnum('ranking_display_mode').default('HIDDEN').notNull(),
-  date: date('date').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
+export const events = pgTable(
+  'event',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    name: text('name').notNull(),
+    description: text('description'),
+    distributeAmount: bigint('distribute_amount', { mode: 'number' }).notNull(),
+    loanAmount: bigint('loan_amount', { mode: 'number' }),
+    carryoverAmount: bigint('carryover_amount', { mode: 'number' }).default(0).notNull(),
+    status: eventStatusEnum('status').default('SCHEDULED').notNull(),
+    rankingDisplayMode: rankingDisplayModeEnum('ranking_display_mode').default('HIDDEN').notNull(),
+    date: date('date').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    dateIdx: index('event_date_idx').on(table.date),
+  })
+);
 
 export const guaranteedOddsMaster = pgTable('guaranteed_odds_master', {
   key: text('key').primaryKey(),
@@ -206,6 +212,7 @@ export const transactions = pgTable(
   (table) => ({
     referenceIdx: index('transaction_reference_idx').on(table.referenceId),
     walletIdx: index('transaction_wallet_idx').on(table.walletId),
+    createdIdx: index('transaction_created_idx').on(table.createdAt),
   })
 );
 
@@ -298,6 +305,8 @@ export const raceInstances = pgTable(
   (table) => ({
     eventIdx: index('race_instance_event_idx').on(table.eventId),
     statusIdx: index('race_instance_status_idx').on(table.status),
+    dateIdx: index('race_instance_date_idx').on(table.date),
+    venueIdx: index('race_instance_venue_idx').on(table.venueId),
   })
 );
 
@@ -383,6 +392,7 @@ export const raceEntries = pgTable(
   (table) => ({
     raceIdx: index('race_entry_race_idx').on(table.raceId),
     racePosIdx: index('race_entry_race_pos_idx').on(table.raceId, table.finishPosition),
+    horseIdx: index('race_entry_horse_idx').on(table.horseId),
   })
 );
 
@@ -414,19 +424,25 @@ export const walletRelations = relations(wallets, ({ one, many }) => ({
   transactions: many(transactions),
 }));
 
-export const horseWins = pgTable('horse_win', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  horseId: uuid('horse_id')
-    .notNull()
-    .references(() => horses.id, { onDelete: 'cascade' }),
-  raceInstanceId: uuid('race_instance_id').references(() => raceInstances.id, { onDelete: 'set null' }),
-  raceDefinitionId: uuid('race_definition_id').references(() => raceDefinitions.id, {
-    onDelete: 'set null',
-  }),
-  title: text('title').notNull(),
-  date: date('date'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-});
+export const horseWins = pgTable(
+  'horse_win',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    horseId: uuid('horse_id')
+      .notNull()
+      .references(() => horses.id, { onDelete: 'cascade' }),
+    raceInstanceId: uuid('race_instance_id').references(() => raceInstances.id, { onDelete: 'set null' }),
+    raceDefinitionId: uuid('race_definition_id').references(() => raceDefinitions.id, {
+      onDelete: 'set null',
+    }),
+    title: text('title').notNull(),
+    date: date('date'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    horseIdx: index('horse_win_horse_idx').on(table.horseId),
+  })
+);
 
 export const raceEntryRelations = relations(raceEntries, ({ one }) => ({
   race: one(raceInstances, {
@@ -571,34 +587,40 @@ export const raceOddsRelations = relations(raceOdds, ({ one }) => ({
   }),
 }));
 
-export const bet5Events = pgTable('bet5_event', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  eventId: uuid('event_id')
-    .notNull()
-    .references(() => events.id, { onDelete: 'cascade' }),
-  race1Id: uuid('race1_id')
-    .notNull()
-    .references(() => raceInstances.id),
-  race2Id: uuid('race2_id')
-    .notNull()
-    .references(() => raceInstances.id),
-  race3Id: uuid('race3_id')
-    .notNull()
-    .references(() => raceInstances.id),
-  race4Id: uuid('race4_id')
-    .notNull()
-    .references(() => raceInstances.id),
-  race5Id: uuid('race5_id')
-    .notNull()
-    .references(() => raceInstances.id),
-  initialPot: bigint('initial_pot', { mode: 'number' }).default(0).notNull(),
-  status: raceStatusEnum('status').default('SCHEDULED').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
+export const bet5Events = pgTable(
+  'bet5_event',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    eventId: uuid('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    race1Id: uuid('race1_id')
+      .notNull()
+      .references(() => raceInstances.id),
+    race2Id: uuid('race2_id')
+      .notNull()
+      .references(() => raceInstances.id),
+    race3Id: uuid('race3_id')
+      .notNull()
+      .references(() => raceInstances.id),
+    race4Id: uuid('race4_id')
+      .notNull()
+      .references(() => raceInstances.id),
+    race5Id: uuid('race5_id')
+      .notNull()
+      .references(() => raceInstances.id),
+    initialPot: bigint('initial_pot', { mode: 'number' }).default(0).notNull(),
+    status: raceStatusEnum('status').default('SCHEDULED').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    eventIdIdx: index('bet5_event_event_id_idx').on(table.eventId),
+  })
+);
 
 export const bet5Tickets = pgTable(
   'bet5_ticket',
@@ -625,6 +647,7 @@ export const bet5Tickets = pgTable(
   },
   (table) => ({
     eventIdx: index('bet5_ticket_event_idx').on(table.bet5EventId),
+    userIdx: index('bet5_ticket_user_idx').on(table.userId),
   })
 );
 

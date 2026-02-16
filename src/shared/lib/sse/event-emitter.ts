@@ -4,7 +4,6 @@ class RaceEventEmitter extends EventEmitter {
   public id = Math.random().toString(36).substring(7);
   constructor() {
     super();
-    console.log(`[SSE] EventEmitter Initialized: ${this.id}`);
   }
 }
 

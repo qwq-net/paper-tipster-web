@@ -1,7 +1,6 @@
 'use client';
 
-import { placeBet5BetAction } from '@/features/betting/actions/bet5';
-import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
+import { BetSummaryFooter, placeBet5BetAction } from '@/features/betting';
 import {
   Button,
   Checkbox,

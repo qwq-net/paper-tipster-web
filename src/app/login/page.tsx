@@ -1,5 +1,4 @@
-import { LoginButton } from '@/features/auth';
-import { TermsAgreement } from '@/features/auth/ui/terms-agreement';
+import { LoginButton, TermsAgreement } from '@/features/auth';
 import { auth } from '@/shared/config/auth';
 import { CircleHelp } from 'lucide-react';
 import { redirect } from 'next/navigation';

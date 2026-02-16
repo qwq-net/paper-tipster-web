@@ -1,7 +1,7 @@
 'use client';
 
-import { ROLES, ROLE_LABELS, type Role } from '@/entities/user/constants';
-import { LogoutButton } from '@/features/auth/ui/logout-button';
+import { ROLES, ROLE_LABELS, type Role } from '@/entities/user';
+import { LogoutButton } from '@/features/auth';
 import { cn } from '@/shared/utils/cn';
 import {
   BookOpen,

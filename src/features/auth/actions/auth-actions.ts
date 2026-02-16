@@ -1,11 +1,15 @@
 'use server';
 
-import { signOut } from '@/shared/config/auth';
+import { signIn, signOut } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { guestCodes, users } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
 import { getClientIp } from '@/shared/utils/get-client-ip';
 import { eq } from 'drizzle-orm';
+
+export async function discordSignIn() {
+  await signIn('discord', { redirectTo: '/mypage' });
+}
 
 export async function checkIpLockStatus() {
   const ip = await getClientIp();

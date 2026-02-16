@@ -1,8 +1,5 @@
-import { db } from '@/shared/db';
-import { bets, events, horses, raceInstances, users } from '@/shared/db/schema';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
-import { count, sum } from 'drizzle-orm';
 import {
   ArrowRight,
   BookOpen,
@@ -14,7 +11,6 @@ import {
   Key,
   MapPin,
   Ticket,
-  TrendingUp,
   Trophy,
   Users,
 } from 'lucide-react';
@@ -242,84 +238,10 @@ const SYSTEM_ACTIONS = [
 ] as const;
 
 export default async function AdminPage() {
-  const [
-    [totalUsersResult],
-    [totalEventsResult],
-    [totalHorsesResult],
-    [totalRacesResult],
-    [totalBetAmountResult],
-    [totalPayoutAmountResult],
-  ] = await Promise.all([
-    db.select({ value: count() }).from(users),
-    db.select({ value: count() }).from(events),
-    db.select({ value: count() }).from(horses),
-    db.select({ value: count() }).from(raceInstances),
-    db.select({ value: sum(bets.amount) }).from(bets),
-    db.select({ value: sum(bets.payout) }).from(bets),
-  ]);
-
-  const stats = [
-    {
-      label: '合計ユーザー数',
-      value: totalUsersResult.value.toLocaleString(),
-      icon: Users,
-      color: 'sky',
-    },
-    {
-      label: 'イベント数',
-      value: totalEventsResult.value.toLocaleString(),
-      icon: Calendar,
-      color: 'indigo',
-    },
-    {
-      label: '登録馬数',
-      value: totalHorsesResult.value.toLocaleString(),
-      icon: Carrot,
-      color: 'amber',
-    },
-    {
-      label: '合計レース数',
-      value: totalRacesResult.value.toLocaleString(),
-      icon: Trophy,
-      color: 'purple',
-    },
-    {
-      label: '投資総額',
-      value: `¥ ${(Number(totalBetAmountResult.value) || 0).toLocaleString()}`,
-      icon: TrendingUp,
-      color: 'cyan',
-    },
-    {
-      label: '払い戻し総額',
-      value: `¥ ${(Number(totalPayoutAmountResult.value) || 0).toLocaleString()}`,
-      icon: Coins,
-      color: 'teal',
-    },
-  ] as const;
-
   return (
     <div className="max-w-5xl space-y-8">
       <div>
         <h1 className="text-secondary text-2xl font-semibold">ダッシュボード</h1>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {stats.map((stat) => {
-          const colors = COLOR_VARIANTS[stat.color as ColorVariant];
-          return (
-            <Card key={stat.label} className={colors.border + ' border-l-4'}>
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className={cn(colors.bg, colors.text, 'flex h-9 w-9 items-center justify-center rounded-full')}>
-                  <stat.icon className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">{stat.label}</p>
-                  <h3 className="text-secondary text-lg font-semibold">{stat.value}</h3>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
       </div>
 
       <Card className="border-indigo-100 bg-indigo-50/50 shadow-sm transition-all hover:bg-indigo-50">

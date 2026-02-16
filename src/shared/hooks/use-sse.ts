@@ -29,7 +29,7 @@ export function useSSE({ url, onMessage, disabled = false }: UseSSEProps) {
 
       eventSource.onopen = () => {
         setConnectionStatus('CONNECTED');
-        console.log('[SSE] Connected');
+
         resetHeartbeat();
       };
 

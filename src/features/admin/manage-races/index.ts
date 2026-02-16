@@ -1,6 +1,6 @@
 export { createRace } from './actions/create';
 export { finalizeRace } from './actions/finalize';
-export { getPayoutResults } from './actions/payout';
+
 export { getEvents, getRaceById, getRaces } from './actions/read';
 export { updateRace } from './actions/update';
 export { RaceAccordion } from './ui/race-accordion';

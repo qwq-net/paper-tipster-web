@@ -1,4 +1,4 @@
-import { ROLES } from '@/entities/user/constants';
+import { ROLES } from '@/entities/user';
 import { forecasts } from '@/shared/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
 

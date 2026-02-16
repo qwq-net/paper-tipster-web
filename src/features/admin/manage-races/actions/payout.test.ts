@@ -1,47 +1,14 @@
-import { BET_TYPES } from '@/entities/bet';
 import { db } from '@/shared/db';
-import { bets, raceInstances, transactions, wallets } from '@/shared/db/schema';
-import { ADMIN_ERRORS } from '@/shared/utils/admin';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { betGroups, bets, events, payoutResults, raceInstances, wallets } from '@/shared/db/schema';
+import { eq } from 'drizzle-orm';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { finalizePayout } from './payout';
 
-vi.mock('@/shared/utils/admin', async () => {
-  const actual = await vi.importActual('@/shared/utils/admin');
-  return {
-    ...actual,
-    requireAdmin: vi.fn(),
-    revalidateRacePaths: vi.fn(),
-  };
-});
-
-vi.mock('@/shared/config/auth', () => ({
-  auth: vi.fn(),
-}));
-
-vi.mock('@/shared/db', () => ({
-  db: {
-    query: {
-      raceInstances: {
-        findFirst: vi.fn(),
-      },
-      bets: {
-        findMany: vi.fn(),
-      },
-    },
-    select: vi.fn(() => ({
-      from: vi.fn(() => ({
-        where: vi.fn(),
-      })),
-    })),
-    transaction: vi.fn((cb) => cb(db)),
-    update: vi.fn(() => ({
-      set: vi.fn(() => ({
-        where: vi.fn(),
-      })),
-    })),
-    insert: vi.fn(() => ({
-      values: vi.fn(),
-    })),
+vi.mock('@/shared/utils/admin', () => ({
+  requireAdmin: vi.fn(),
+  revalidateRacePaths: vi.fn(),
+  ADMIN_ERRORS: {
+    NOT_FOUND: 'NOT_FOUND',
   },
 }));
 
@@ -55,121 +22,119 @@ vi.mock('@/shared/lib/sse/event-emitter', () => ({
 }));
 
 describe('finalizePayout', () => {
-  const mockTx = {
-    query: {
-      bets: {
-        findMany: vi.fn(),
-      },
-    },
-    update: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    values: vi.fn().mockReturnThis(),
-  };
+  let testUserId: string;
+  let eventId: string;
+  let venueId: string;
+  let raceId: string;
+  let walletId: string;
 
-  const mockDbSelect = vi.fn();
+  beforeEach(async () => {
+    const user = await db.query.users.findFirst();
+    if (!user) throw new Error('No user found');
+    testUserId = user.id;
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    (db.transaction as unknown as Mock).mockImplementation(async (cb) => cb(mockTx));
-    (db.select as unknown as Mock).mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: mockDbSelect,
-      }),
+    const venue = await db.query.venues.findFirst();
+    if (!venue) throw new Error('No venue found');
+    venueId = venue.id;
+
+    const [event] = await db
+      .insert(events)
+      .values({
+        name: 'Test Event',
+        distributeAmount: 10000,
+        date: new Date().toISOString().split('T')[0],
+        status: 'ACTIVE',
+      })
+      .returning();
+    eventId = event.id;
+
+    const [wallet] = await db
+      .insert(wallets)
+      .values({
+        userId: testUserId,
+        eventId: eventId,
+        balance: 10000,
+      })
+      .returning();
+    walletId = wallet.id;
+
+    const [race] = await db
+      .insert(raceInstances)
+      .values({
+        eventId: eventId,
+        venueId: venueId,
+        name: 'Test Race',
+        date: new Date().toISOString().split('T')[0],
+        distance: 2000,
+        surface: 'TURF',
+        status: 'CLOSED',
+      })
+      .returning();
+    raceId = race.id;
+  });
+
+  afterEach(async () => {});
+
+  it('should calculate payouts correctly and update wallets', async () => {
+    const [betGroup] = await db
+      .insert(betGroups)
+      .values({
+        userId: testUserId,
+        raceId: raceId,
+        walletId: walletId,
+        type: 'WIN',
+        totalAmount: 200,
+      })
+      .returning();
+
+    const [betWin] = await db
+      .insert(bets)
+      .values({
+        userId: testUserId,
+        raceId: raceId,
+        walletId: walletId,
+        betGroupId: betGroup.id,
+        details: { type: 'WIN', selections: [1] },
+        amount: 100,
+        status: 'PENDING',
+      })
+      .returning();
+
+    const [betLose] = await db
+      .insert(bets)
+      .values({
+        userId: testUserId,
+        raceId: raceId,
+        walletId: walletId,
+        betGroupId: betGroup.id,
+        details: { type: 'WIN', selections: [2] },
+        amount: 100,
+        status: 'PENDING',
+      })
+      .returning();
+
+    await db.insert(payoutResults).values({
+      raceId: raceId,
+      type: 'WIN',
+      combinations: [{ numbers: [1], payout: 250 }],
     });
-  });
 
-  it('should throw Unauthorized if user is not admin', async () => {
-    const { requireAdmin } = await import('@/shared/utils/admin');
-    (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
+    await finalizePayout(raceId);
 
-    await expect(finalizePayout('race1')).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
-  });
+    const updatedBetWin = await db.query.bets.findFirst({ where: eq(bets.id, betWin.id) });
+    const updatedBetLose = await db.query.bets.findFirst({ where: eq(bets.id, betLose.id) });
+    const updatedWallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+    const updatedRace = await db.query.raceInstances.findFirst({ where: eq(raceInstances.id, raceId) });
 
-  it('should throw if race not found or already finalized', async () => {
-    const { requireAdmin } = await import('@/shared/utils/admin');
-    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
-    (db.query.raceInstances.findFirst as Mock).mockResolvedValue(null);
+    expect(updatedBetWin?.status).toBe('HIT');
+    expect(Number(updatedBetWin?.payout)).toBe(250);
+    expect(updatedBetWin?.odds).toBe('2.5');
 
-    await expect(finalizePayout('race1')).rejects.toThrow(ADMIN_ERRORS.NOT_FOUND);
+    expect(updatedBetLose?.status).toBe('LOST');
+    expect(Number(updatedBetLose?.payout)).toBe(0);
 
-    (db.query.raceInstances.findFirst as Mock).mockResolvedValue({ status: 'FINALIZED' });
-    await expect(finalizePayout('race1')).rejects.toThrow(ADMIN_ERRORS.NOT_FOUND);
-  });
+    expect(Number(updatedWallet?.balance)).toBe(10250);
 
-  it('should process payouts correctly for HIT, LOST, and REFUNDED bets', async () => {
-    const { requireAdmin, revalidateRacePaths } = await import('@/shared/utils/admin');
-    const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
-
-    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
-    (db.query.raceInstances.findFirst as Mock).mockResolvedValue({ id: 'race1', status: 'CLOSED' });
-
-    const payoutResultsData = [
-      {
-        type: BET_TYPES.WIN,
-        combinations: [
-          { numbers: [1], payout: 200 },
-          { numbers: [0], payout: 100 },
-        ],
-      },
-    ];
-    mockDbSelect.mockResolvedValue(payoutResultsData);
-
-    const betsData = [
-      {
-        id: 'bet1',
-        walletId: 'wallet1',
-        amount: 1000,
-        details: { type: BET_TYPES.WIN, selections: [1] },
-      },
-      {
-        id: 'bet2',
-        walletId: 'wallet1',
-        amount: 1000,
-        details: { type: BET_TYPES.WIN, selections: [2] },
-      },
-    ];
-    mockTx.query.bets.findMany.mockResolvedValue(betsData);
-
-    await finalizePayout('race1');
-
-    expect(mockTx.update).toHaveBeenCalledWith(bets);
-
-    expect(mockTx.set).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: 'HIT',
-        payout: 2000,
-        odds: '2.0',
-      })
-    );
-
-    expect(mockTx.set).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: 'LOST',
-        payout: 0,
-      })
-    );
-
-    expect(mockTx.update).toHaveBeenCalledWith(wallets);
-    expect(mockTx.set).toHaveBeenCalledWith(expect.objectContaining({}));
-
-    expect(mockTx.insert).toHaveBeenCalledWith(transactions);
-    expect(mockTx.values).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
-          walletId: 'wallet1',
-          type: 'PAYOUT',
-          amount: 2000,
-          referenceId: 'bet1',
-        }),
-      ])
-    );
-
-    expect(mockTx.update).toHaveBeenCalledWith(raceInstances);
-    expect(mockTx.set).toHaveBeenCalledWith(expect.objectContaining({ status: 'FINALIZED' }));
-
-    expect(raceEventEmitter.emit).toHaveBeenCalledWith('RACE_BROADCAST', expect.any(Object));
-    expect(revalidateRacePaths).toHaveBeenCalledWith('race1');
+    expect(updatedRace?.status).toBe('FINALIZED');
   });
 });

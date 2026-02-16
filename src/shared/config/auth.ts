@@ -244,9 +244,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           });
 
           if (!freshUser || freshUser.disabledAt) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (session as any).user = null;
-            return session;
+            return { ...session, user: null };
           }
 
           session.user.role = freshUser.role;

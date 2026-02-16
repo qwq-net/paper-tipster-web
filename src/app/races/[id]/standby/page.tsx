@@ -1,6 +1,6 @@
 import { BetDetail, BetType } from '@/entities/bet';
+import { getPayoutResults } from '@/entities/race/actions';
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
-import { getPayoutResults } from '@/features/admin/manage-races/actions';
 import { getUserBetGroupsForRace } from '@/features/betting/actions';
 import { PurchasedTicketList } from '@/features/betting/ui/purchased-ticket-list';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
@@ -59,10 +59,13 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
 
   let initialResults: ClientPayoutResult[] = [];
   if (isFinalized) {
-    const rawResults = await getPayoutResults(id);
+    const rawResults = (await getPayoutResults(id)) as unknown as {
+      type: string;
+      combinations: { numbers: number[]; payout: number }[];
+    }[];
     initialResults = rawResults.map((r) => ({
       type: r.type as BetType,
-      combinations: r.combinations as { numbers: number[]; payout: number }[],
+      combinations: r.combinations,
     }));
   }
 

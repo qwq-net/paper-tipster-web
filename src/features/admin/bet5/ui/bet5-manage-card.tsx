@@ -1,6 +1,6 @@
 'use client';
 
-import { calculateBet5PayoutAction, closeBet5EventAction } from '@/features/betting/actions/bet5';
+import { calculateBet5PayoutAction, closeBet5EventAction } from '@/features/betting';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/shared/ui';
 import { Calculator, Loader2, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -81,11 +81,6 @@ export function Bet5ManageCard({ bet5Event, eventId }: Bet5ManageCardProps) {
               締め切り (受付終了)
             </Button>
           )}
-
-          {/* Show Calculate button if CLOSED (ready for result) or even SCHEDULED if manual close skipped?
-              Ideally should be closed first. But for flexibility let's allow if not finalized.
-              Actually logic checks status.
-          */}
           {bet5Event.status !== 'FINALIZED' && (
             <Button variant="secondary" onClick={handleCalculate} disabled={isPending}>
               <Calculator className="mr-2 h-4 w-4" />

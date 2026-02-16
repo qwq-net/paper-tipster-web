@@ -8,8 +8,6 @@ export async function GET(req: NextRequest) {
 
   const customReadable = new ReadableStream({
     start(controller) {
-      console.log(`[SSE] Client connected. Using EventEmitter: ${raceEventEmitter.id}`);
-
       controller.enqueue(encoder.encode(`data: {"type":"connected","id":"${raceEventEmitter.id}"}\n\n`));
 
       const onRaceFinalized = (data: { raceId: string }) => {

@@ -69,7 +69,7 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `referenceId` | UUID      | No   | 関連するID (レースIDやチケットID等)                             |
 | `createdAt`   | Timestamp | Yes  | 取引日時                                                        |
 
-**インデックス**: `referenceId`, `walletId`
+**インデックス**: `referenceId`, `walletId`, `createdAt`
 
 ### `venue` (競馬場)
 
@@ -140,6 +140,9 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `date`             | Date      | No   | 日付                              |
 | `createdAt`        | Timestamp | Yes  | 作成日時                          |
 
+|
+| **インデックス**: `horseId`
+
 ### `race_definition` (レースマスタ)
 
 重賞などのレース条件マスタ。
@@ -174,6 +177,9 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `date`               | Date      | Yes  | 開催日                                                               |
 | `createdAt`          | Timestamp | Yes  | 作成日時                                                             |
 | `updatedAt`          | Timestamp | Yes  | 更新日時                                                             |
+
+|
+| **インデックス**: `date`
 
 ### `guaranteed_odds_master` (保証オッズマスタ)
 
@@ -212,7 +218,7 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `createdAt` | Timestamp | Yes | 作成日時 |
 | `updatedAt` | Timestamp | Yes | 更新日時 |
 
-**インデックス**: `eventId`, `status`
+**インデックス**: `eventId`, `status`, `date`, `venueId`
 
 ### `race_entry`
 
@@ -232,7 +238,7 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `createdAt`      | Timestamp | Yes  | 作成日時                           |
 | `updatedAt`      | Timestamp | Yes  | 更新日時                           |
 
-**インデックス**: `raceId`, `(raceId, finishPosition)` 複合インデックス
+**インデックス**: `raceId`, `(raceId, finishPosition)` 複合インデックス, `horseId`
 
 ### `race_odds` (レースオッズ)
 
@@ -258,6 +264,22 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `combinations` | JSONB     | Yes  | 払戻組番と金額のリスト            |
 | `createdAt`    | Timestamp | Yes  | 作成日時                          |
 
+### `forecasts` (予想)
+
+ユーザーによるレース予想を記録するテーブル。
+
+| カラム名     | 型        | 必須 | 説明                            |
+| :----------- | :-------- | :--- | :------------------------------ |
+| `id`         | UUID      | Yes  | 主キー                          |
+| `raceId`     | UUID      | Yes  | `race_instance.id` への外部キー |
+| `userId`     | Text      | Yes  | `user.id` への外部キー          |
+| `comment`    | Text      | No   | 予想コメント                    |
+| `selections` | JSONB     | Yes  | 予想印 (◎, 〇, ▲, △等)          |
+| `createdAt`  | Timestamp | Yes  | 作成日時                        |
+| `updatedAt`  | Timestamp | Yes  | 更新日時                        |
+
+**インデックス**: `raceId`, `userId`
+
 ### `bet5_event` (BET5イベント)
 
 5つのレースを対象とした5重勝単勝式イベント。
@@ -271,6 +293,9 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `status`             | Enum      | Yes  | 'SCHEDULED', 'CLOSED', 'FINALIZED'      |
 | `createdAt`          | Timestamp | Yes  | 作成日時                                |
 | `updatedAt`          | Timestamp | Yes  | 更新日時                                |
+
+|
+| **インデックス**: `eventId`
 
 ### `bet5_ticket` (BET5投票)
 
@@ -288,7 +313,7 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `payout`                         | BigInt    | No   | 払戻金                       |
 | `createdAt`                      | Timestamp | Yes  | 作成日時                     |
 
-**インデックス**: `bet5EventId`
+**インデックス**: `bet5EventId`, `userId`
 
 ### `bet_group` (馬券購入グループ)
 

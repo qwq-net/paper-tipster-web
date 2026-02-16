@@ -1,6 +1,6 @@
 'use client';
 
-import { ROLES } from '@/entities/user/constants';
+import { ROLES, ROLE_LABELS, type Role } from '@/entities/user/constants';
 import { LogoutButton } from '@/features/auth/ui/logout-button';
 import { cn } from '@/shared/utils/cn';
 import {
@@ -35,7 +35,7 @@ interface AdminSidebarProps {
 
 const NAV_GROUPS = [
   {
-    role: [ROLES.ADMIN, ROLES.TIPSTER],
+    role: [ROLES.ADMIN],
     items: [{ label: 'ダッシュボード', href: '/admin', icon: LayoutDashboard }],
   },
   {
@@ -184,7 +184,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             )}
             <div className="flex flex-col overflow-hidden">
               <span className="truncate text-sm leading-none font-semibold text-white">{user.name}</span>
-              <span className="mt-1 text-sm text-gray-400">管理者</span>
+              <span className="mt-1 text-sm text-gray-400">{ROLE_LABELS[user.role as Role] || '管理者'}</span>
             </div>
           </div>
           <LogoutButton

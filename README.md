@@ -37,7 +37,7 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 2. 開発環境の起動
 
    ```bash
-   pnpm d:up
+   task docker:up
    ```
 
    コンテナが起動し、Next.jsアプリ、PostgreSQL、Redisが立ち上がります。
@@ -45,40 +45,37 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 3. データベースのセットアップ
    初回起動時やリセット時は以下を実行します。
    ```bash
-   pnpm db:setup
+   task db:setup
    ```
 
 - [AI向け開発コンテキスト](docs/AI_CONTEXT.md): プロジェクトに参加するAIエージェント/開発者向けの必読ドキュメント。
 
 ### 便利なコマンド
 
-`package.json` に定義されている主要なスクリプトです。
+`Taskfile.yml` に定義されている主要なコマンドです。 `task <command>` で実行します。
 
-| コマンド              | 説明                                        |
-| :-------------------- | :------------------------------------------ |
-| `pnpm dev`            | ローカルで開発サーバーを起動                |
-| `pnpm d:up`           | Docker環境を起動 (バックグラウンド)         |
-| `pnpm d:down`         | Docker環境を停止                            |
-| `pnpm d:restart`      | Docker環境を再起動                          |
-| `pnpm d:build`        | Docker環境をビルドして起動                  |
-| `pnpm d:logs`         | Dockerコンテナのログを表示                  |
-| `pnpm d:clean`        | Docker環境を完全にリセット (Volume削除含む) |
-| `pnpm d:test`         | **Dockerコンテナ内でテストを実行** (推奨)   |
-| `pnpm d:check`        | Dockerコンテナ内で型チェック・整形を実行    |
-| `pnpm db:setup`       | DBスキーマの適用とシードデータの投入        |
-| `pnpm db:seed`        | シードデータの投入                          |
-| `pnpm db:seed:master` | マスタデータのみ投入                        |
-| `pnpm db:reset`       | DBのリセット                                |
-| `pnpm redis:reset`    | Redisのリセット                             |
-| `pnpm check`          | 型チェック + Prettier整形 (ローカル環境)    |
-| `pnpm test`           | テストの実行 (ローカル環境)                 |
-| `pnpm lint:fix`       | Lintエラーの自動修正                        |
-| `pnpm format`         | Prettierによるコード整形                    |
+| コマンド            | 説明                                        |
+| :------------------ | :------------------------------------------ |
+| `task dev`          | 開発サーバーを起動                          |
+| `task docker:up`    | Docker環境を起動 (バックグラウンド)         |
+| `task docker:down`  | Docker環境を停止                            |
+| `task docker:build` | Docker環境をビルドして起動                  |
+| `task docker:clean` | Docker環境を完全にリセット (Volume削除含む) |
+| `task install`      | 依存関係のインストール                      |
+| `task build`        | アプリケーションをビルド                    |
+| `task test`         | テストを実行                                |
+| `task check`        | 型チェック・フォーマットチェックを実行      |
+| `task db:setup`     | DBスキーマの適用とシードデータの投入        |
+| `task db:seed`      | シードデータの投入                          |
+| `task db:reset`     | DBのリセット                                |
+| `task redis:reset`  | Redisのリセット                             |
+| `task lint`         | ESLintを実行                                |
+| `task format`       | Prettierを実行                              |
 
 ## シードデータ
 
 マスタデータ（競馬場、レース定義、馬マスタ）は以下のJSONファイルで管理されています。
-データを追加・変更した後は `pnpm db:seed` を実行することで反映されます。
+データを追加・変更した後は `task db:seed` を実行することで反映されます。
 
 - `src/shared/db/seeds/venues.json`: 競馬場マスタ
 - `src/shared/db/seeds/races.json`: レース定義マスタ
@@ -100,18 +97,14 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 
    これにより、通常のサービス（app, db, redis）に加えて `tunnel` コンテナが起動します。
 
-### 管理者権限の設定
-
-以下のコマンドで、Userテーブルの最初のユーザーにADMIN権限を付与します。
-
 ```
-pnpm db:admin
+task db:role
 ```
 
-または、以下で指定したユーザーにADMIN権限を付与します。
+または、以下で指定したユーザーの権限を変更します。
 
 ```
-pnpm db:admin -- --user=<username>
+task db:role -- --user=<username>
 ```
 
 ## ディレクトリ構成

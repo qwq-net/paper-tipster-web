@@ -92,10 +92,10 @@ tasks:
     cmds:
       - docker compose exec {{.TTY}} app pnpm db:seed --master-only
 
-  db:admin:
-    desc: 管理者ユーザーを設定します
+  db:role:
+    desc: ユーザーのロールを変更します
     cmds:
-      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/set-admin.ts
+      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/set-role.ts
 
   redis:reset:
     desc: Redisをリセットします

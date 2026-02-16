@@ -195,7 +195,7 @@
 
 ### 3.1 技術スタック
 
-- **Frontend**: Next.js (App Router), React, Tailwind CSS
+- **Frontend**: Next.js 16+ (App Router), React 19, Tailwind CSS v4
 - **Backend**: Next.js Server Actions, Route Handlers
 - **Database**: PostgreSQL, Drizzle ORM
 - **Session / Cache**: Redis

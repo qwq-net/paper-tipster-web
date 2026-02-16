@@ -1,10 +1,8 @@
+import { getBet5AdminData } from '@/features/admin/bet5/queries';
 import { Bet5ConfigForm } from '@/features/admin/bet5/ui/bet5-config-form';
 import { Bet5ManageCard } from '@/features/admin/bet5/ui/bet5-manage-card';
 import { Bet5TicketList } from '@/features/admin/bet5/ui/bet5-ticket-list';
 import { getBet5TicketsAction } from '@/features/betting/actions/bet5';
-import { db } from '@/shared/db';
-import { bet5Events, events, raceInstances } from '@/shared/db/schema';
-import { eq } from 'drizzle-orm';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -12,54 +10,18 @@ import { notFound } from 'next/navigation';
 export default async function Bet5AdminPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const event = await db.query.events.findFirst({
-    where: eq(events.id, id),
-  });
+  const adminData = await getBet5AdminData(id);
 
-  if (!event) {
+  if (!adminData) {
     notFound();
   }
 
-  const races = await db.query.raceInstances.findMany({
-    where: eq(raceInstances.eventId, id),
-    orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber)],
-  });
-
-  const bet5Event = await db.query.bet5Events.findFirst({
-    where: eq(bet5Events.eventId, id),
-  });
+  const { event, races, bet5Event, horseMap } = adminData;
 
   let tickets: Awaited<ReturnType<typeof getBet5TicketsAction>> = [];
-  const horseMap: Record<string, { horseNumber: number | null; name: string }> = {};
 
   if (bet5Event) {
     tickets = await getBet5TicketsAction(bet5Event.id);
-
-    const targetRaceIds = [
-      bet5Event.race1Id,
-      bet5Event.race2Id,
-      bet5Event.race3Id,
-      bet5Event.race4Id,
-      bet5Event.race5Id,
-    ];
-
-    const entries = await db.query.raceEntries.findMany({
-      where: (raceEntries, { inArray }) => inArray(raceEntries.raceId, targetRaceIds),
-      with: {
-        horse: {
-          columns: {
-            name: true,
-          },
-        },
-      },
-    });
-
-    entries.forEach((entry) => {
-      horseMap[entry.horseId] = {
-        horseNumber: entry.horseNumber,
-        name: entry.horse?.name || '不明',
-      };
-    });
   }
 
   return (

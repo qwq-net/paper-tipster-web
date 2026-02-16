@@ -1,11 +1,9 @@
+import { getSokubetDashboardData } from '@/features/betting/queries/sokubet';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
-import { db } from '@/shared/db';
-import { bet5Events, raceInstances, wallets } from '@/shared/db/schema';
 import { Badge, Card } from '@/shared/ui';
 import { getDisplayStatus } from '@/shared/utils/race-status';
-import { desc, eq } from 'drizzle-orm';
 import { ChevronLeft, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -23,60 +21,7 @@ export default async function SokubetPage() {
     redirect('/login');
   }
 
-  const [allRaces, userWallets, bet5EventsList] = await Promise.all([
-    db.query.raceInstances.findMany({
-      orderBy: [desc(raceInstances.date)],
-      with: {
-        event: true,
-        venue: true,
-        entries: true,
-      },
-    }),
-    db.query.wallets.findMany({
-      where: eq(wallets.userId, session.user.id),
-    }),
-    db.query.bet5Events.findMany({
-      where: eq(bet5Events.status, 'SCHEDULED'),
-    }),
-  ]);
-
-  const activeRaces = allRaces.filter((race) => race.event.status === 'ACTIVE');
-
-  const eventGroups = activeRaces.reduce(
-    (acc, race) => {
-      const eventId = race.event.id;
-      if (!acc[eventId]) {
-        const wallet = userWallets.find((w) => w.eventId === eventId);
-        const bet5 = bet5EventsList.find((b) => b.eventId === eventId);
-        acc[eventId] = {
-          event: race.event,
-          races: [],
-          balance: wallet?.balance ?? 0,
-          totalLoaned: wallet?.totalLoaned ?? 0,
-          bet5Id: bet5?.id,
-        };
-      }
-      acc[eventId].races.push(race);
-      return acc;
-    },
-    {} as Record<
-      string,
-      {
-        event: (typeof activeRaces)[0]['event'];
-        races: typeof activeRaces;
-        balance: number;
-        totalLoaned: number;
-        bet5Id?: string;
-      }
-    >
-  );
-
-  const sortedEventGroups = Object.values(eventGroups)
-    .sort((a, b) => new Date(b.event.date).getTime() - new Date(a.event.date).getTime())
-    .map((group) => ({
-      ...group,
-      races: group.races.sort((a, b) => (a.raceNumber || 999) - (b.raceNumber || 999)),
-    }));
+  const sortedEventGroups = await getSokubetDashboardData(session.user.id);
 
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
@@ -105,7 +50,7 @@ export default async function SokubetPage() {
           <Card className="p-12 text-center text-gray-500">現在、開催中のイベントはありません。</Card>
         ) : (
           <div className="space-y-8">
-            {sortedEventGroups.map(({ event, races, balance, totalLoaned, bet5Id }) => (
+            {sortedEventGroups.map(({ event, races, balance, totalLoaned, bet5Id, hasWallet }) => (
               <section key={event.id}>
                 <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
@@ -150,7 +95,7 @@ export default async function SokubetPage() {
                     </Link>
                   </div>
                 )}
-                {userWallets.find((w) => w.eventId === event.id) && (
+                {hasWallet && (
                   <div className="mb-4">
                     <LoanBanner
                       eventId={event.id}

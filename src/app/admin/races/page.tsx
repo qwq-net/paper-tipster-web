@@ -1,4 +1,4 @@
-import { getRaces } from '@/features/admin/manage-races/actions/read';
+import { getAdminRaceGroups } from '@/features/admin/manage-races/queries';
 import { RaceAccordion } from '@/features/admin/manage-races/ui/race-accordion';
 import { Button, Card } from '@/shared/ui';
 import { CircleHelp, Plus } from 'lucide-react';
@@ -11,34 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RacesPage() {
-  const races = await getRaces();
-
-  type EventGroup = {
-    id: string;
-    name: string;
-    date: string;
-    status: string;
-    races: typeof races;
-  };
-
-  const eventGroups = races.reduce<Record<string, EventGroup>>((acc, race) => {
-    const eventId = race.event.id;
-    if (!acc[eventId]) {
-      acc[eventId] = {
-        id: race.event.id,
-        name: race.event.name,
-        date: race.event.date,
-        status: race.event.status,
-        races: [],
-      };
-    }
-    acc[eventId].races.push(race);
-    return acc;
-  }, {});
-
-  const sortedEventGroups = Object.values(eventGroups).sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const sortedEventGroups = await getAdminRaceGroups();
 
   return (
     <div className="space-y-6">

@@ -1,9 +1,6 @@
 import { EventClaimList } from '@/features/economy/claim';
-import { getEventWallets } from '@/features/economy/wallet';
+import { getEventsWithJoinStatus } from '@/features/economy/claim/queries';
 import { auth } from '@/shared/config/auth';
-import { db } from '@/shared/db';
-import { events } from '@/shared/db/schema';
-import { desc, eq } from 'drizzle-orm';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
@@ -21,18 +18,7 @@ export default async function ClaimPage() {
     redirect('/login');
   }
 
-  const availableEvents = await db.query.events.findMany({
-    where: eq(events.status, 'ACTIVE'),
-    orderBy: [desc(events.date)],
-  });
-
-  const userWallets = await getEventWallets(session.user.id);
-  const joinedEventIds = new Set(userWallets.map((w) => w.eventId));
-
-  const eventsWithJoinStatus = availableEvents.map((event) => ({
-    ...event,
-    isJoined: joinedEventIds.has(event.id),
-  }));
+  const eventsWithJoinStatus = await getEventsWithJoinStatus(session.user.id);
 
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">

@@ -1,3 +1,4 @@
+import { ROLES } from '@/entities/user/constants';
 import type { AdapterAccount } from '@auth/core/adapters';
 import { relations } from 'drizzle-orm';
 import {
@@ -18,7 +19,14 @@ import {
 import { HORSE_TAG_TYPES, HORSE_TYPES } from '../constants/horse';
 import { RACE_GRADES, RACE_TYPES, VENUE_DIRECTIONS } from '../constants/race';
 
-export const roleEnum = pgEnum('role', ['USER', 'ADMIN', 'GUEST', 'TIPSTER', 'AI_TIPSTER', 'AI_USER']);
+export const roleEnum = pgEnum('role', [
+  ROLES.USER,
+  ROLES.ADMIN,
+  ROLES.GUEST,
+  ROLES.TIPSTER,
+  ROLES.AI_TIPSTER,
+  ROLES.AI_USER,
+]);
 export const horseTypeEnum = pgEnum('horse_type', HORSE_TYPES);
 export const raceTypeEnum = pgEnum('race_type', RACE_TYPES);
 export const raceGradeEnum = pgEnum('race_grade', RACE_GRADES);
@@ -488,6 +496,7 @@ export const userRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   createdGuestCodes: many(guestCodes, { relationName: 'creator' }),
   createdRaces: many(raceInstances),
+  forecasts: many(forecasts),
 }));
 
 export const guestCodeRelations = relations(guestCodes, ({ one }) => ({
@@ -538,6 +547,7 @@ export const raceInstancesRelations = relations(raceInstances, ({ one, many }) =
   }),
   entries: many(raceEntries),
   odds: one(raceOdds),
+  forecasts: many(forecasts),
 }));
 
 export const raceOdds = pgTable('race_odds', {
@@ -663,5 +673,40 @@ export const bet5TicketRelations = relations(bet5Tickets, ({ one }) => ({
   wallet: one(wallets, {
     fields: [bet5Tickets.walletId],
     references: [wallets.id],
+  }),
+}));
+
+export const forecasts = pgTable(
+  'forecast',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    raceId: uuid('race_id')
+      .notNull()
+      .references(() => raceInstances.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    comment: text('comment'),
+    selections: jsonb('selections').$type<Record<string, string>>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    raceIdx: index('forecast_race_idx').on(table.raceId),
+    userIdx: index('forecast_user_idx').on(table.userId),
+  })
+);
+
+export const forecastRelations = relations(forecasts, ({ one }) => ({
+  race: one(raceInstances, {
+    fields: [forecasts.raceId],
+    references: [raceInstances.id],
+  }),
+  user: one(users, {
+    fields: [forecasts.userId],
+    references: [users.id],
   }),
 }));

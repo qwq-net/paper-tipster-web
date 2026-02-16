@@ -31,3 +31,13 @@ export async function getRaceById(id: string) {
     },
   });
 }
+
+export async function getRacesByEventId(eventId: string) {
+  return db.query.raceInstances.findMany({
+    where: (raceInstances, { eq }) => eq(raceInstances.eventId, eventId),
+    with: {
+      venue: true,
+      entries: true,
+    },
+  });
+}

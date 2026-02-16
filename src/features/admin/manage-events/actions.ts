@@ -118,6 +118,17 @@ export async function getEvent(id: string) {
   });
 }
 
+export async function getEvents() {
+  const session = await auth();
+  if (session?.user?.role !== 'ADMIN') {
+    return [];
+  }
+
+  return db.query.events.findMany({
+    orderBy: (events, { desc }) => [desc(events.date), desc(events.createdAt)],
+  });
+}
+
 export async function updateSystemDefaultOdds(defaultGuaranteedOdds: Record<string, number>) {
   const session = await auth();
   if (session?.user?.role !== 'ADMIN') {

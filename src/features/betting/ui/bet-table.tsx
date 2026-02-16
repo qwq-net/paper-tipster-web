@@ -11,8 +11,8 @@ import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
 import { useRaceOdds as useRaceOddsData } from '@/features/race/hooks/use-race-odds';
 import { useSSE } from '@/shared/hooks/use-sse';
 import { Badge, Checkbox, LiveConnectionStatus } from '@/shared/ui';
+import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
-import { getBracketColor } from '@/shared/utils/bracket';
 import { getGenderAge } from '@/shared/utils/gender';
 import { BET_TYPES } from '@/types/betting';
 import { AlertCircle } from 'lucide-react';
@@ -163,11 +163,7 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
                     >
                       {idx === 0 && (
                         <td className="px-2 align-middle" rowSpan={bracketEntries.length}>
-                          <span
-                            className={`inline-flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ${getBracketColor(Number(bracket))}`}
-                          >
-                            {bracket}
-                          </span>
+                          <BracketBadge bracketNumber={Number(bracket)} />
                         </td>
                       )}
                       <td className="px-2 py-2 text-sm font-semibold">{entry.horseNumber}</td>
@@ -199,11 +195,7 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
                     className="border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50"
                   >
                     <td className="px-2 py-2">
-                      <span
-                        className={`inline-flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ${getBracketColor(entry.bracketNumber!)}`}
-                      >
-                        {entry.bracketNumber}
-                      </span>
+                      <BracketBadge bracketNumber={entry.bracketNumber} />
                     </td>
                     <td className="px-2 py-2 text-sm font-semibold">{entry.horseNumber}</td>
                     <td className="px-2 py-2 text-sm font-semibold">{entry.horseName}</td>

@@ -3,6 +3,8 @@ import { fetchRaceOdds } from '@/features/betting/actions';
 import { BetTable } from '@/features/betting/ui/bet-table';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
+import { getForecastsByRaceId } from '@/features/forecasts/actions';
+import { ForecastDisplay } from '@/features/forecasts/components/ForecastDisplay';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
 import { Button } from '@/shared/ui';
@@ -36,11 +38,12 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
     redirect('/login');
   }
 
-  const [race, entries, wallets, initialOdds] = await Promise.all([
+  const [race, entries, wallets, initialOdds, forecasts] = await Promise.all([
     getRaceById(id),
     getEntriesForRace(id),
     getEventWallets(session.user.id),
     fetchRaceOdds(id),
+    getForecastsByRaceId(id),
   ]);
 
   if (!race) {
@@ -112,6 +115,8 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
           closingAt={race.closingAt ? race.closingAt.toISOString() : null}
           initialOdds={initialOdds}
         />
+
+        <ForecastDisplay forecasts={forecasts} entries={entries} />
       </div>
     </div>
   );

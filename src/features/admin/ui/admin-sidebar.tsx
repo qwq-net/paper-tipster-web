@@ -1,5 +1,6 @@
 'use client';
 
+import { ROLES } from '@/entities/user/constants';
 import { LogoutButton } from '@/features/auth/ui/logout-button';
 import { cn } from '@/shared/utils/cn';
 import {
@@ -28,15 +29,18 @@ interface AdminSidebarProps {
   user: {
     name?: string | null;
     image?: string | null;
+    role?: string;
   };
 }
 
 const NAV_GROUPS = [
   {
+    role: [ROLES.ADMIN, ROLES.TIPSTER],
     items: [{ label: 'ダッシュボード', href: '/admin', icon: LayoutDashboard }],
   },
   {
     label: '運用管理',
+    role: ['ADMIN'],
     items: [
       { label: 'イベント管理', href: '/admin/events', icon: Calendar },
       { label: 'レース管理', href: '/admin/races', icon: Trophy },
@@ -46,7 +50,13 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: '予想管理',
+    role: [ROLES.ADMIN, ROLES.TIPSTER],
+    items: [{ label: '予想入力', href: '/admin/forecasts', icon: ClipboardList }],
+  },
+  {
     label: 'マスタデータ',
+    role: [ROLES.ADMIN],
     items: [
       { label: '競馬場管理', href: '/admin/venues', icon: MapPin },
       { label: '馬タグ管理', href: '/admin/horse-tags', icon: ClipboardList },
@@ -57,6 +67,7 @@ const NAV_GROUPS = [
   },
   {
     label: 'システム',
+    role: [ROLES.ADMIN],
     items: [
       { label: 'ユーザー管理', href: '/admin/users', icon: Users },
       { label: 'ゲストコード管理', href: '/admin/users/guests', icon: Key },
@@ -75,6 +86,11 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       document.body.style.overflow = 'unset';
     }
   }, [isOpen]);
+
+  const filteredGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items,
+  })).filter((group) => !group.role || (user.role && (group.role as string[]).includes(user.role)));
 
   return (
     <>
@@ -113,14 +129,14 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         </div>
 
         <nav className="flex-1 space-y-6 overflow-y-auto p-4 py-6">
-          {NAV_GROUPS.map((group, groupIdx) => (
+          {filteredGroups.map((group, groupIdx) => (
             <div key={groupIdx} className="space-y-1">
               {group.label && (
                 <p className="mb-2 px-4 text-sm font-semibold tracking-widest text-gray-500 uppercase">{group.label}</p>
               )}
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                 return (
                   <Link
                     key={item.href}

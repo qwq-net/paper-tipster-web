@@ -29,6 +29,9 @@ vi.mock('@/shared/db', () => ({
       venues: {
         findFirst: vi.fn().mockResolvedValue({ shortName: 'Tok' }),
       },
+      guaranteedOddsMaster: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
     },
   },
 }));

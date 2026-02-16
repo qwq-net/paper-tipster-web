@@ -45,6 +45,7 @@ vi.mock('@/shared/db/schema', () => ({
   },
   raceInstances: { id: 'raceInstances', status: 'status', finalizedAt: 'finalizedAt' },
   payoutResults: { raceId: 'raceId', type: 'type', combinations: 'combinations' },
+  events: { id: 'events', carryoverAmount: 'carryoverAmount' },
   transactions: {},
   wallets: { id: 'wallets', balance: 'balance' },
 }));
@@ -60,6 +61,7 @@ describe('finalizeRace', () => {
     query: {
       raceEntries: { findMany: vi.fn() },
       bets: { findMany: vi.fn() },
+      raceInstances: { findFirst: vi.fn().mockResolvedValue({ guaranteedOdds: {}, eventId: 'event1' }) },
     },
   };
 
@@ -81,8 +83,8 @@ describe('finalizeRace', () => {
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
 
     mockTx.query.raceEntries.findMany.mockResolvedValue([
-      { id: 'e1', horseNumber: 1, bracketNumber: 1, finishPosition: 1 },
-      { id: 'e2', horseNumber: 2, bracketNumber: 2, finishPosition: 2 },
+      { id: 'e1', horseNumber: 1, bracketNumber: 1, finishPosition: 1, horse: { name: 'ホース1' } },
+      { id: 'e2', horseNumber: 2, bracketNumber: 2, finishPosition: 2, horse: { name: 'ホース2' } },
     ]);
 
     mockTx.query.bets.findMany.mockResolvedValue([

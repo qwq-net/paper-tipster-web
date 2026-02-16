@@ -1,3 +1,4 @@
+import { ROLES } from '@/entities/user/constants';
 import { auth } from '@/shared/config/auth';
 import { revalidatePath } from 'next/cache';
 
@@ -14,7 +15,7 @@ export const ADMIN_ERRORS = {
 
 export async function requireAdmin() {
   const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
+  if (session?.user?.role !== ROLES.ADMIN) {
     throw new Error(ADMIN_ERRORS.UNAUTHORIZED);
   }
   return session;

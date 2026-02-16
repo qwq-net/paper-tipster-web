@@ -3,6 +3,7 @@ export const JST_TIMEZONE = 'Asia/Tokyo';
 export function toJSTString(date: Date | string | null | undefined): string {
   if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '';
 
   return new Intl.DateTimeFormat('ja-JP', {
     year: 'numeric',
@@ -10,18 +11,16 @@ export function toJSTString(date: Date | string | null | undefined): string {
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
     hour12: false,
     timeZone: JST_TIMEZONE,
   })
     .format(d)
     .replace(/\//g, '-')
-    .replace(/ /g, 'T')
-    .slice(0, 16);
+    .replace(' ', 'T');
 }
 
 export function parseJSTToUTC(jstString: string | null | undefined): Date | null {
-  if (!jstString) return null;
+  if (!jstString || !jstString.includes('T')) return null;
 
   const date = new Date(`${jstString}:00+09:00`);
   return isNaN(date.getTime()) ? null : date;
@@ -36,6 +35,8 @@ export function formatJST(
 ): string {
   if (!date) return '';
   const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '';
+
   return new Intl.DateTimeFormat('ja-JP', {
     ...options,
     timeZone: JST_TIMEZONE,

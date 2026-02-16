@@ -2,7 +2,7 @@ import { ROLES } from '@/entities/user/constants';
 
 type UserLike =
   | {
-      role?: string;
+      role?: string | null;
     }
   | null
   | undefined;

@@ -53,13 +53,8 @@ export function isWinningBet(detail: BetDetail, finishers: Finisher[]): boolean 
     }
 
     case BET_TYPES.TRIFECTA:
-      return (
-        f2 &&
-        f3 &&
-        selections[0] === f1.horseNumber &&
-        selections[1] === f2.horseNumber &&
-        selections[2] === f3.horseNumber
-      );
+      return selections[0] === f1.horseNumber && selections[1] === f2.horseNumber && selections[2] === f3.horseNumber;
+      f3 && selections[0] === f1.horseNumber && selections[1] === f2.horseNumber && selections[2] === f3.horseNumber;
 
     default:
       return false;

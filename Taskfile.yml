@@ -1,0 +1,113 @@
+version: '3'
+
+vars:
+  # CI環境では -T を付け、ローカルでは外す
+  TTY: '{{if .CI}}-T{{else}}{{end}}'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  docker:up:
+    desc: Dockerコンテナを起動します
+    cmds:
+      - docker compose up -d
+
+  docker:down:
+    desc: Dockerコンテナを停止します
+    cmds:
+      - docker compose down
+
+  docker:restart:
+    desc: Dockerコンテナを再起動します
+    cmds:
+      - docker compose restart
+
+  docker:build:
+    desc: Dockerコンテナをビルドして起動します
+    cmds:
+      - docker compose up -d --build
+
+  docker:logs:
+    desc: Dockerログを表示します
+    cmds:
+      - docker compose logs -f
+
+  docker:clean:
+    desc: 完全にクリーンアップして再構築します
+    cmds:
+      - docker compose down -v
+      - docker compose up -d --build
+
+  install:
+    desc: 依存関係をインストールします
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm install
+
+  dev:
+    desc: 開発サーバーを起動します
+    cmds:
+      - docker compose exec app pnpm dev
+
+  build:
+    desc: アプリケーションをビルドします
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm build
+
+  add:
+    desc: パッケージを追加します
+    cmds:
+      - docker compose exec app pnpm add {{.CLI_ARGS}}
+
+  test:
+    desc: テストを実行します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm test {{.CLI_ARGS}}
+
+  check:
+    desc: 型チェックとフォーマットチェックを実行します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm check
+
+  db:setup:
+    desc: データベースのセットアップを実行します
+    cmds:
+      - task: install
+      - docker compose exec {{.TTY}} app pnpm drizzle-kit push
+      - docker compose exec {{.TTY}} app pnpm db:seed
+
+  db:reset:
+    desc: データベースをリセットします
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/reset.ts
+
+  db:seed:
+    desc: データベースにシードデータを投入します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/seed.ts
+
+  db:seed:master:
+    desc: マスターデータのみを投入します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm db:seed --master-only
+
+  db:admin:
+    desc: 管理者ユーザーを設定します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/set-admin.ts
+
+  redis:reset:
+    desc: Redisをリセットします
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm tsx src/shared/lib/reset-redis.ts
+
+  lint:
+    desc: ESLintを実行します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm lint
+
+  format:
+    desc: Prettierを実行します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm format

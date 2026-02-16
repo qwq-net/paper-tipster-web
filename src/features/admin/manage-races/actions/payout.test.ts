@@ -1,7 +1,7 @@
+import { BET_TYPES } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { bets, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
-import { BET_TYPES } from '@/types/betting';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { finalizePayout } from './payout';
 

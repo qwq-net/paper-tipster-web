@@ -1,6 +1,6 @@
+import type { HorseTagType } from '@/entities/horse';
 import { HorseTagList } from '@/features/admin/manage-horse-tags/ui/horse-tag-list';
 import { db } from '@/shared/db';
-import type { HorseTagType } from '@/shared/types/horse';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {

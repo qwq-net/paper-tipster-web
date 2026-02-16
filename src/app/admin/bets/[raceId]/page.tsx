@@ -1,7 +1,7 @@
+import { BET_TYPE_LABELS, BetType } from '@/entities/bet';
 import { getBetsByRace, getRaceWithBets } from '@/features/admin/manage-bets/actions/read';
 import { Badge } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
-import { BET_TYPE_LABELS, BetType } from '@/types/betting';
 import { ArrowLeft } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';

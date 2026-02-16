@@ -1,11 +1,11 @@
 'use server';
 
+import { isEligibleForLoan } from '@/entities/wallet';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, transactions, wallets } from '@/shared/db/schema';
 import { and, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { isEligibleForLoan } from './lib/logic';
 
 export async function borrowLoan(eventId: string) {
   const session = await auth();

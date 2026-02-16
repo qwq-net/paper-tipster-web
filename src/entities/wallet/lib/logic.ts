@@ -1,4 +1,4 @@
-import { LOAN_THRESHOLD_RATIO } from './constants';
+import { LOAN_THRESHOLD_RATIO } from '../constants';
 
 export function calculateLoanThreshold(distributeAmount: number): number {
   return distributeAmount * LOAN_THRESHOLD_RATIO;

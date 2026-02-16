@@ -1,10 +1,10 @@
 'use server';
 
+import { BetDetail } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { bets, payoutResults as payoutResultsTable, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
 import { normalizeSelections, ODDS_UNIT } from '@/shared/utils/payout';
-import { BetDetail } from '@/types/betting';
 import { eq, sql } from 'drizzle-orm';
 
 export async function finalizePayout(raceId: string) {

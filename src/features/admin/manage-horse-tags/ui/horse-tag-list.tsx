@@ -1,7 +1,7 @@
 'use client';
 
+import { HorseTagType } from '@/entities/horse';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
-import { HorseTagType } from '@/shared/types/horse';
 import {
   Button,
   Card,

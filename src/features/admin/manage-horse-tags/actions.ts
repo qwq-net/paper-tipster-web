@@ -1,8 +1,8 @@
 'use server';
 
+import { HorseTagType } from '@/entities/horse';
 import { db } from '@/shared/db';
 import { horseTagMaster } from '@/shared/db/schema';
-import { HorseTagType } from '@/shared/types/horse';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 

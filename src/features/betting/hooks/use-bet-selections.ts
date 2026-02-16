@@ -1,6 +1,5 @@
-import { calculateBetCount } from '@/features/betting/lib/calculations';
+import { BET_TYPES, BetType, calculateBetCount } from '@/entities/bet';
 import { getBetTypeColumnCount } from '@/features/betting/model/bet-types';
-import { BET_TYPES, BetType } from '@/types/betting';
 import { useState } from 'react';
 
 interface Entry {

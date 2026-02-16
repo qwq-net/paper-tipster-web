@@ -4,7 +4,7 @@ import { db } from '@/shared/db';
 import { events, wallets } from '@/shared/db/schema';
 import { and, eq } from 'drizzle-orm';
 
-import { isEligibleForLoan } from './lib/logic';
+import { isEligibleForLoan } from '@/entities/wallet';
 
 export interface LoanStatus {
   canBorrow: boolean;

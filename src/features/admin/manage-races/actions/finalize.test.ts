@@ -1,6 +1,6 @@
+import { BET_TYPES } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
-import { BET_TYPES } from '@/types/betting';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { finalizeRace } from './finalize';
 

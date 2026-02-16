@@ -1,9 +1,9 @@
 'use client';
 
+import { BET_TYPES, getValidBetCombinations } from '@/entities/bet';
 import { fetchRaceOdds, placeBets } from '@/features/betting/actions';
 import { useBetSelections } from '@/features/betting/hooks/use-bet-selections';
 import { useRaceTimer } from '@/features/betting/hooks/use-race-timer';
-import { getValidBetCombinations } from '@/features/betting/lib/calculations';
 import { validateBetSubmission } from '@/features/betting/lib/validation';
 import { getBetTypeColumnLabels } from '@/features/betting/model/bet-types';
 import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
@@ -14,7 +14,6 @@ import { Badge, Checkbox, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getGenderAge } from '@/shared/utils/gender';
-import { BET_TYPES } from '@/types/betting';
 import { AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';

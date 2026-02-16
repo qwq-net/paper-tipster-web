@@ -1,4 +1,4 @@
-import { HORSE_GENDERS, HORSE_ORIGINS, HORSE_TAG_TYPES, HORSE_TYPES } from '../constants/horse';
+import { HORSE_GENDERS, HORSE_ORIGINS, HORSE_TAG_TYPES, HORSE_TYPES } from '@/shared/constants/horse';
 
 export type HorseGender = (typeof HORSE_GENDERS)[number];
 export type HorseOrigin = (typeof HORSE_ORIGINS)[number];

@@ -1,4 +1,4 @@
-import { BET_TYPES, BetType } from '@/types/betting';
+import { BET_TYPES, BetType } from '@/entities/bet';
 
 export function getBetTypeColumnCount(betType: BetType): number {
   switch (betType) {

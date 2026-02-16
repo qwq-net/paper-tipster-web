@@ -1,10 +1,10 @@
 'use server';
 
+import { BetDetail, BetType } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { betGroups, bets, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireUser } from '@/shared/utils/admin';
 import { isOrderSensitive } from '@/shared/utils/payout';
-import { BetDetail, BetType } from '@/types/betting';
 import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 

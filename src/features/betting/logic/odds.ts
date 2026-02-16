@@ -2,52 +2,21 @@ import { db } from '@/shared/db';
 import { bets, raceInstances, raceOdds } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
-import { isOrderSensitive } from '@/shared/utils/payout';
-import { BetDetail, BetType } from '@/types/betting';
 import { eq } from 'drizzle-orm';
 
-const ODDS_DEDUCTION_RATE = 0.2;
+import { aggregateOddsPool, BetDetail, calculateProvisionalOdds, calculateWinOdds } from '@/entities/bet';
+
 const THROTTLE_SECONDS = 10;
 
 export async function calculateOdds(raceId: string) {
-  const raceBets = await db.query.bets.findMany({
+  const raceBets = (await db.query.bets.findMany({
     where: eq(bets.raceId, raceId),
-  });
+  })) as { amount: number; details: BetDetail }[];
 
-  const winOdds: Record<string, number> = {};
+  const winBets = raceBets.filter((bet) => bet.details.type === 'win');
+
+  const winOdds = calculateWinOdds(winBets);
   const placeOdds: Record<string, { min: number; max: number }> = {};
-
-  if (raceBets.length > 0) {
-    const winBets = raceBets.filter((bet) => {
-      const details = bet.details as BetDetail;
-      return details.type === 'win';
-    });
-
-    const winPool = winBets.reduce((sum, bet) => sum + bet.amount, 0);
-    const winVotes: Record<string, number> = {};
-
-    winBets.forEach((bet) => {
-      const details = bet.details as BetDetail;
-      const horseNumber = details.selections[0];
-      if (horseNumber) {
-        winVotes[horseNumber] = (winVotes[horseNumber] || 0) + bet.amount;
-      }
-    });
-
-    const returnAmount = winPool * (1 - ODDS_DEDUCTION_RATE);
-
-    Object.entries(winVotes).forEach(([horse, amount]) => {
-      if (amount === 0) {
-        winOdds[horse] = 0.0;
-        return;
-      }
-      let odds = returnAmount / amount;
-      odds = Math.floor(odds * 10) / 10;
-      if (odds < 1.1) odds = 1.1;
-      winOdds[horse] = odds;
-    });
-  } else {
-  }
 
   await db
     .insert(raceOdds)
@@ -109,7 +78,7 @@ export async function calculateOdds(raceId: string) {
 }
 
 export async function calculateAllProvisionalOdds(raceId: string) {
-  const [raceBets, race] = await Promise.all([
+  const [raceBetsRaw, race] = await Promise.all([
     db.query.bets.findMany({
       where: eq(bets.raceId, raceId),
     }),
@@ -119,45 +88,9 @@ export async function calculateAllProvisionalOdds(raceId: string) {
     }),
   ]);
 
-  const guaranteedOdds = race?.guaranteedOdds as Record<string, number> | undefined;
-
-  const poolByBetType: Record<string, number> = {};
-  const amountBySelection: Record<string, Record<string, number>> = {};
-
-  for (const bet of raceBets) {
-    const details = bet.details as BetDetail;
-    const betType = details.type as BetType;
-    const key = JSON.stringify(
-      isOrderSensitive(betType) ? details.selections : [...details.selections].sort((a, b) => a - b)
-    );
-
-    poolByBetType[betType] = (poolByBetType[betType] || 0) + bet.amount;
-    if (!amountBySelection[betType]) amountBySelection[betType] = {};
-    amountBySelection[betType][key] = (amountBySelection[betType][key] || 0) + bet.amount;
-  }
-
-  const provisionalOdds: Record<string, Record<string, number>> = {};
-
-  for (const [type, pool] of Object.entries(poolByBetType)) {
-    provisionalOdds[type] = {};
-    const selections = amountBySelection[type];
-
-    for (const [key, amount] of Object.entries(selections)) {
-      if (amount === 0) continue;
-
-      let rate = (pool * (1 - ODDS_DEDUCTION_RATE)) / amount;
-      rate = Math.floor(rate * 10) / 10;
-
-      if (guaranteedOdds && guaranteedOdds[type]) {
-        rate = Math.max(rate, guaranteedOdds[type]);
-      }
-
-      if (rate < 1.1) rate = 1.1;
-      provisionalOdds[type][key] = rate;
-    }
-  }
-
-  return provisionalOdds;
+  const raceBets = raceBetsRaw as { amount: number; details: BetDetail }[];
+  const pool = aggregateOddsPool(raceBets);
+  return calculateProvisionalOdds(pool, (race?.guaranteedOdds as Record<string, number>) || undefined);
 }
 
 export async function getRaceOdds(raceId: string) {

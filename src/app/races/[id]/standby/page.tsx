@@ -1,10 +1,10 @@
+import { BetDetail, BetType } from '@/entities/bet';
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getPayoutResults } from '@/features/admin/manage-races/actions';
 import { getUserBetGroupsForRace } from '@/features/betting/actions';
 import { PurchasedTicketList } from '@/features/betting/ui/purchased-ticket-list';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
-import { BetDetail, BetType } from '@/types/betting';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';

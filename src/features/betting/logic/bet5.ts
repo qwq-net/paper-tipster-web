@@ -1,3 +1,4 @@
+import { calculateBet5Count, calculateBet5Dividend, isBet5Winner } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { bet5Events, bet5Tickets, events, transactions, wallets } from '@/shared/db/schema';
 import { and, eq, sql } from 'drizzle-orm';
@@ -67,12 +68,7 @@ export async function placeBet5Bet({
       throw new Error('BET5 event is closed');
     }
 
-    const count =
-      selections.race1.length *
-      selections.race2.length *
-      selections.race3.length *
-      selections.race4.length *
-      selections.race5.length;
+    const count = calculateBet5Count(selections);
 
     if (count === 0) throw new Error('Invalid selection');
     const cost = count * 100;
@@ -152,27 +148,18 @@ export async function calculateBet5Payout(bet5EventId: string) {
     const totalPot = bet5Event.initialPot + totalSales + (event.carryoverAmount || 0);
 
     const winningTickets = tickets.filter((t) => {
-      const r1 = t.race1HorseIds as string[];
-      const r2 = t.race2HorseIds as string[];
-      const r3 = t.race3HorseIds as string[];
-      const r4 = t.race4HorseIds as string[];
-      const r5 = t.race5HorseIds as string[];
-
-      return (
-        r1.includes(sortedWinners[0]) &&
-        r2.includes(sortedWinners[1]) &&
-        r3.includes(sortedWinners[2]) &&
-        r4.includes(sortedWinners[3]) &&
-        r5.includes(sortedWinners[4])
-      );
+      const ticketSelections = {
+        race1: t.race1HorseIds as string[],
+        race2: t.race2HorseIds as string[],
+        race3: t.race3HorseIds as string[],
+        race4: t.race4HorseIds as string[],
+        race5: t.race5HorseIds as string[],
+      };
+      return isBet5Winner(ticketSelections, sortedWinners);
     });
 
     const winCount = winningTickets.length;
-
-    let dividend = 0;
-    if (winCount > 0) {
-      dividend = Math.floor(totalPot / winCount);
-    }
+    const dividend = calculateBet5Dividend(totalPot, winCount);
 
     if (winCount > 0) {
       for (const ticket of winningTickets) {

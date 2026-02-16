@@ -1,8 +1,8 @@
 'use client';
 
+import { HorseTagType } from '@/entities/horse';
 import { HORSE_TAG_TYPES } from '@/shared/constants/horse';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
-import { HorseTagType } from '@/shared/types/horse';
 import { Button, Input, Label, Select } from '@/shared/ui';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';

@@ -1,9 +1,9 @@
+import type { HorseTagType, HorseType } from '@/entities/horse';
+import { type RaceStatus } from '@/entities/race';
 import { ROLES } from '@/entities/user';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { RACE_CONDITIONS, RACE_GRADES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
-import { type RaceStatus } from '@/shared/types/race';
 import { and, eq } from 'drizzle-orm';
-import type { HorseTagType, HorseType } from '../types/horse';
 import { calculateBracketNumber } from '../utils/bracket';
 import { db } from './index';
 import * as schema from './schema';

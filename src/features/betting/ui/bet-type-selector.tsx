@@ -1,5 +1,5 @@
+import { BET_TYPE_LABELS, BET_TYPE_ORDER, BetType } from '@/entities/bet';
 import { Button } from '@/shared/ui';
-import { BET_TYPE_LABELS, BET_TYPE_ORDER, BetType } from '@/types/betting';
 
 interface BetTypeSelectorProps {
   betType: BetType;

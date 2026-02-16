@@ -1,10 +1,10 @@
 'use client';
 
+import { BET_TYPE_LABELS, BetType } from '@/entities/bet';
 import { compressBetSelections, CompressedRow } from '@/features/betting/lib/compress-selections';
 import { Badge } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
-import { BET_TYPE_LABELS, BetType } from '@/types/betting';
 import { ChevronDown, ChevronUp, Play } from 'lucide-react';
 import { useState } from 'react';
 

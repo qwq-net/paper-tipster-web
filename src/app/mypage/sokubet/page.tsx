@@ -150,15 +150,17 @@ export default async function SokubetPage() {
                     </Link>
                   </div>
                 )}
-                <div className="mb-4">
-                  <LoanBanner
-                    eventId={event.id}
-                    balance={balance}
-                    distributeAmount={event.distributeAmount}
-                    loanAmount={event.loanAmount ?? event.distributeAmount}
-                    hasLoaned={totalLoaned > 0}
-                  />
-                </div>
+                {userWallets.find((w) => w.eventId === event.id) && (
+                  <div className="mb-4">
+                    <LoanBanner
+                      eventId={event.id}
+                      balance={balance}
+                      distributeAmount={event.distributeAmount}
+                      loanAmount={event.loanAmount ?? event.distributeAmount}
+                      hasLoaned={totalLoaned > 0}
+                    />
+                  </div>
+                )}
                 <div className="grid gap-4 md:grid-cols-2">
                   {races.map((race) => (
                     <Link key={race.id} href={`/races/${race.id}`}>

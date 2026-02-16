@@ -1,4 +1,5 @@
 import { Bet5VotingForm } from '@/features/betting/ui/bet5-voting-form';
+import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
@@ -90,6 +91,14 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
           </div>
         </CardContent>
       </Card>
+
+      <LoanBanner
+        eventId={id}
+        balance={wallet.balance}
+        distributeAmount={event.distributeAmount}
+        loanAmount={event.loanAmount ?? event.distributeAmount}
+        hasLoaned={wallet.totalLoaned > 0}
+      />
 
       {bet5Event.status === 'SCHEDULED' ? (
         <Bet5VotingForm eventId={id} bet5EventId={bet5Event.id} races={orderedRaces} balance={wallet.balance} />

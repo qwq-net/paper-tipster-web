@@ -6,6 +6,22 @@ package-lock.json binary
 *.mjs linguist-vendored
 *.config.js linguist-vendored
 
+public/* linguist-documentation
+src/shared/db/seeds/*.json linguist-documentation
+
+README.md linguist-documentation
+docs/* linguist-documentation
+
+package.json linguist-vendored
+pnpm-lock.yaml linguist-vendored
+tsconfig.json linguist-vendored
+Taskfile.yml linguist-vendored
+docker-compose.yml linguist-vendored
+Dockerfile linguist-vendored
+.env.sample linguist-vendored
+
+*.css linguist-documentation
+
 *.png binary
 *.jpg binary
 *.ico binary

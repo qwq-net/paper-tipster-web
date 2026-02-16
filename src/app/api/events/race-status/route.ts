@@ -1,4 +1,4 @@
-import { RACE_EVENTS, raceEventEmitter } from '@/lib/sse/event-emitter';
+import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';

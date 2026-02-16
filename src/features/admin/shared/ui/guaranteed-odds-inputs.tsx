@@ -1,8 +1,8 @@
 'use client';
 
+import { BET_TYPE_LABELS, BET_TYPES } from '@/entities/bet';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { Label, NumericInput } from '@/shared/ui';
-import { BET_TYPE_LABELS, BET_TYPES } from '@/types/betting';
 
 interface GuaranteedOddsInputsProps {
   value: Record<string, number>;

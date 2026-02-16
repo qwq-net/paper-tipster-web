@@ -1,9 +1,9 @@
 'use server';
 
-import { RACE_EVENTS, raceEventEmitter } from '@/lib/sse/event-emitter';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, wallets } from '@/shared/db/schema';
+import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { desc, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { calculateNetBalance } from '../economy/loan/lib/logic';

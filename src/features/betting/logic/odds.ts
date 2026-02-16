@@ -1,7 +1,7 @@
-import { RACE_EVENTS, raceEventEmitter } from '@/lib/sse/event-emitter';
 import { db } from '@/shared/db';
 import { bets, raceInstances, raceOdds } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
+import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { isOrderSensitive } from '@/shared/utils/payout';
 import { BetDetail, BetType } from '@/types/betting';
 import { eq } from 'drizzle-orm';

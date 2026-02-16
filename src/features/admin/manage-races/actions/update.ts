@@ -80,7 +80,7 @@ export async function closeRace(raceId: string) {
 
   await db.update(raceInstances).set({ status: 'CLOSED' }).where(eq(raceInstances.id, raceId));
 
-  const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
+  const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_CLOSED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);
@@ -92,7 +92,7 @@ export async function reopenRace(raceId: string) {
 
   await db.update(raceInstances).set({ status: 'SCHEDULED', closingAt: null }).where(eq(raceInstances.id, raceId));
 
-  const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
+  const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);
@@ -106,7 +106,7 @@ export async function setClosingTime(raceId: string, minutes: number) {
 
   await db.update(raceInstances).set({ closingAt, status: 'SCHEDULED' }).where(eq(raceInstances.id, raceId));
 
-  const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
+  const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_REOPENED, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);

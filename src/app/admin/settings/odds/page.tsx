@@ -1,4 +1,4 @@
-import { updateSystemDefaultOdds } from '@/features/admin/manage-events/actions';
+import { updateSystemDefaultOdds } from '@/features/admin/manage-settings/actions';
 import { db } from '@/shared/db';
 import { Card, CardContent, CardHeader } from '@/shared/ui';
 import { ChevronLeft } from 'lucide-react';

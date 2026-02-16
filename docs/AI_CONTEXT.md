@@ -35,7 +35,7 @@ Winning Post等のプレイデータを元に、Discordコミュニティ内で�
 1.  `app`: Next.js App Routerのエントリーポイント。
 2.  `features`: 機能単位のモジュール (例: `betting`, `admin`, `auth`)。ビジネスロジックはここに集約します。
     - API通信、UIコンポーネント、状態管理などが含まれます。
-3.  `entities`: ドメインモデル (例: `User`, `Race`, `Horse`)。データベース定義や型定義が含まれます。
+3.  `entities`: ドメインモデル (例: `User`, `Race`, `Bet`)。ドメイン固有のロジック、型定義、定数が含まれます。
 4.  `shared`: プロジェクト全体で共有される汎用的なコード (例: `ui` (Shadcn/UI), `utils`, `db`, `config`)。
 
 重要なルール:
@@ -100,7 +100,9 @@ task check
 ## 主要ディレクトリ/ファイル
 
 - `src/shared/db/schema.ts`: データベーススキーマ定義（Single Source of Truth）。
-- `src/types`: アプリケーション全体で使う型定義。
+- `src/entities/bet`: 馬券ドメイン（型定義、組み合わせ定数、的中判定、配当計算）。
+- `src/entities/race`: レースドメイン（ステータス管理ロジック）。
+- `src/entities/user`: ユーザードメイン（ロール定義）。
 - `src/features/admin`: 管理者機能（レース登録、結果確定など）。
 - `src/features/betting`: 馬券購入、オッズ計算ロジック。
 - `src/app/(auth)`: 認証関連ページ。
@@ -108,5 +110,5 @@ task check
 ## 注意事項 (Gotchas)
 
 - Server Actions と Auth: `requireAdmin` などのヘルパーを使って権限チェックを行ってください。
-- SSE (Server-Sent Events): リアルタイム更新（オッズ、レース結果）に使用しています。実績のある実装パターン（`src/lib/sse` 周辺）を参照してください。
+- SSE (Server-Sent Events): リアルタイム更新（オッズ、レース結果）に使用しています。実績のある実装パターン（`src/shared/lib/sse` 周辺）を参照してください。
 - Lint/Formatter: プロジェクトには厳格なLintルール（コメント禁止など）があります。`pnpm lint:fix` や `sed` 等で対応してください。

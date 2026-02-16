@@ -57,12 +57,6 @@ export async function createHorse(formData: FormData) {
     throw new Error('入力内容が無効です');
   }
 
-  const GENDER_MAP: Record<string, 'MARE' | 'FILLY' | 'HORSE' | 'COLT' | 'GELDING'> = {
-    牡: 'HORSE',
-    牝: 'MARE',
-    セン: 'GELDING',
-  };
-
   const genderInput = parse.data.gender as '牡' | '牝' | 'セン';
   const gender = GENDER_MAP[genderInput];
 

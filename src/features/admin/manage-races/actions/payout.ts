@@ -105,7 +105,7 @@ export async function finalizePayout(raceId: string) {
       .where(eq(raceInstances.id, raceId));
   });
 
-  const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
+  const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
   raceEventEmitter.emit(RACE_EVENTS.RACE_BROADCAST, { raceId, timestamp: Date.now() });
 
   revalidateRacePaths(raceId);

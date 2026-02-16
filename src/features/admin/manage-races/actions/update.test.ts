@@ -32,7 +32,7 @@ vi.mock('@/shared/db', () => ({
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
-vi.mock('@/lib/sse/event-emitter', () => ({
+vi.mock('@/shared/lib/sse/event-emitter', () => ({
   raceEventEmitter: {
     emit: vi.fn(),
   },
@@ -132,7 +132,7 @@ describe('closeRace', () => {
     expect(mockSet).toHaveBeenCalledWith({ status: 'CLOSED' });
     expect(mockWhere).toHaveBeenCalled();
 
-    const { raceEventEmitter } = await import('@/lib/sse/event-emitter');
+    const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
     expect(raceEventEmitter.emit).toHaveBeenCalledWith('RACE_CLOSED', expect.objectContaining({ raceId: '123' }));
 
     expect(revalidatePath).toHaveBeenCalled();

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { getDisplayStatus } from './race-status';
+import { getDisplayStatus } from './status';
 
-describe('utils/race-status', () => {
+describe('entities/race/lib/status', () => {
   it('should return status as is if not CLOSED', () => {
     expect(getDisplayStatus('OPEN', false)).toBe('OPEN');
     expect(getDisplayStatus('OPEN', true)).toBe('OPEN');

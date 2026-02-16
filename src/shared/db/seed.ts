@@ -1,4 +1,4 @@
-import { Role } from '@/entities/user';
+import { ROLES } from '@/entities/user';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { RACE_CONDITIONS, RACE_GRADES, VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { type RaceStatus } from '@/shared/types/race';
@@ -62,12 +62,12 @@ function generateDummyPlaceOdds(entryCount: number): Record<string, { min: numbe
 }
 
 const usersToCreate = [
-  { name: '武豊', role: Role.ADMIN, email: 'admin@example.com' },
-  { name: 'ルメール', role: Role.USER, email: 'user@example.com' },
-  { name: '川田将雅', role: Role.GUEST, email: 'guest@example.com' },
-  { name: '横山武史', role: Role.TIPSTER, email: 'tipster@example.com' },
-  { name: '[AI] 戸崎圭太', role: Role.AI_TIPSTER, email: 'ai_tipster@example.com' },
-  { name: '[AI] 福永祐一', role: Role.AI_USER, email: 'ai_user@example.com' },
+  { name: '武豊', role: ROLES.ADMIN, email: 'admin@example.com' },
+  { name: 'ルメール', role: ROLES.USER, email: 'user@example.com' },
+  { name: '川田将雅', role: ROLES.GUEST, email: 'guest@example.com' },
+  { name: '横山武史', role: ROLES.TIPSTER, email: 'tipster@example.com' },
+  { name: '[AI] 戸崎圭太', role: ROLES.AI_TIPSTER, email: 'ai_tipster@example.com' },
+  { name: '[AI] 福永祐一', role: ROLES.AI_USER, email: 'ai_user@example.com' },
 ];
 
 const eventTemplates = [

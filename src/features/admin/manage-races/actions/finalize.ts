@@ -1,10 +1,9 @@
 'use server';
 
+import { BetDetail, calculatePayoutRate, Finisher, isWinningBet, normalizeSelections, ODDS_UNIT } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { bets, raceEntries, raceInstances } from '@/shared/db/schema';
 import { requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
-import { calculatePayoutRate, Finisher, isWinningBet, normalizeSelections, ODDS_UNIT } from '@/shared/utils/payout';
-import { BetDetail } from '@/types/betting';
 import { eq, sql, SQL } from 'drizzle-orm';
 
 export async function finalizeRace(
@@ -49,7 +48,7 @@ export async function finalizeRace(
 
     if (finishers.length === 0) throw new Error('着順が指定されていません');
 
-    const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
+    const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
     const rankingPayload = raceEntriesWithInfo
       .filter((e) => e.finishPosition !== null)
       .slice(0, 5)
@@ -146,8 +145,8 @@ export async function finalizeRace(
       }
     }
 
-    const { BET_TYPES } = await import('@/types/betting');
-    const { getWinningCombinations } = await import('@/shared/utils/payout');
+    const { BET_TYPES } = await import('@/entities/bet');
+    const { getWinningCombinations } = await import('@/entities/bet');
 
     let raceCarryover = 0;
 

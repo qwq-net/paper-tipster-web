@@ -45,7 +45,7 @@ vi.mock('@/shared/db', () => ({
   },
 }));
 
-vi.mock('@/lib/sse/event-emitter', () => ({
+vi.mock('@/shared/lib/sse/event-emitter', () => ({
   raceEventEmitter: {
     emit: vi.fn(),
   },
@@ -100,7 +100,7 @@ describe('finalizePayout', () => {
 
   it('should process payouts correctly for HIT, LOST, and REFUNDED bets', async () => {
     const { requireAdmin, revalidateRacePaths } = await import('@/shared/utils/admin');
-    const { raceEventEmitter } = await import('@/lib/sse/event-emitter');
+    const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
 
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
     (db.query.raceInstances.findFirst as Mock).mockResolvedValue({ id: 'race1', status: 'CLOSED' });

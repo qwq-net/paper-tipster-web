@@ -1,4 +1,4 @@
-import { BET_TYPES, BetDetail } from '@/types/betting';
+import { BET_TYPES, BetDetail } from '@/entities/bet/constants';
 import { describe, expect, it } from 'vitest';
 import { Finisher, getWinningCombinations, isWinningBet } from './payout';
 

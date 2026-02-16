@@ -1,10 +1,1 @@
-import { RaceStatus } from '@/shared/constants/status';
-
-export type DisplayStatus = RaceStatus | 'RANKING_CONFIRMED';
-
-export function getDisplayStatus(status: string, hasRanking: boolean): DisplayStatus {
-  if (status === 'CLOSED' && hasRanking) {
-    return 'RANKING_CONFIRMED';
-  }
-  return status as DisplayStatus;
-}
+export { getDisplayStatus, type DisplayStatus } from '@/entities/race/lib/status';

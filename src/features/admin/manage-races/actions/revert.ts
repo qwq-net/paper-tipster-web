@@ -24,7 +24,7 @@ export async function resetRaceResults(raceId: string) {
 
     await tx.delete(payoutResults).where(eq(payoutResults.raceId, raceId));
 
-    const { raceEventEmitter, RACE_EVENTS } = await import('@/lib/sse/event-emitter');
+    const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
     raceEventEmitter.emit(RACE_EVENTS.RACE_RESULT_UPDATED, {
       raceId,
       results: [],

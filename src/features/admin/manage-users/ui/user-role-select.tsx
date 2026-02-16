@@ -1,6 +1,6 @@
 'use client';
 
-import { Role, RoleColor, RoleLabel } from '@/entities/user';
+import { ROLES, ROLE_COLORS, ROLE_LABELS, type Role } from '@/entities/user';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
 import { updateUserRole } from '../actions';
@@ -31,23 +31,23 @@ export function UserRoleSelect({ userId, currentRole }: UserRoleSelectProps) {
       value={currentRole}
       onChange={handleChange}
       disabled={
-        isPending || currentRole === Role.AI_USER || currentRole === Role.AI_TIPSTER || currentRole === Role.GUEST
+        isPending || currentRole === ROLES.AI_USER || currentRole === ROLES.AI_TIPSTER || currentRole === ROLES.GUEST
       }
-      className={`w-32 rounded border px-2 py-1 text-sm ${RoleColor[currentRole]} ${
-        currentRole === Role.AI_USER || currentRole === Role.AI_TIPSTER || currentRole === Role.GUEST
+      className={`w-32 rounded border px-2 py-1 text-sm ${ROLE_COLORS[currentRole]} ${
+        currentRole === ROLES.AI_USER || currentRole === ROLES.AI_TIPSTER || currentRole === ROLES.GUEST
           ? 'cursor-not-allowed appearance-none opacity-80'
           : ''
       }`}
     >
-      {Object.values(Role)
+      {Object.values(ROLES)
         .filter((role) =>
-          currentRole === Role.AI_USER || currentRole === Role.AI_TIPSTER || currentRole === Role.GUEST
+          currentRole === ROLES.AI_USER || currentRole === ROLES.AI_TIPSTER || currentRole === ROLES.GUEST
             ? role === currentRole
-            : role !== Role.AI_USER && role !== Role.AI_TIPSTER && role !== Role.GUEST
+            : role !== ROLES.AI_USER && role !== ROLES.AI_TIPSTER && role !== ROLES.GUEST
         )
         .map((role) => (
           <option key={role} value={role}>
-            {RoleLabel[role]}
+            {ROLE_LABELS[role]}
           </option>
         ))}
     </select>

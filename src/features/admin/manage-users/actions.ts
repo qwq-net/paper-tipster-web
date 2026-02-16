@@ -1,6 +1,6 @@
 'use server';
 
-import { Role } from '@/entities/user';
+import { ROLES, type Role } from '@/entities/user';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { users } from '@/shared/db/schema';
@@ -14,7 +14,7 @@ export async function updateUserRole(userId: string, newRole: Role) {
     throw new Error('Unauthorized: Admin access required.');
   }
 
-  if (userId === session.user.id && newRole !== Role.ADMIN) {
+  if (userId === session.user.id && newRole !== ROLES.ADMIN) {
     throw new Error('You cannot change your own role as an admin.');
   }
 

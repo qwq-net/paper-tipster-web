@@ -23,14 +23,15 @@ export function isWinningBet(detail: BetDetail, finishers: Finisher[]): boolean 
       return finishers.slice(0, 3).some((f) => f.horseNumber === selections[0]);
 
     case BET_TYPES.QUINELLA:
+      if (!f2) return false;
       return (
-        f2 &&
-        ((selections[0] === f1.horseNumber && selections[1] === f2.horseNumber) ||
-          (selections[0] === f2.horseNumber && selections[1] === f1.horseNumber))
+        (selections[0] === f1.horseNumber && selections[1] === f2.horseNumber) ||
+        (selections[0] === f2.horseNumber && selections[1] === f1.horseNumber)
       );
 
     case BET_TYPES.EXACTA:
-      return f2 && selections[0] === f1.horseNumber && selections[1] === f2.horseNumber;
+      if (!f2) return false;
+      return selections[0] === f1.horseNumber && selections[1] === f2.horseNumber;
 
     case BET_TYPES.WIDE: {
       if (!f2) return false;
@@ -39,10 +40,10 @@ export function isWinningBet(detail: BetDetail, finishers: Finisher[]): boolean 
     }
 
     case BET_TYPES.BRACKET_QUINELLA:
+      if (!f2) return false;
       return (
-        f2 &&
-        ((selections[0] === f1.bracketNumber && selections[1] === f2.bracketNumber) ||
-          (selections[0] === f2.bracketNumber && selections[1] === f1.bracketNumber))
+        (selections[0] === f1.bracketNumber && selections[1] === f2.bracketNumber) ||
+        (selections[0] === f2.bracketNumber && selections[1] === f1.bracketNumber)
       );
 
     case BET_TYPES.TRIO: {
@@ -52,9 +53,8 @@ export function isWinningBet(detail: BetDetail, finishers: Finisher[]): boolean 
     }
 
     case BET_TYPES.TRIFECTA:
-      return (
-        f3 && selections[0] === f1.horseNumber && selections[1] === f2.horseNumber && selections[2] === f3.horseNumber
-      );
+      if (!f3) return false;
+      return selections[0] === f1.horseNumber && selections[1] === f2.horseNumber && selections[2] === f3.horseNumber;
 
     default:
       return false;

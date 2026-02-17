@@ -1,6 +1,6 @@
 import { BET_TYPES, BetDetail } from '@/entities/bet/constants';
 import { describe, expect, it } from 'vitest';
-import { Finisher, getWinningCombinations, isWinningBet } from './payout';
+import { Finisher, calculatePayoutRate, getWinningCombinations, isWinningBet, normalizeSelections } from './payout';
 
 describe('isWinningBet (的中判定)', () => {
   const finishers: Finisher[] = [
@@ -57,6 +57,29 @@ describe('isWinningBet (的中判定)', () => {
     expect(isWinningBet({ type: BET_TYPES.TRIFECTA, selections: [1, 2, 3] }, finishers)).toBe(true);
     expect(isWinningBet({ type: BET_TYPES.TRIFECTA, selections: [1, 3, 2] }, finishers)).toBe(false);
   });
+
+  it('フィニッシャーが空の場合、全て不的中', () => {
+    expect(isWinningBet({ type: BET_TYPES.WIN, selections: [1] }, [])).toBe(false);
+  });
+
+  it('フィニッシャーが1頭のみの場合', () => {
+    const singleFinisher: Finisher[] = [{ horseNumber: 5, bracketNumber: 3 }];
+    expect(isWinningBet({ type: BET_TYPES.WIN, selections: [5] }, singleFinisher)).toBe(true);
+    expect(isWinningBet({ type: BET_TYPES.PLACE, selections: [5] }, singleFinisher)).toBe(true);
+    expect(isWinningBet({ type: BET_TYPES.QUINELLA, selections: [5, 1] }, singleFinisher)).toBe(false);
+    expect(isWinningBet({ type: BET_TYPES.WIDE, selections: [5, 1] }, singleFinisher)).toBe(false);
+    expect(isWinningBet({ type: BET_TYPES.TRIO, selections: [5, 1, 2] }, singleFinisher)).toBe(false);
+    expect(isWinningBet({ type: BET_TYPES.TRIFECTA, selections: [5, 1, 2] }, singleFinisher)).toBe(false);
+  });
+
+  it('同枠の場合の枠連判定 (ゾロ目)', () => {
+    const sameFlame: Finisher[] = [
+      { horseNumber: 7, bracketNumber: 4 },
+      { horseNumber: 8, bracketNumber: 4 },
+    ];
+    expect(isWinningBet({ type: BET_TYPES.BRACKET_QUINELLA, selections: [4, 4] }, sameFlame)).toBe(true);
+    expect(isWinningBet({ type: BET_TYPES.BRACKET_QUINELLA, selections: [4, 5] }, sameFlame)).toBe(false);
+  });
 });
 
 describe('getWinningCombinations (勝利組み合わせ生成)', () => {
@@ -68,21 +91,15 @@ describe('getWinningCombinations (勝利組み合わせ生成)', () => {
 
   it('各券種の勝利組み合わせが正しいか', () => {
     expect(getWinningCombinations(BET_TYPES.WIN, finishers)).toEqual([[1]]);
-
     expect(getWinningCombinations(BET_TYPES.PLACE, finishers)).toEqual([[1], [2], [3]]);
-
     expect(getWinningCombinations(BET_TYPES.QUINELLA, finishers)).toEqual([[1, 2]]);
-
     expect(getWinningCombinations(BET_TYPES.EXACTA, finishers)).toEqual([[1, 2]]);
-
     expect(getWinningCombinations(BET_TYPES.WIDE, finishers)).toEqual([
       [1, 2],
       [1, 3],
       [2, 3],
     ]);
-
     expect(getWinningCombinations(BET_TYPES.TRIO, finishers)).toEqual([[1, 2, 3]]);
-
     expect(getWinningCombinations(BET_TYPES.TRIFECTA, finishers)).toEqual([[1, 2, 3]]);
   });
 
@@ -90,5 +107,121 @@ describe('getWinningCombinations (勝利組み合わせ生成)', () => {
     const fewFinishers: Finisher[] = [{ horseNumber: 1, bracketNumber: 1 }];
     expect(getWinningCombinations(BET_TYPES.QUINELLA, fewFinishers)).toEqual([]);
     expect(getWinningCombinations(BET_TYPES.WIN, fewFinishers)).toEqual([[1]]);
+  });
+
+  it('フィニッシャーが2頭の場合、ワイドは1組のみ', () => {
+    const twoFinishers: Finisher[] = [
+      { horseNumber: 5, bracketNumber: 3 },
+      { horseNumber: 8, bracketNumber: 4 },
+    ];
+    expect(getWinningCombinations(BET_TYPES.WIDE, twoFinishers)).toEqual([[5, 8]]);
+    expect(getWinningCombinations(BET_TYPES.TRIO, twoFinishers)).toEqual([]);
+    expect(getWinningCombinations(BET_TYPES.TRIFECTA, twoFinishers)).toEqual([]);
+  });
+
+  it('馬連のソート: 馬番が逆順でもソートされる', () => {
+    const reversedFinishers: Finisher[] = [
+      { horseNumber: 8, bracketNumber: 4 },
+      { horseNumber: 3, bracketNumber: 2 },
+      { horseNumber: 5, bracketNumber: 3 },
+    ];
+    expect(getWinningCombinations(BET_TYPES.QUINELLA, reversedFinishers)).toEqual([[3, 8]]);
+    expect(getWinningCombinations(BET_TYPES.EXACTA, reversedFinishers)).toEqual([[8, 3]]);
+  });
+});
+
+describe('calculatePayoutRate (オッズ計算)', () => {
+  it('基本: 1人だけが的中した場合、プール全額÷的中金額', () => {
+    const rate = calculatePayoutRate(1000, 100, 100);
+    expect(rate).toBe(10.0);
+  });
+
+  it('最低倍率1.0を保証する (元返し)', () => {
+    const rate = calculatePayoutRate(100, 100, 100);
+    expect(rate).toBe(1.0);
+  });
+
+  it('最低倍率1.0以下にはならない (オーバーベット)', () => {
+    const rate = calculatePayoutRate(50, 100, 100);
+    expect(rate).toBe(1.0);
+  });
+
+  it('小数点第1位で切り捨て', () => {
+    const rate = calculatePayoutRate(1000, 300, 300);
+    expect(rate).toBe(3.3);
+  });
+
+  it('的中金額が0の場合は0を返す', () => {
+    const rate = calculatePayoutRate(1000, 0, 0);
+    expect(rate).toBe(0);
+  });
+
+  it('控除率 (takeoutRate) が適用される', () => {
+    const rate = calculatePayoutRate(1000, 100, 100, 1, 0.2);
+    expect(rate).toBe(8.0);
+  });
+
+  it('複数的中組み合わせがある場合のオッズ分配 (ワイド等)', () => {
+    const rateA = calculatePayoutRate(1000, 200, 600, 3);
+    expect(rateA).toBe(1.6);
+
+    const rateB = calculatePayoutRate(1000, 300, 600, 3);
+    expect(rateB).toBe(1.4);
+
+    const rateC = calculatePayoutRate(1000, 100, 600, 3);
+    expect(rateC).toBe(2.3);
+  });
+
+  it('複数的中で利益がゼロの場合', () => {
+    const rate = calculatePayoutRate(500, 200, 500, 2);
+    expect(rate).toBe(1.0);
+  });
+
+  it('大きなプールでの計算精度', () => {
+    const rate = calculatePayoutRate(1000000, 10000, 10000);
+    expect(rate).toBe(100.0);
+  });
+
+  it('控除率100%の場合、最低倍率1.0を返す', () => {
+    const rate = calculatePayoutRate(1000, 100, 100, 1, 1.0);
+    expect(rate).toBe(1.0);
+  });
+});
+
+describe('normalizeSelections (選択正規化)', () => {
+  it('順序依存の券種 (WIN): 順序がそのまま保持される', () => {
+    expect(normalizeSelections(BET_TYPES.WIN, [3])).toBe(JSON.stringify([3]));
+  });
+
+  it('順序依存の券種 (EXACTA): 順序がそのまま保持される', () => {
+    expect(normalizeSelections(BET_TYPES.EXACTA, [2, 1])).toBe(JSON.stringify([2, 1]));
+    expect(normalizeSelections(BET_TYPES.EXACTA, [1, 2])).toBe(JSON.stringify([1, 2]));
+    expect(normalizeSelections(BET_TYPES.EXACTA, [2, 1])).not.toBe(normalizeSelections(BET_TYPES.EXACTA, [1, 2]));
+  });
+
+  it('順序依存の券種 (TRIFECTA): 順序がそのまま保持される', () => {
+    expect(normalizeSelections(BET_TYPES.TRIFECTA, [3, 1, 2])).toBe(JSON.stringify([3, 1, 2]));
+  });
+
+  it('順序非依存の券種 (QUINELLA): ソートされる', () => {
+    expect(normalizeSelections(BET_TYPES.QUINELLA, [5, 2])).toBe(JSON.stringify([2, 5]));
+    expect(normalizeSelections(BET_TYPES.QUINELLA, [2, 5])).toBe(JSON.stringify([2, 5]));
+    expect(normalizeSelections(BET_TYPES.QUINELLA, [5, 2])).toBe(normalizeSelections(BET_TYPES.QUINELLA, [2, 5]));
+  });
+
+  it('順序非依存の券種 (WIDE): ソートされる', () => {
+    expect(normalizeSelections(BET_TYPES.WIDE, [8, 3])).toBe(JSON.stringify([3, 8]));
+  });
+
+  it('順序非依存の券種 (TRIO): ソートされる', () => {
+    expect(normalizeSelections(BET_TYPES.TRIO, [7, 2, 5])).toBe(JSON.stringify([2, 5, 7]));
+  });
+
+  it('順序非依存の券種 (BRACKET_QUINELLA): ソートされる', () => {
+    expect(normalizeSelections(BET_TYPES.BRACKET_QUINELLA, [6, 1])).toBe(JSON.stringify([1, 6]));
+  });
+
+  it('PLACE は順序依存', () => {
+    expect(normalizeSelections(BET_TYPES.PLACE, [4])).toBe(JSON.stringify([4]));
   });
 });

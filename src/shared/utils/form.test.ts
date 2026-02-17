@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getPasswordManagerIgnoreAttributes } from './form';
 
 describe('getPasswordManagerIgnoreAttributes', () => {
-  it('should return ignore attributes when ignore is true', () => {
+  it('ignoreがtrueの場合、無視属性を返すこと', () => {
     const attrs = getPasswordManagerIgnoreAttributes(true);
     expect(attrs).toEqual({
       'data-1p-ignore': 'true',
@@ -12,7 +12,7 @@ describe('getPasswordManagerIgnoreAttributes', () => {
     });
   });
 
-  it('should return empty object when ignore is false', () => {
+  it('ignoreがfalseの場合、空オブジェクトを返すこと', () => {
     const attrs = getPasswordManagerIgnoreAttributes(false);
     expect(attrs).toEqual({});
   });

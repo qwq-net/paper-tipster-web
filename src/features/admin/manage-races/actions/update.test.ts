@@ -66,7 +66,7 @@ describe('updateRace', () => {
     (db.update as unknown as Mock).mockImplementation(mockUpdate);
   });
 
-  it('should throw Unauthorized if user is not admin', async () => {
+  it('ユーザーが管理者でない場合、Unauthorizedエラーをスローすること', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
     const formData = new FormData();
@@ -74,7 +74,7 @@ describe('updateRace', () => {
     await expect(updateRace('123', formData)).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
   });
 
-  it('should update race successfully', async () => {
+  it('レースを正常に更新すること', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
 
@@ -115,14 +115,14 @@ describe('closeRace', () => {
     (db.update as unknown as Mock).mockImplementation(mockUpdate);
   });
 
-  it('should throw Unauthorized if user is not admin', async () => {
+  it('ユーザーが管理者でない場合、Unauthorizedエラーをスローすること', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
 
     await expect(closeRace('123')).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
   });
 
-  it('should close race and emit event', async () => {
+  it('レースを終了しイベントを発行すること', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
 

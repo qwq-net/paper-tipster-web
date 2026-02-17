@@ -3,50 +3,50 @@ import { formatJST, parseJSTToUTC, toJSTString } from './date';
 
 describe('utils/date', () => {
   describe('toJSTString', () => {
-    it('should format date to JST string correctly', () => {
+    it('日付をJST文字列に正しくフォーマットすること', () => {
       const date = new Date('2023-01-01T00:00:00Z');
       expect(toJSTString(date)).toBe('2023-01-01T09:00');
     });
 
-    it('should handle string input', () => {
+    it('文字列入力を扱えること', () => {
       expect(toJSTString('2023-01-01T00:00:00Z')).toBe('2023-01-01T09:00');
     });
 
-    it('should return empty string for null/undefined', () => {
+    it('null/undefinedに対して空文字を返すこと', () => {
       expect(toJSTString(null)).toBe('');
       expect(toJSTString(undefined)).toBe('');
     });
   });
 
   describe('parseJSTToUTC', () => {
-    it('should parse JST string to UTC Date correcty', () => {
+    it('JST文字列をUTCのDateオブジェクトに正しくパースすること', () => {
       const jstString = '2023-01-01T09:00';
       const result = parseJSTToUTC(jstString);
       expect(result).toBeInstanceOf(Date);
       expect(result?.toISOString()).toBe('2023-01-01T00:00:00.000Z');
     });
 
-    it('should return null for invalid date string', () => {
+    it('無効な日付文字列に対してnullを返すこと', () => {
       expect(parseJSTToUTC('invalid')).toBeNull();
     });
 
-    it('should return null for null/undefined', () => {
+    it('null/undefinedに対してnullを返すこと', () => {
       expect(parseJSTToUTC(null)).toBeNull();
     });
   });
 
   describe('formatJST', () => {
-    it('should format date with default options (HH:mm)', () => {
+    it('デフォルトオプション(HH:mm)で日付をフォーマットすること', () => {
       const date = new Date('2023-01-01T00:00:00Z');
       expect(formatJST(date)).toBe('09:00');
     });
 
-    it('should format date with custom Intl options', () => {
+    it('カスタムIntlオプションで日付をフォーマットすること', () => {
       const date = new Date('2023-01-01T00:00:00Z');
       expect(formatJST(date, { hour: 'numeric', minute: 'numeric', second: 'numeric' })).toBe('9:00:00');
     });
 
-    it('should handle complex Intl.DateTimeFormatOptions', () => {
+    it('複雑なIntl.DateTimeFormatOptionsを扱えること', () => {
       const date = new Date('2023-01-01T00:00:00Z');
       const options: Intl.DateTimeFormatOptions = {
         year: 'numeric',
@@ -57,7 +57,7 @@ describe('utils/date', () => {
       expect(formatJST(date, options)).toBe('2023年1月1日');
     });
 
-    it('should return empty string for null/undefined', () => {
+    it('null/undefinedに対して空文字を返すこと', () => {
       expect(formatJST(null)).toBe('');
     });
   });

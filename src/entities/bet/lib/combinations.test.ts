@@ -4,7 +4,7 @@ import { calculateBetCount, generateCombinations, getValidBetCombinations } from
 
 describe('Combinations Logic', () => {
   describe('generateCombinations', () => {
-    it('should generate all permutations from selections', () => {
+    it('選択肢から全ての順列を生成すること', () => {
       const selections = [
         [1, 2],
         [3, 4],
@@ -17,19 +17,19 @@ describe('Combinations Logic', () => {
       expect(result).toContainEqual([2, 4]);
     });
 
-    it('should return empty array if any selection is empty', () => {
+    it('選択肢が空の場合、空配列を返すこと', () => {
       expect(generateCombinations([[1], []])).toHaveLength(0);
       expect(generateCombinations([])).toHaveLength(0);
     });
   });
 
   describe('calculateBetCount', () => {
-    it('should calculate WIN/PLACE correctly (single selection)', () => {
+    it('単勝/複勝の点数を正しく計算すること (単一選択)', () => {
       expect(calculateBetCount([[1, 2, 3]], BET_TYPES.WIN)).toBe(3);
       expect(calculateBetCount([[1, 1, 2]], BET_TYPES.WIN)).toBe(2);
     });
 
-    it('should calculate EXACTA correctly', () => {
+    it('馬単の点数を正しく計算すること', () => {
       expect(
         calculateBetCount(
           [
@@ -41,7 +41,7 @@ describe('Combinations Logic', () => {
       ).toBe(6);
     });
 
-    it('should calculate QUINELLA correctly', () => {
+    it('馬連の点数を正しく計算すること', () => {
       expect(
         calculateBetCount(
           [
@@ -53,7 +53,7 @@ describe('Combinations Logic', () => {
       ).toBe(3);
     });
 
-    it('should calculate TRIFECTA correctly', () => {
+    it('3連単の点数を正しく計算すること', () => {
       expect(
         calculateBetCount(
           [
@@ -66,7 +66,7 @@ describe('Combinations Logic', () => {
       ).toBe(6);
     });
 
-    it('should calculate TRIO correctly', () => {
+    it('3連複の点数を正しく計算すること', () => {
       expect(
         calculateBetCount(
           [
@@ -79,7 +79,7 @@ describe('Combinations Logic', () => {
       ).toBe(1);
     });
 
-    it('should handle BRACKET_QUINELLA with multiple horses in same bracket', () => {
+    it('同枠に複数頭いる場合の枠連を正しく処理すること', () => {
       const bracketCount = new Map([
         [1, 2],
         [2, 1],
@@ -98,12 +98,12 @@ describe('Combinations Logic', () => {
   });
 
   describe('getValidBetCombinations', () => {
-    it('should return sorted distinct values for WIN/PLACE', () => {
+    it('単勝/複勝に対してソートされ重複のない値を返すこと', () => {
       const result = getValidBetCombinations([[3, 1, 2, 2]], BET_TYPES.WIN);
       expect(result).toEqual([[1], [2], [3]]);
     });
 
-    it('should return filtered combinations for complex bets', () => {
+    it('複合ベットに対してフィルタリングされた組み合わせを返すこと', () => {
       const result = getValidBetCombinations(
         [
           [1, 2],

@@ -50,7 +50,7 @@ describe('createRace', () => {
     (db.insert as unknown as Mock).mockImplementation(mockInsert);
   });
 
-  it('should throw Unauthorized if user is not admin', async () => {
+  it('ユーザーが管理者でない場合、Unauthorizedエラーをスローすること', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
     const formData = new FormData();
@@ -58,7 +58,7 @@ describe('createRace', () => {
     await expect(createRace(formData)).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
   });
 
-  it('should throw Invalid Input if formData is empty', async () => {
+  it('formDataが空の場合、Invalid Inputエラーをスローすること', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
     const formData = new FormData();
@@ -66,7 +66,7 @@ describe('createRace', () => {
     await expect(createRace(formData)).rejects.toThrow(ADMIN_ERRORS.INVALID_INPUT);
   });
 
-  it('should create race successfully with valid data', async () => {
+  it('有効なデータであればレースを正常に作成すること', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
 

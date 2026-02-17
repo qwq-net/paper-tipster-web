@@ -3,7 +3,7 @@ import { calculateLoanThreshold, calculateNetBalance, isEligibleForLoan } from '
 
 describe('Loan Logic', () => {
   describe('calculateLoanThreshold', () => {
-    it('should return 60% of distributeAmount', () => {
+    it('分配額の60%を返すこと', () => {
       expect(calculateLoanThreshold(10000)).toBe(6000);
       expect(calculateLoanThreshold(0)).toBe(0);
       expect(calculateLoanThreshold(5000)).toBe(3000);
@@ -13,24 +13,24 @@ describe('Loan Logic', () => {
   describe('isEligibleForLoan', () => {
     const distributeAmount = 10000;
 
-    it('should return true if balance is below threshold and has not loaned yet', () => {
+    it('残高が閾値未満かつ未ローンの場合、trueを返すこと', () => {
       expect(isEligibleForLoan(5999, distributeAmount, false)).toBe(true);
       expect(isEligibleForLoan(0, distributeAmount, false)).toBe(true);
     });
 
-    it('should return false if balance is at or above threshold', () => {
+    it('残高が閾値以上の場合、falseを返すこと', () => {
       expect(isEligibleForLoan(6000, distributeAmount, false)).toBe(false);
       expect(isEligibleForLoan(10000, distributeAmount, false)).toBe(false);
     });
 
-    it('should return false if already loaned, regardless of balance', () => {
+    it('既にローン済みの場合、残高に関わらずfalseを返すこと', () => {
       expect(isEligibleForLoan(1000, distributeAmount, true)).toBe(false);
       expect(isEligibleForLoan(7000, distributeAmount, true)).toBe(false);
     });
   });
 
   describe('calculateNetBalance', () => {
-    it('should calculate balance minus total loaned', () => {
+    it('残高からローン総額を引いた値を計算すること', () => {
       expect(calculateNetBalance(5000, 10000)).toBe(-5000);
       expect(calculateNetBalance(20000, 10000)).toBe(10000);
       expect(calculateNetBalance(10000, 0)).toBe(10000);

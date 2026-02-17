@@ -2,16 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { getDisplayStatus } from './status';
 
 describe('entities/race/lib/status', () => {
-  it('should return status as is if not CLOSED', () => {
+  it('CLOSEDでない場合、ステータスをそのまま返すこと', () => {
     expect(getDisplayStatus('OPEN', false)).toBe('OPEN');
     expect(getDisplayStatus('OPEN', true)).toBe('OPEN');
   });
 
-  it('should return status as is if CLOSED but no ranking', () => {
+  it('CLOSEDだがランキングがない場合、ステータスをそのまま返すこと', () => {
     expect(getDisplayStatus('CLOSED', false)).toBe('CLOSED');
   });
 
-  it('should return RANKING_CONFIRMED if CLOSED and has ranking', () => {
+  it('CLOSEDかつランキングがある場合、RANKING_CONFIRMEDを返すこと', () => {
     expect(getDisplayStatus('CLOSED', true)).toBe('RANKING_CONFIRMED');
   });
 });

@@ -8,16 +8,9 @@ import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { desc, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
-export type RankingDisplayMode = 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';
+import { type RankingData } from '@/entities/ranking';
 
-export interface RankingData {
-  rank: number | string;
-  userId: string;
-  name: string;
-  balance: number | string;
-  isCurrentUser: boolean;
-  totalLoaned?: number;
-}
+export type RankingDisplayMode = 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';
 
 export async function getEventRanking(eventId: string): Promise<{
   ranking: RankingData[];
@@ -90,6 +83,63 @@ export async function getEventRanking(eventId: string): Promise<{
   return {
     ranking,
     published: event.rankingDisplayMode !== 'HIDDEN',
+    displayMode: event.rankingDisplayMode,
+    distributeAmount,
+  };
+}
+
+export async function getAdminEventRanking(eventId: string): Promise<{
+  ranking: RankingData[];
+  displayMode: RankingDisplayMode;
+  distributeAmount: number;
+}> {
+  const session = await auth();
+  if (session?.user?.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  const event = await db.query.events.findFirst({
+    where: eq(events.id, eventId),
+  });
+
+  if (!event) {
+    throw new Error('Event not found');
+  }
+
+  const distributeAmount = event.distributeAmount;
+
+  const eventWallets = await db.query.wallets.findMany({
+    where: eq(wallets.eventId, eventId),
+    with: {
+      user: {
+        columns: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: [desc(sql`${wallets.balance} - ${wallets.totalLoaned}`)],
+  });
+
+  const ranking: RankingData[] = eventWallets.map((wallet, index) => {
+    const isCurrentUser = wallet.userId === session.user?.id;
+    const name = wallet.user.name || 'Unknown';
+    const rank = index + 1;
+    const balance = calculateNetBalance(wallet.balance, wallet.totalLoaned);
+    const totalLoaned = wallet.totalLoaned > 0 ? wallet.totalLoaned : undefined;
+
+    return {
+      rank,
+      userId: wallet.userId,
+      name,
+      balance,
+      isCurrentUser,
+      totalLoaned,
+    };
+  });
+
+  return {
+    ranking,
     displayMode: event.rankingDisplayMode,
     distributeAmount,
   };

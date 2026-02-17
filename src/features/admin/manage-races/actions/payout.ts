@@ -43,7 +43,7 @@ export async function finalizePayout(raceId: string) {
     const walletPayouts = new Map<string, number>();
     const betUpdates: {
       id: string;
-      status: 'HIT' | 'LOST' | 'REFUNDED';
+      status: 'HIT' | 'LOST';
       payout: number;
       odds: string;
     }[] = [];
@@ -54,9 +54,8 @@ export async function finalizePayout(raceId: string) {
       const betKey = normalizeSelections(betDetail.type, betDetail.selections);
 
       const hitResult = typeResults.find((r) => normalizeSelections(betDetail.type, r.numbers) === betKey);
-      const refundResult = !hitResult ? typeResults.find((r) => r.numbers.length === 0) : null;
 
-      let status: 'HIT' | 'LOST' | 'REFUNDED' = 'LOST';
+      let status: 'HIT' | 'LOST' = 'LOST';
       let payout = 0;
       let odds = '0.0';
 
@@ -64,10 +63,6 @@ export async function finalizePayout(raceId: string) {
         status = 'HIT';
         payout = Math.floor((bet.amount * hitResult.payout) / ODDS_UNIT);
         odds = (hitResult.payout / ODDS_UNIT).toFixed(1);
-      } else if (refundResult) {
-        status = 'REFUNDED';
-        payout = Math.floor((bet.amount * refundResult.payout) / ODDS_UNIT);
-        odds = (refundResult.payout / ODDS_UNIT).toFixed(1);
       }
 
       betUpdates.push({ id: bet.id, status, payout, odds });
@@ -85,7 +80,7 @@ export async function finalizePayout(raceId: string) {
         const chunkIds = chunk.map((b) => b.id);
 
         const chunkStatusCase = sql<
-          'HIT' | 'LOST' | 'REFUNDED'
+          'HIT' | 'LOST'
         >`CASE id ${sql.raw(chunk.map((b) => `WHEN '${b.id}' THEN '${b.status}'`).join(' '))} END::bet_status`;
         const chunkPayoutCase = sql<number>`CASE id ${sql.raw(
           chunk.map((b) => `WHEN '${b.id}' THEN ${b.payout}`).join(' ')

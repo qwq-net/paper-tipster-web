@@ -1,6 +1,5 @@
 import { BET_TYPES, BetDetail, BetType } from '@/entities/bet/constants';
 
-export const TOKUBARAI_RATE = 0.7;
 export const ODDS_UNIT = 100;
 
 export interface Finisher {

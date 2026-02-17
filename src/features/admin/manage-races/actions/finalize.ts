@@ -1,6 +1,7 @@
 'use server';
 
 import { BetDetail, calculatePayoutRate, Finisher, isWinningBet, normalizeSelections, ODDS_UNIT } from '@/entities/bet';
+import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { db } from '@/shared/db';
 import { bets, raceEntries, raceInstances } from '@/shared/db/schema';
 import { requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
@@ -95,7 +96,6 @@ export async function finalizeRace(
     }
 
     const takeoutRate = options.payoutMode === 'TOTAL_DISTRIBUTION' ? 0 : options.takeoutRate;
-    const currentTokubaraiRate = 1 - takeoutRate;
 
     const payoutCalculationsByType: Record<string, { numbers: number[]; payout: number }[]> = {};
 
@@ -103,45 +103,33 @@ export async function finalizeRace(
       const betDetail = bet.details as BetDetail;
       const type = betDetail.type;
       const winners = winnersByBetType[type] || [];
-      const hasWinner = winners.length > 0;
-
       const winnerInfo = winners.find((w) => w.bet.id === bet.id);
 
-      if (hasWinner) {
-        if (winnerInfo) {
-          const selectionKey = winnerInfo.selectionKey;
-          const selectionAmount = winningSelectionAmounts[type][selectionKey];
-          const totalWinningAmount = Object.values(winningSelectionAmounts[type]).reduce((sum, val) => sum + val, 0);
-          const winningCount = Object.keys(winningSelectionAmounts[type]).length;
+      if (!winnerInfo) continue;
 
-          let rate = calculatePayoutRate(
-            poolByBetType[type],
-            selectionAmount,
-            totalWinningAmount,
-            winningCount,
-            takeoutRate
-          );
+      const selectionKey = winnerInfo.selectionKey;
+      const selectionAmount = winningSelectionAmounts[type][selectionKey];
+      const totalWinningAmount = Object.values(winningSelectionAmounts[type]).reduce((sum, val) => sum + val, 0);
+      const winningCount = Object.keys(winningSelectionAmounts[type]).length;
 
-          if (guaranteedOdds && guaranteedOdds[type]) {
-            rate = Math.max(rate, guaranteedOdds[type]);
-          }
+      let rate = calculatePayoutRate(
+        poolByBetType[type],
+        selectionAmount,
+        totalWinningAmount,
+        winningCount,
+        takeoutRate
+      );
 
-          if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
+      if (guaranteedOdds && guaranteedOdds[type]) {
+        rate = Math.max(rate, guaranteedOdds[type]);
+      }
 
-          const betKey = normalizeSelections(type, betDetail.selections);
-          if (!payoutCalculationsByType[type].find((p) => normalizeSelections(type, p.numbers) === betKey)) {
-            const unitPayout = Math.floor(ODDS_UNIT * rate);
-            payoutCalculationsByType[type].push({ numbers: betDetail.selections, payout: unitPayout });
-          }
-        }
-      } else {
-        if (poolByBetType[type] > 0) {
-          if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
-          if (payoutCalculationsByType[type].length === 0) {
-            const tokubaraiPayout = Math.floor(ODDS_UNIT * currentTokubaraiRate);
-            payoutCalculationsByType[type].push({ numbers: [], payout: tokubaraiPayout });
-          }
-        }
+      if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
+
+      const betKey = normalizeSelections(type, betDetail.selections);
+      if (!payoutCalculationsByType[type].find((p) => normalizeSelections(type, p.numbers) === betKey)) {
+        const unitPayout = Math.floor(ODDS_UNIT * rate);
+        payoutCalculationsByType[type].push({ numbers: betDetail.selections, payout: unitPayout });
       }
     }
 
@@ -154,28 +142,30 @@ export async function finalizeRace(
       if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
 
       const winningCombinations = getWinningCombinations(type, finishers);
+      const defaultRate =
+        guaranteedOdds?.[type] ?? DEFAULT_GUARANTEED_ODDS[type as keyof typeof DEFAULT_GUARANTEED_ODDS] ?? 1.0;
+
       for (const combination of winningCombinations) {
         const key = normalizeSelections(type, combination);
         const exists = payoutCalculationsByType[type].some((p) => normalizeSelections(type, p.numbers) === key);
         if (!exists) {
-          payoutCalculationsByType[type].push({ numbers: combination, payout: 0 });
+          const payout = Math.floor(ODDS_UNIT * defaultRate);
+          payoutCalculationsByType[type].push({ numbers: combination, payout });
         }
       }
 
-      const hasWinningVotes = payoutCalculationsByType[type].some((p) => p.payout > 0);
+      const hasActualWinners = (winnersByBetType[type] || []).length > 0;
 
-      if (!hasWinningVotes) {
+      if (!hasActualWinners) {
         const pool = poolByBetType[type] || 0;
         if (pool > 0) {
           raceCarryover += pool;
         }
       }
 
-      payoutCalculationsByType[type] = payoutCalculationsByType[type]
-        .filter((p) => p.numbers.length > 0)
-        .sort((a, b) => {
-          return a.numbers.join('-').localeCompare(b.numbers.join('-'));
-        });
+      payoutCalculationsByType[type] = payoutCalculationsByType[type].sort((a, b) => {
+        return a.numbers.join('-').localeCompare(b.numbers.join('-'));
+      });
     }
 
     const { payoutResults: payoutResultsTable, events } = await import('@/shared/db/schema');

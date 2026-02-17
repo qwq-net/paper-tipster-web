@@ -8,10 +8,10 @@
     "build": "next build || exit 1",
     "start": "next start || exit 1",
     "lint": "eslint || exit 1",
-    "check": "pnpm lint:fix && pnpm tsc --noEmit && pnpm prettier --write . || exit 1",
-    "test": "vitest || exit 1",
     "lint:fix": "eslint --fix || exit 1",
-    "format": "prettier --write . || exit 1"
+    "format": "prettier --write . || exit 1",
+    "check": "pnpm lint:fix && pnpm tsc --noEmit && pnpm prettier --write . || exit 1",
+    "test": "vitest || exit 1"
   },
   "dependencies": {
     "@auth/core": "0.41.1",

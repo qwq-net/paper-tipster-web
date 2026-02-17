@@ -1,10 +1,8 @@
 'use client';
 
-import type { RankingDisplayMode } from '@/features/ranking/actions';
-import { updateRankingDisplayMode } from '@/features/ranking/actions';
 import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/constants/status';
 import { Button, Card, CardContent } from '@/shared/ui';
-import { Banknote, EyeOff, Pause, Play, RefreshCw, Square, Trophy, Users } from 'lucide-react';
+import { Pause, Play, RefreshCw, Square } from 'lucide-react';
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
 import { EventForm } from './event-form';
@@ -16,7 +14,6 @@ type Event = {
   status: EventStatus;
   distributeAmount: number;
   date: string;
-  rankingDisplayMode: RankingDisplayMode;
   loanAmount: number | null;
 };
 
@@ -32,27 +29,6 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
     startTransition(async () => {
       await updateEventStatus(event.id, newStatus);
     });
-  };
-
-  const handleModeChange = (mode: RankingDisplayMode) => {
-    startTransition(async () => {
-      await updateRankingDisplayMode(event.id, mode);
-    });
-  };
-
-  const getRankingModeLabel = (mode: string) => {
-    switch (mode) {
-      case 'HIDDEN':
-        return '非公開';
-      case 'ANONYMOUS':
-        return '匿名公開';
-      case 'FULL':
-        return '完全公開';
-      case 'FULL_WITH_LOAN':
-        return '公開 (借金込み)';
-      default:
-        return mode;
-    }
   };
 
   return (
@@ -137,61 +113,18 @@ export function AdminEventEditor({ event, onSuccess }: AdminEventEditorProps) {
           </Card>
 
           <Card className="bg-gray-50">
-            <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="font-medium text-gray-900">ランキング公開設定</p>
-                <p className="text-sm text-gray-500">現在の設定: {getRankingModeLabel(event.rankingDisplayMode)}</p>
+                <p className="font-medium text-gray-900">ランキング管理</p>
+                <p className="text-sm text-gray-500">順位確認と公開設定を行います</p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  variant={event.rankingDisplayMode === 'HIDDEN' ? 'secondary' : 'outline'}
-                  disabled={isPending}
-                  onClick={() => handleModeChange('HIDDEN')}
-                  className={event.rankingDisplayMode === 'HIDDEN' ? 'bg-gray-200 text-gray-900' : ''}
-                >
-                  <EyeOff className="mr-2 h-4 w-4" />
-                  非公開
-                </Button>
-                <Button
-                  size="sm"
-                  variant={event.rankingDisplayMode === 'ANONYMOUS' ? 'secondary' : 'outline'}
-                  disabled={isPending}
-                  onClick={() => handleModeChange('ANONYMOUS')}
-                  className={
-                    event.rankingDisplayMode === 'ANONYMOUS' ? 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200' : ''
-                  }
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  匿名公開
-                </Button>
-                <Button
-                  size="sm"
-                  variant={event.rankingDisplayMode === 'FULL' ? 'secondary' : 'outline'}
-                  disabled={isPending}
-                  onClick={() => handleModeChange('FULL')}
-                  className={
-                    event.rankingDisplayMode === 'FULL' ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : ''
-                  }
-                >
-                  <Trophy className="mr-2 h-4 w-4" />
-                  完全公開
-                </Button>
-                <Button
-                  size="sm"
-                  variant={event.rankingDisplayMode === 'FULL_WITH_LOAN' ? 'secondary' : 'outline'}
-                  disabled={isPending}
-                  onClick={() => handleModeChange('FULL_WITH_LOAN')}
-                  className={
-                    event.rankingDisplayMode === 'FULL_WITH_LOAN'
-                      ? 'bg-orange-100 text-orange-900 hover:bg-orange-200'
-                      : ''
-                  }
-                >
-                  <Banknote className="mr-2 h-4 w-4" />
-                  公開 (借金込み)
-                </Button>
-              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => (window.location.href = `/admin/events/${event.id}/ranking`)}
+              >
+                ランキングへ移動
+              </Button>
             </CardContent>
           </Card>
         </div>

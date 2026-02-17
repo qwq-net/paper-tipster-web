@@ -43,7 +43,7 @@ tasks:
   install:
     desc: 依存関係をインストールします
     cmds:
-      - docker compose exec {{.TTY}} app pnpm install
+      - docker compose exec {{.TTY}} app pnpm install || exit 1
 
   dev:
     desc: 開発サーバーを起動します
@@ -53,12 +53,12 @@ tasks:
   build:
     desc: アプリケーションをビルドします
     cmds:
-      - docker compose exec {{.TTY}} app pnpm build
+      - docker compose exec {{.TTY}} app pnpm build || exit 1
 
   add:
     desc: パッケージを追加します
     cmds:
-      - docker compose exec app pnpm add {{.CLI_ARGS}}
+      - docker compose exec app pnpm add {{.CLI_ARGS}} || exit 1
 
   test:
     desc: テストを実行します
@@ -90,7 +90,7 @@ tasks:
   db:seed:master:
     desc: マスターデータのみを投入します
     cmds:
-      - docker compose exec {{.TTY}} app pnpm db:seed --master-only
+      - docker compose exec {{.TTY}} app pnpm tsx src/shared/db/seed.ts --master-only
 
   db:role:
     desc: ユーザーのロールを変更します

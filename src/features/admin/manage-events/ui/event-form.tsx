@@ -1,6 +1,5 @@
 'use client';
 
-import { GuaranteedOddsInputs } from '@/features/admin/shared/ui/guaranteed-odds-inputs';
 import { Button, Input, Label, NumericInput, Textarea } from '@/shared/ui';
 import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -15,7 +14,6 @@ interface EventFormProps {
     distributeAmount: number;
     loanAmount: number | null;
     date: string;
-    defaultGuaranteedOdds?: Record<string, number> | null;
   };
   onSuccess?: () => void;
 }
@@ -23,9 +21,6 @@ interface EventFormProps {
 export function EventForm({ initialData, onSuccess }: EventFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
-  const [guaranteedOdds, setGuaranteedOdds] = useState<Record<string, number>>(
-    initialData?.defaultGuaranteedOdds || {}
-  );
   const [distributeAmount, setDistributeAmount] = useState(initialData?.distributeAmount ?? 100000);
   const [loanAmount, setLoanAmount] = useState<number | null>(initialData?.loanAmount ?? null);
 
@@ -113,15 +108,6 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
             />
           </div>
         </div>
-      </div>
-
-      <div className="border-t border-gray-100 pt-4">
-        <Label>デフォルト保証オッズ</Label>
-        <p className="mt-1 mb-3 text-sm text-gray-500">
-          レース作成時に適用される保証オッズの初期値です。各レースで個別に変更可能です。
-        </p>
-        <input name="defaultGuaranteedOdds" type="hidden" value={JSON.stringify(guaranteedOdds)} />
-        <GuaranteedOddsInputs value={guaranteedOdds} onChange={setGuaranteedOdds} />
       </div>
 
       <Button type="submit" className="mt-2 w-full" size="lg">

@@ -1,9 +1,8 @@
 'use client';
 
-import { updateRankingDisplayMode, type RankingDisplayMode } from '@/features/ranking';
 import { type EventStatus } from '@/shared/constants/status';
 import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui';
-import { Banknote, ChevronDown, EyeOff, Pause, Play, RefreshCw, Square, Trophy, Users } from 'lucide-react';
+import { ChevronDown, Pause, Play, RefreshCw, Square, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { useTransition } from 'react';
 import { updateEventStatus } from '../actions';
@@ -15,7 +14,6 @@ type Event = {
   status: EventStatus;
   distributeAmount: number;
   date: string;
-  rankingDisplayMode: RankingDisplayMode;
 };
 
 export function EventList({ events }: { events: Event[] }) {
@@ -24,12 +22,6 @@ export function EventList({ events }: { events: Event[] }) {
   const handleStatusChange = (eventId: string, newStatus: Event['status']) => {
     startTransition(async () => {
       await updateEventStatus(eventId, newStatus);
-    });
-  };
-
-  const handleModeChange = (eventId: string, mode: RankingDisplayMode) => {
-    startTransition(async () => {
-      await updateRankingDisplayMode(eventId, mode);
     });
   };
 
@@ -76,6 +68,13 @@ export function EventList({ events }: { events: Event[] }) {
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-400">{event.date}</td>
               <td className="px-6 py-4 text-right whitespace-nowrap">
                 <div className="flex items-center justify-end gap-2">
+                  <Button asChild size="sm" variant="outline" className="gap-1">
+                    <Link href={`/admin/events/${event.id}/ranking`} title="ランキング管理">
+                      <Trophy className="h-3.5 w-3.5" />
+                      順位
+                    </Link>
+                  </Button>
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button size="sm" variant="outline" disabled={isPending} className="gap-1">
@@ -111,50 +110,6 @@ export function EventList({ events }: { events: Event[] }) {
                           再開
                         </DropdownMenuItem>
                       )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant={event.rankingDisplayMode === 'HIDDEN' ? 'outline' : 'secondary'}
-                        disabled={isPending}
-                        className={
-                          event.rankingDisplayMode !== 'HIDDEN' ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : ''
-                        }
-                        title={
-                          event.rankingDisplayMode === 'HIDDEN'
-                            ? 'ランキング非公開'
-                            : event.rankingDisplayMode === 'ANONYMOUS'
-                              ? 'ランキング匿名公開中'
-                              : event.rankingDisplayMode === 'FULL_WITH_LOAN'
-                                ? 'ランキング公開中 (借金込み)'
-                                : 'ランキング完全公開中'
-                        }
-                      >
-                        <Trophy
-                          className={`h-4 w-4 ${event.rankingDisplayMode !== 'HIDDEN' ? 'text-amber-600' : 'text-gray-500'}`}
-                        />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleModeChange(event.id, 'HIDDEN')}>
-                        <EyeOff className="mr-2 h-4 w-4" />
-                        非公開
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleModeChange(event.id, 'ANONYMOUS')}>
-                        <Users className="mr-2 h-4 w-4" />
-                        匿名公開
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleModeChange(event.id, 'FULL')}>
-                        <Trophy className="mr-2 h-4 w-4" />
-                        完全公開
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleModeChange(event.id, 'FULL_WITH_LOAN')}>
-                        <Banknote className="mr-2 h-4 w-4" />
-                        公開 (借金込み)
-                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

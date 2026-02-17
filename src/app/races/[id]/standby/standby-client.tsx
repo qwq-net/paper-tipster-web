@@ -7,7 +7,7 @@ import { RACE_STATUS_LABELS, RaceStatus } from '@/shared/constants/status';
 import { Badge, Button, LiveConnectionStatus } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { getDisplayStatus } from '@/shared/utils/race-status';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Volume2, VolumeX } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
 interface StandbyClientProps {
@@ -51,18 +51,40 @@ export function StandbyClient({
 
   const { results, fetchResults } = useRaceResults(race.id, initialResults, initialIsFinalized);
 
-  const handleRaceBroadcast = useCallback(async () => {
-    try {
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+
+  const toggleAudio = useCallback(() => {
+    if (!isAudioEnabled) {
       const audio = new Audio('/sounds/chime.mp3');
-      audio.volume = 0.35;
-      audio.play().catch((e) => console.error('Audio play error:', e));
-    } catch (error) {
-      console.error('Failed to init notification sound:', error);
+      audio.volume = 0;
+      audio
+        .play()
+        .then(() => {
+          setIsAudioEnabled(true);
+        })
+        .catch((e) => {
+          console.error('Failed to unlock audio:', e);
+          setIsAudioEnabled(true);
+        });
+    } else {
+      setIsAudioEnabled(false);
+    }
+  }, [isAudioEnabled]);
+
+  const handleRaceBroadcast = useCallback(async () => {
+    if (isAudioEnabled) {
+      try {
+        const audio = new Audio('/sounds/chime.mp3');
+        audio.volume = 0.35;
+        audio.play().catch((e) => console.error('Audio play error:', e));
+      } catch (error) {
+        console.error('Failed to play notification sound:', error);
+      }
     }
 
     await fetchResults();
     setShowModal(true);
-  }, [fetchResults]);
+  }, [fetchResults, isAudioEnabled]);
 
   const { connectionStatus } = useRaceEvents({
     raceId: race.id,
@@ -239,8 +261,21 @@ export function StandbyClient({
         </div>
       )}
 
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
-        <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <button
+          onClick={toggleAudio}
+          className={`flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur-sm transition-all ${
+            isAudioEnabled
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-gray-800/80 text-gray-400 hover:text-white'
+          }`}
+          title={isAudioEnabled ? '音声通知をOFFにする' : '音声通知をONにする'}
+        >
+          {isAudioEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+        </button>
+        <div className="flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
+          <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
+        </div>
       </div>
 
       <PayoutResultModal

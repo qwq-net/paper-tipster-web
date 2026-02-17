@@ -1,6 +1,5 @@
 export {
   ODDS_UNIT,
-  TOKUBARAI_RATE,
   calculatePayoutRate,
   getWinningCombinations,
   isOrderSensitive,

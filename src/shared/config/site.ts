@@ -1,10 +1,6 @@
 export const siteConfig = {
-  name: 'JRRA',
-  description: 'Japan Ranranru Racing Association',
-  url: 'https://jrra.jp',
-  ogImage: 'https://jrra.jp/og.jpg',
-  links: {
-    twitter: 'https://twitter.com/jrra',
-    github: 'https://github.com/jrra',
-  },
+  name: 'Paper Tipster',
+  description: 'Paper Tipster - お金をかけずに遊べる、エア競馬投票システム',
+  url: 'https://tipster.klbq.cc',
+  ogImage: 'https://tipster.klbq.cc/og.jpg',
 };

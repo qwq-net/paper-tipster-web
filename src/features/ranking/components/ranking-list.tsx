@@ -1,9 +1,10 @@
 'use client';
 
+import type { RankingData } from '@/entities/ranking';
 import { useRankingEvents } from '@/features/ranking/hooks/use-ranking-events';
 import { Badge, LiveConnectionStatus } from '@/shared/ui';
 import { Trophy, Users } from 'lucide-react';
-import type { RankingData, RankingDisplayMode } from '../actions';
+import type { RankingDisplayMode } from '../actions';
 
 interface RankingListProps {
   eventId: string;

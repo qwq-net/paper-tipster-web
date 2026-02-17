@@ -3,14 +3,15 @@ import { fetchRaceOdds } from '@/features/betting/actions';
 import { BetTable } from '@/features/betting/ui/bet-table';
 import { LoanBanner } from '@/features/economy/loan/ui/loan-banner';
 import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
-import { getForecastsByRaceId } from '@/features/forecasts/actions';
-import { ForecastDisplay } from '@/features/forecasts/components/ForecastDisplay';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
 import { Button } from '@/shared/ui';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { Suspense } from 'react';
+
+import { ForecastSection } from './_components/forecast-section';
 
 import type { Metadata } from 'next';
 
@@ -38,12 +39,11 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
     redirect('/login');
   }
 
-  const [race, entries, wallets, initialOdds, forecasts] = await Promise.all([
+  const [race, entries, wallets, initialOdds] = await Promise.all([
     getRaceById(id),
     getEntriesForRace(id),
     getEventWallets(session.user.id),
     fetchRaceOdds(id),
-    getForecastsByRaceId(id),
   ]);
 
   if (!race) {
@@ -116,7 +116,16 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
           initialOdds={initialOdds}
         />
 
-        <ForecastDisplay forecasts={forecasts} entries={entries} />
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <span className="ml-2 text-sm text-gray-500">予想・見解を読み込み中...</span>
+            </div>
+          }
+        >
+          <ForecastSection raceId={id} />
+        </Suspense>
       </div>
     </div>
   );

@@ -53,7 +53,7 @@ export async function getRacesForSelect() {
         },
       },
     },
-    orderBy: (raceInstances, { asc }) => [asc(raceInstances.date), asc(raceInstances.name)],
+    orderBy: (raceInstances, { asc, desc }) => [desc(raceInstances.date), asc(raceInstances.name)],
   });
 
   const races = allRaces.map((race) => ({

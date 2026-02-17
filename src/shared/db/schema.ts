@@ -84,13 +84,19 @@ export const accountRelations = relations(accounts, ({ one }) => ({
   }),
 }));
 
-export const sessions = pgTable('session', {
-  sessionToken: text('session_token').primaryKey(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  expires: timestamp('expires', { mode: 'date', withTimezone: true }).notNull(),
-});
+export const sessions = pgTable(
+  'session',
+  {
+    sessionToken: text('session_token').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    expires: timestamp('expires', { mode: 'date', withTimezone: true }).notNull(),
+  },
+  (table) => ({
+    userIdx: index('session_user_idx').on(table.userId),
+  })
+);
 
 export const verificationTokens = pgTable(
   'verificationToken',
@@ -307,6 +313,7 @@ export const raceInstances = pgTable(
     statusIdx: index('race_instance_status_idx').on(table.status),
     dateIdx: index('race_instance_date_idx').on(table.date),
     venueIdx: index('race_instance_venue_idx').on(table.venueId),
+    definitionIdx: index('race_instance_definition_idx').on(table.raceDefinitionId),
   })
 );
 
@@ -332,6 +339,7 @@ export const betGroups = pgTable(
   (table) => ({
     raceIdx: index('bet_group_race_idx').on(table.raceId),
     userIdx: index('bet_group_user_idx').on(table.userId),
+    walletIdx: index('bet_group_wallet_idx').on(table.walletId),
   })
 );
 
@@ -362,6 +370,7 @@ export const bets = pgTable(
     raceIdx: index('bet_race_idx').on(table.raceId),
     userIdx: index('bet_user_idx').on(table.userId),
     groupIdx: index('bet_group_idx').on(table.betGroupId),
+    walletIdx: index('bet_wallet_idx').on(table.walletId),
   })
 );
 

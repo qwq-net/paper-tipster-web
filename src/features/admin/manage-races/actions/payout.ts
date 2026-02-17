@@ -100,13 +100,17 @@ export async function finalizePayout(raceId: string) {
       }
     }
 
-    for (const [walletId, totalPayout] of walletPayouts.entries()) {
-      if (totalPayout > 0) {
-        await tx
-          .update(wallets)
-          .set({ balance: sql`${wallets.balance} + ${totalPayout}` })
-          .where(eq(wallets.id, walletId));
-      }
+    const walletEntries = [...walletPayouts.entries()].filter(([, amount]) => amount > 0);
+    if (walletEntries.length > 0) {
+      const walletIds = walletEntries.map(([id]) => id);
+      const payoutCase = sql<number>`CASE id ${sql.raw(
+        walletEntries.map(([id, amount]) => `WHEN '${id}' THEN ${amount}`).join(' ')
+      )} ELSE 0 END::bigint`;
+
+      await tx
+        .update(wallets)
+        .set({ balance: sql`${wallets.balance} + ${payoutCase}` })
+        .where(inArray(wallets.id, walletIds));
     }
 
     const transactionValues = betUpdates

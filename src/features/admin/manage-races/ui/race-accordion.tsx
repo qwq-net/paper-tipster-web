@@ -83,7 +83,7 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
           <Accordion.Content className="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden bg-white">
             <div className="border-t border-gray-100">
               {event.races.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">このイベントにレースはありません</div>
+                <div className="py-8 text-center text-gray-500">登録されているレースがありません</div>
               ) : (
                 <table className="w-full min-w-[800px] border-collapse">
                   <thead className="bg-gray-50">

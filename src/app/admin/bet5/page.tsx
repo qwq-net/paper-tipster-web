@@ -17,9 +17,11 @@ export default async function AdminBet5Page() {
   }
 
   const allEvents = await db.query.events.findMany({
-    orderBy: [desc(events.createdAt)],
+    orderBy: [desc(events.date)],
     with: {
-      races: true,
+      races: {
+        orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber)],
+      },
     },
   });
 

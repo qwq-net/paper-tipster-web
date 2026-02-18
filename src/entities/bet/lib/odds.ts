@@ -1,8 +1,6 @@
 import { BetDetail, BetType } from '../constants';
 import { isOrderSensitive } from './payout';
 
-const ODDS_DEDUCTION_RATE = 0.2;
-
 export interface OddsPool {
   poolByBetType: Record<string, number>;
   amountBySelection: Record<string, Record<string, number>>;
@@ -40,7 +38,7 @@ export function calculateProvisionalOdds(
     for (const [key, amount] of Object.entries(selections)) {
       if (amount === 0) continue;
 
-      let rate = (totalAmount * (1 - ODDS_DEDUCTION_RATE)) / amount;
+      let rate = totalAmount / amount;
       rate = Math.floor(rate * 10) / 10;
 
       if (guaranteedOdds && guaranteedOdds[type]) {
@@ -68,7 +66,7 @@ export function calculateWinOdds(winBets: { amount: number; details: BetDetail }
     }
   });
 
-  const returnAmount = winPool * (1 - ODDS_DEDUCTION_RATE);
+  const returnAmount = winPool;
 
   Object.entries(winVotes).forEach(([horse, amount]) => {
     if (amount === 0) {

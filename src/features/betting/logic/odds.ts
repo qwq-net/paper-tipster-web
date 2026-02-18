@@ -16,20 +16,19 @@ export async function calculateOdds(raceId: string) {
   const winBets = raceBets.filter((bet) => bet.details.type === 'win');
 
   const winOdds = calculateWinOdds(winBets);
-  const placeOdds: Record<string, { min: number; max: number }> = {};
 
   await db
     .insert(raceOdds)
     .values({
       raceId,
       winOdds,
-      placeOdds,
+      placeOdds: {},
     })
     .onConflictDoUpdate({
       target: raceOdds.raceId,
       set: {
         winOdds,
-        placeOdds,
+        placeOdds: {},
         updatedAt: new Date(),
       },
     });
@@ -42,7 +41,7 @@ export async function calculateOdds(raceId: string) {
   if (!isThrottled) {
     raceEventEmitter.emit(RACE_EVENTS.RACE_ODDS_UPDATED, {
       raceId,
-      data: { winOdds, placeOdds, updatedAt: new Date() },
+      data: { winOdds, placeOdds: {}, updatedAt: new Date() },
     });
     await redis.set(lastNotificationKey, 'true', 'EX', THROTTLE_SECONDS);
   } else {

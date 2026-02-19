@@ -19,7 +19,7 @@ interface Bet5ConfigFormProps {
   carryoverAmount?: number;
 }
 
-export function Bet5ConfigForm({ eventId, races, carryoverAmount = 0 }: Bet5ConfigFormProps) {
+export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [initialPot, setInitialPot] = useState(0);
@@ -76,16 +76,6 @@ export function Bet5ConfigForm({ eventId, races, carryoverAmount = 0 }: Bet5Conf
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {carryoverAmount > 0 && (
-            <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
-              <p className="text-sm font-semibold text-indigo-700">現在のキャリーオーバー残額</p>
-              <p className="text-2xl font-semibold text-indigo-900">{carryoverAmount.toLocaleString()}円</p>
-              <p className="mt-1 text-sm text-indigo-600">
-                ※設定した「初期キャリーオーバー」はこの金額に加算されます。
-              </p>
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label>対象レース選択 (5レース)</Label>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

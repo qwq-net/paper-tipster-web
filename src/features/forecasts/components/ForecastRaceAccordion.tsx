@@ -90,6 +90,7 @@ export function ForecastRaceAccordion({ events }: ForecastRaceAccordionProps) {
                   <div className="flex items-center gap-4">
                     <span>{event.name}</span>
                     <Badge variant="status" label={getDisplayStatus(event.status, false)} />
+                    <span className="text-sm font-normal text-gray-500">{event.races.length}レース</span>
                   </div>
                   <ChevronDown className="h-5 w-5 text-gray-400 transition-transform duration-300 ease-in-out data-[state=open]:rotate-180" />
                 </Accordion.Trigger>

@@ -7,6 +7,17 @@ import Link from 'next/link';
 
 interface Race {
   id: string;
+  name: string;
+  raceNumber: number | null;
+}
+
+interface Bet5Event {
+  id: string;
+  race1: Race;
+  race2: Race;
+  race3: Race;
+  race4: Race;
+  race5: Race;
 }
 
 interface Event {
@@ -14,19 +25,25 @@ interface Event {
   name: string;
   date: string;
   races: Race[];
+  bet5Event: Bet5Event | null;
 }
 
 export function Bet5EventList({ events }: { events: Event[] }) {
+  const getSelectedRacesText = (bet5Event: Bet5Event) => {
+    const races = [bet5Event.race1, bet5Event.race2, bet5Event.race3, bet5Event.race4, bet5Event.race5];
+    return races.map((r) => `${r.raceNumber}R`).join(' > ');
+  };
+
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm">
       <table className="w-full min-w-[800px] border-collapse">
         <thead className="bg-gray-50">
           <tr className="border-b border-gray-100">
             <th className="px-6 py-4 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
-              開催日
+              イベント名
             </th>
             <th className="px-6 py-4 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
-              イベント名
+              対象レース構成
             </th>
             <th className="px-6 py-4 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
               登録レース数
@@ -42,13 +59,23 @@ export function Bet5EventList({ events }: { events: Event[] }) {
         <tbody className="divide-y divide-gray-100">
           {events.map((event) => {
             const raceCount = event.races.length;
-            const isReady = raceCount === 5;
+            const isConfigured = !!event.bet5Event;
+            const isReady = raceCount >= 5;
 
             return (
               <tr key={event.id} className="transition-colors hover:bg-gray-50">
-                <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-400">{event.date}</td>
                 <td className="px-6 py-4 text-sm whitespace-nowrap" title={event.name}>
-                  <span className="font-medium text-gray-900">{event.name}</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">{event.name}</div>
+                    <div className="text-sm text-gray-400">{event.date}</div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-600">
+                  {event.bet5Event ? (
+                    <span className="font-mono">{getSelectedRacesText(event.bet5Event)}</span>
+                  ) : (
+                    <span className="text-gray-300">-</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-sm whitespace-nowrap">
                   <div className="flex items-center gap-2">
@@ -59,7 +86,9 @@ export function Bet5EventList({ events }: { events: Event[] }) {
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm whitespace-nowrap">
-                  {isReady ? (
+                  {isConfigured ? (
+                    <Badge label="設定済み" className="border-blue-200 bg-blue-100 text-blue-700" />
+                  ) : isReady ? (
                     <Badge label="設定可能" className="border-green-200 bg-green-100 text-green-700" />
                   ) : (
                     <Badge label="レース不足" variant="outline" className="text-gray-400" />
@@ -71,11 +100,15 @@ export function Bet5EventList({ events }: { events: Event[] }) {
                       <Button
                         size="sm"
                         asChild
-                        className="gap-1 bg-indigo-600 text-white shadow-sm hover:bg-indigo-700"
+                        variant={isConfigured ? 'outline' : 'primary'}
+                        className={cn(
+                          'gap-1 shadow-sm',
+                          !isConfigured && 'bg-indigo-600 text-white hover:bg-indigo-700'
+                        )}
                       >
                         <Link href={`/admin/events/${event.id}/bet5`}>
                           <Trophy className="h-4 w-4" />
-                          設定
+                          {isConfigured ? '管理' : '設定'}
                         </Link>
                       </Button>
                     ) : (

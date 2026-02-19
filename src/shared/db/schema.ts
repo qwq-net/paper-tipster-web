@@ -170,9 +170,13 @@ export const guaranteedOddsMaster = pgTable('guaranteed_odds_master', {
     .$onUpdate(() => new Date()),
 });
 
-export const eventRelations = relations(events, ({ many }) => ({
+export const eventRelations = relations(events, ({ many, one }) => ({
   wallets: many(wallets),
   races: many(raceInstances),
+  bet5Event: one(bet5Events, {
+    fields: [events.id],
+    references: [bet5Events.eventId],
+  }),
 }));
 
 export const wallets = pgTable(

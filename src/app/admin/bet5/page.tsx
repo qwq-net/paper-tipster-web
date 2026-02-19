@@ -22,6 +22,15 @@ export default async function AdminBet5Page() {
       races: {
         orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber)],
       },
+      bet5Event: {
+        with: {
+          race1: true,
+          race2: true,
+          race3: true,
+          race4: true,
+          race5: true,
+        },
+      },
     },
   });
 

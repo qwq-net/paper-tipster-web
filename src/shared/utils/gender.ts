@@ -2,9 +2,9 @@ const GENDER_CLASS_MAP: Record<string, string> = {
   牡: 'bg-blue-100 text-blue-800',
   HORSE: 'bg-blue-100 text-blue-800',
   COLT: 'bg-blue-100 text-blue-800',
-  牝: 'bg-red-100 text-red-800',
-  MARE: 'bg-red-100 text-red-800',
-  FILLY: 'bg-red-100 text-red-800',
+  牝: 'bg-pink-100 text-pink-800',
+  MARE: 'bg-pink-100 text-pink-800',
+  FILLY: 'bg-pink-100 text-pink-800',
   セン: 'bg-gray-100 text-gray-800',
   GELDING: 'bg-gray-100 text-gray-800',
 };

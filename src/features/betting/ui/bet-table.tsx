@@ -115,6 +115,29 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
       )
     : {};
 
+  if (entries.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">
+          <LiveConnectionStatus status={connectionStatus} showText={true} className="text-white" />
+        </div>
+        <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-gray-200 bg-gray-50 py-16 text-center">
+          <div className="rounded-full bg-gray-100 p-3">
+            <AlertCircle className="h-8 w-8 text-gray-400" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
+            <p className="text-sm text-gray-500">
+              このレースの出走馬データはまだ登録されていません。
+              <br />
+              データが登録されるまでお待ちください。
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-black/80 px-4 py-2 shadow-lg backdrop-blur-sm">

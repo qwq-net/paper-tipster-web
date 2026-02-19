@@ -5,9 +5,11 @@ import { upsertForecast } from '@/features/forecasts/actions';
 import { FORECAST_SYMBOLS } from '@/features/forecasts/constants';
 import { ForecastSelection } from '@/features/forecasts/types';
 import { Button, Textarea } from '@/shared/ui';
+import { Badge } from '@/shared/ui/badge';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { cn } from '@/shared/utils/cn';
-import { Loader2, Save } from 'lucide-react';
+import { getGenderAge } from '@/shared/utils/gender';
+import { Info, Loader2, Save } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -18,6 +20,8 @@ interface ForecastInputFormProps {
     horseId: string;
     horseNumber: number | null;
     horseName: string;
+    horseGender: string;
+    horseAge: number;
     bracketNumber: number | null;
   }[];
   initialForecast?: {
@@ -30,6 +34,20 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
   const [selections, setSelections] = useState<ForecastSelection>(initialForecast?.selections || {});
   const [comment, setComment] = useState(initialForecast?.comment || '');
   const [isPending, startTransition] = useTransition();
+
+  if (entries.length === 0) {
+    return (
+      <div className="rounded-xl border border-gray-100 bg-white p-12 text-center shadow-sm">
+        <div className="mb-4 flex justify-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
+            <Info className="h-8 w-8" />
+          </div>
+        </div>
+        <h3 className="mb-2 text-lg font-semibold text-gray-900">出走馬が登録されていません</h3>
+        <p className="text-sm text-gray-500">予想を入力するには、まず出走馬の登録が必要です。</p>
+      </div>
+    );
+  }
 
   const handleSymbolSelect = (horseId: string, symbol: string) => {
     setSelections((prev) => {
@@ -76,6 +94,7 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
               <th className="px-3 py-2 text-left text-sm font-medium text-gray-500">枠</th>
               <th className="px-3 py-2 text-left text-sm font-medium text-gray-500">馬番</th>
               <th className="px-3 py-2 text-left text-sm font-medium text-gray-500">馬名</th>
+              <th className="px-3 py-2 text-left text-sm font-medium text-gray-500">性齢</th>
               <th className="px-3 py-2 text-left text-sm font-medium text-gray-500">印</th>
             </tr>
           </thead>
@@ -87,6 +106,9 @@ export function ForecastInputForm({ raceId, entries, initialForecast }: Forecast
                 </td>
                 <td className="px-3 py-2 text-sm text-gray-900">{entry.horseNumber}</td>
                 <td className="px-3 py-2 text-sm text-gray-900">{entry.horseName}</td>
+                <td className="px-3 py-2 text-sm text-gray-900">
+                  <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
+                </td>
                 <td className="px-3 py-2">
                   <div className="flex flex-wrap gap-2">
                     {FORECAST_SYMBOLS.map((symbol) => (

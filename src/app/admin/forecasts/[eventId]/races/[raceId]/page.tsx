@@ -1,7 +1,9 @@
 import { getEntriesForRace, getRaceById } from '@/features/admin/manage-entries/actions';
 import { getMyForecast } from '@/features/forecasts/actions';
 import { ForecastInputForm } from '@/features/forecasts/components/ForecastInputForm';
+import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
+import { FormattedDate } from '@/shared/ui/formatted-date';
 import { ChevronLeft, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -29,10 +31,22 @@ export default async function ForecastInputPage({ params }: { params: Promise<{ 
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900">予想入力</h1>
-            <p className="text-sm text-gray-500">
-              {race.name} ({race.raceNumber}R)
-            </p>
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{race.name}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <FormattedDate date={race.date} options={{ month: 'long', day: 'numeric', weekday: 'short' }} />
+                <span>{race.venue?.name}</span>
+                {race.raceNumber && <span>{race.raceNumber}R</span>}
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="surface" label={race.surface} />
+                <span className="font-medium">{race.distance}m</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>馬場:</span>
+                <Badge variant="condition" label={race.condition || '良'} />
+              </div>
+            </div>
           </div>
         </div>
         <Button asChild variant="outline" className="gap-2">
@@ -43,7 +57,14 @@ export default async function ForecastInputPage({ params }: { params: Promise<{ 
         </Button>
       </div>
 
-      <ForecastInputForm raceId={raceId} entries={entries} initialForecast={myForecast} />
+      <ForecastInputForm
+        raceId={raceId}
+        entries={entries.map((entry) => ({
+          ...entry,
+          horseAge: entry.horseAge ?? 0,
+        }))}
+        initialForecast={myForecast}
+      />
     </div>
   );
 }

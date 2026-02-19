@@ -51,7 +51,7 @@ export function StandbyClient({
 
   const { results, fetchResults } = useRaceResults(race.id, initialResults, initialIsFinalized);
 
-  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
   const toggleAudio = useCallback(() => {
     if (!isAudioEnabled) {

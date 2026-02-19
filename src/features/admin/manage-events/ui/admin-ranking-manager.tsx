@@ -116,7 +116,7 @@ export function AdminRankingManager({
               className={optimisticMode === 'FULL' ? 'bg-amber-100 text-amber-900 hover:bg-amber-200' : ''}
             >
               <Trophy className="mr-2 h-4 w-4" />
-              完全公開
+              公開
             </Button>
             <Button
               size="sm"
@@ -126,7 +126,7 @@ export function AdminRankingManager({
               className={optimisticMode === 'FULL_WITH_LOAN' ? 'bg-orange-100 text-orange-900 hover:bg-orange-200' : ''}
             >
               <Banknote className="mr-2 h-4 w-4" />
-              公開 (借金込み)
+              借金込み
             </Button>
           </div>
         </div>

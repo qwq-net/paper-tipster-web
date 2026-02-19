@@ -3,9 +3,9 @@
 import { BetDetail, calculatePayoutRate, Finisher, isWinningBet, normalizeSelections, ODDS_UNIT } from '@/entities/bet';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { db } from '@/shared/db';
-import { bets, raceEntries, raceInstances } from '@/shared/db/schema';
+import { bets, raceEntries, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
-import { eq, sql, SQL } from 'drizzle-orm';
+import { eq, inArray, sql, SQL } from 'drizzle-orm';
 
 export async function finalizeRace(
   raceId: string,
@@ -49,6 +49,17 @@ export async function finalizeRace(
 
     if (finishers.length === 0) throw new Error('着順が指定されていません');
 
+    const invalidHorseIds = new Set(
+      raceEntriesWithInfo.filter((e) => e.status === 'SCRATCHED' || e.status === 'EXCLUDED').map((e) => e.horseNumber!)
+    );
+
+    const validBrackets = new Set(
+      raceEntriesWithInfo
+        .filter((e) => e.status === 'ENTRANT')
+        .map((e) => e.bracketNumber!)
+        .filter((b): b is number => b !== null)
+    );
+
     const { raceEventEmitter, RACE_EVENTS } = await import('@/shared/lib/sse/event-emitter');
     const rankingPayload = raceEntriesWithInfo
       .filter((e) => e.finishPosition !== null)
@@ -79,10 +90,24 @@ export async function finalizeRace(
     const poolByBetType: Record<string, number> = {};
     const winnersByBetType: Record<string, { bet: (typeof allBets)[0]; selectionKey: string }[]> = {};
     const winningSelectionAmounts: Record<string, Record<string, number>> = {};
+    const refundedBets: string[] = [];
+
+    const isRefundedBet = (type: string, selections: number[]) => {
+      if (type === 'bracket_quinella') {
+        return selections.some((bracket) => !validBrackets.has(bracket));
+      }
+      return selections.some((horse) => invalidHorseIds.has(horse));
+    };
 
     for (const bet of allBets) {
       const betDetail = bet.details as BetDetail;
       const type = betDetail.type;
+
+      if (isRefundedBet(type, betDetail.selections)) {
+        refundedBets.push(bet.id);
+        continue;
+      }
+
       poolByBetType[type] = (poolByBetType[type] || 0) + bet.amount;
 
       if (isWinningBet(betDetail, finishers)) {
@@ -99,13 +124,40 @@ export async function finalizeRace(
 
     const payoutCalculationsByType: Record<string, { numbers: number[]; payout: number }[]> = {};
 
+    const betUpdates: {
+      id: string;
+      status: 'HIT' | 'LOST' | 'REFUNDED';
+      payout: number;
+      odds: string;
+    }[] = [];
+
+    for (const betId of refundedBets) {
+      const bet = allBets.find((b) => b.id === betId)!;
+      betUpdates.push({
+        id: bet.id,
+        status: 'REFUNDED',
+        payout: bet.amount,
+        odds: '1.0',
+      });
+    }
+
     for (const bet of allBets) {
+      if (refundedBets.includes(bet.id)) continue;
+
       const betDetail = bet.details as BetDetail;
       const type = betDetail.type;
       const winners = winnersByBetType[type] || [];
       const winnerInfo = winners.find((w) => w.bet.id === bet.id);
 
-      if (!winnerInfo) continue;
+      if (!winnerInfo) {
+        betUpdates.push({
+          id: bet.id,
+          status: 'LOST',
+          payout: 0,
+          odds: '0.0',
+        });
+        continue;
+      }
 
       const selectionKey = winnerInfo.selectionKey;
       const selectionAmount = winningSelectionAmounts[type][selectionKey];
@@ -124,11 +176,18 @@ export async function finalizeRace(
         rate = Math.max(rate, guaranteedOdds[type]);
       }
 
+      const unitPayout = Math.floor(ODDS_UNIT * rate);
+      betUpdates.push({
+        id: bet.id,
+        status: 'HIT',
+        payout: Math.floor((bet.amount * unitPayout) / ODDS_UNIT),
+        odds: rate.toFixed(1),
+      });
+
       if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
 
       const betKey = normalizeSelections(type, betDetail.selections);
       if (!payoutCalculationsByType[type].find((p) => normalizeSelections(type, p.numbers) === betKey)) {
-        const unitPayout = Math.floor(ODDS_UNIT * rate);
         payoutCalculationsByType[type].push({ numbers: betDetail.selections, payout: unitPayout });
       }
     }
@@ -166,6 +225,74 @@ export async function finalizeRace(
       payoutCalculationsByType[type] = payoutCalculationsByType[type].sort((a, b) => {
         return a.numbers.join('-').localeCompare(b.numbers.join('-'));
       });
+    }
+
+    if (betUpdates.length > 0) {
+      const CHUNK_SIZE = 1000;
+      for (let i = 0; i < betUpdates.length; i += CHUNK_SIZE) {
+        const chunk = betUpdates.slice(i, i + CHUNK_SIZE);
+        const chunkIds = chunk.map((b) => b.id);
+
+        const chunkStatusCase = sql<
+          'HIT' | 'LOST' | 'REFUNDED'
+        >`CASE id ${sql.raw(chunk.map((b) => `WHEN '${b.id}' THEN '${b.status}'`).join(' '))} END::bet_status`;
+        const chunkPayoutCase = sql<number>`CASE id ${sql.raw(
+          chunk.map((b) => `WHEN '${b.id}' THEN ${b.payout}`).join(' ')
+        )} END::bigint`;
+        const chunkOddsCase = sql<string>`CASE id ${sql.raw(
+          chunk.map((b) => `WHEN '${b.id}' THEN ${b.odds}`).join(' ')
+        )} END::numeric`;
+
+        await tx
+          .update(bets)
+          .set({
+            status: chunkStatusCase,
+            payout: chunkPayoutCase,
+            odds: chunkOddsCase,
+          })
+          .where(inArray(bets.id, chunkIds));
+      }
+    }
+
+    const walletPayoutsMap = new Map<string, number>();
+    for (const update of betUpdates) {
+      if (update.payout > 0) {
+        const bet = allBets.find((b) => b.id === update.id)!;
+        const current = walletPayoutsMap.get(bet.walletId) || 0;
+        walletPayoutsMap.set(bet.walletId, current + update.payout);
+      }
+    }
+
+    const walletEntries = [...walletPayoutsMap.entries()];
+    if (walletEntries.length > 0) {
+      const walletIds = walletEntries.map(([id]) => id);
+      const payoutCase = sql<number>`CASE id ${sql.raw(
+        walletEntries.map(([id, amount]) => `WHEN '${id}' THEN ${amount}`).join(' ')
+      )} ELSE 0 END::bigint`;
+
+      await tx
+        .update(wallets)
+        .set({ balance: sql`${wallets.balance} + ${payoutCase}` })
+        .where(inArray(wallets.id, walletIds));
+    }
+
+    const transactionValues = betUpdates
+      .filter((d) => d.payout > 0)
+      .map((d) => {
+        const bet = allBets.find((b) => b.id === d.id)!;
+        return {
+          walletId: bet.walletId,
+          type: (d.status === 'REFUNDED' ? 'REFUND' : 'PAYOUT') as 'REFUND' | 'PAYOUT',
+          amount: d.payout,
+          referenceId: d.id,
+        };
+      });
+
+    if (transactionValues.length > 0) {
+      const TX_BATCH_SIZE = 1000;
+      for (let i = 0; i < transactionValues.length; i += TX_BATCH_SIZE) {
+        await tx.insert(transactions).values(transactionValues.slice(i, i + TX_BATCH_SIZE));
+      }
     }
 
     const { payoutResults: payoutResultsTable, events } = await import('@/shared/db/schema');

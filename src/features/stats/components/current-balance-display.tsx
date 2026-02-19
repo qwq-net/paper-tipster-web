@@ -1,0 +1,24 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { cn } from '@/shared/utils/cn';
+import { Wallet } from 'lucide-react';
+
+interface CurrentBalanceDisplayProps {
+  amount: number;
+}
+
+export function CurrentBalanceDisplay({ amount }: CurrentBalanceDisplayProps) {
+  return (
+    <Card className="border-amber-500/50 bg-amber-500/5">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-amber-700">総所持金</CardTitle>
+        <Wallet className="h-4 w-4 text-amber-700" />
+      </CardHeader>
+      <CardContent>
+        <div className={cn('text-2xl font-semibold', amount < 0 ? 'text-red-600' : 'text-amber-700')}>
+          ¥{amount.toLocaleString()}
+        </div>
+        <p className="text-muted-foreground text-sm">全イベントの合計所持金</p>
+      </CardContent>
+    </Card>
+  );
+}

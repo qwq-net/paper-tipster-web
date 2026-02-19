@@ -270,4 +270,41 @@ describe('finalizeRace', () => {
     expect(winHit).toBeDefined();
     expect(winHit!.payout).toBe(200);
   });
+
+  it('取消馬への投票は返還され、プールに含まれない', async () => {
+    await setupAdminAuth();
+    const finishersWithScratch = [
+      ...threeFinishers,
+      {
+        id: 'e4',
+        horseNumber: 4,
+        bracketNumber: 4,
+        finishPosition: null,
+        status: 'SCRATCHED',
+        horse: { name: 'Horse4' },
+      },
+    ];
+    mockTx.query.raceEntries.findMany.mockResolvedValue(finishersWithScratch);
+
+    mockTx.query.bets.findMany.mockResolvedValue([
+      { id: 'b1', amount: 100, details: { type: BET_TYPES.PLACE, selections: [1] } },
+      { id: 'b2', amount: 10000, details: { type: BET_TYPES.PLACE, selections: [4] } },
+    ]);
+
+    await finalizeRace('race1', defaultResults);
+
+    const placeInsert = insertedValues.find((v) => v.type === BET_TYPES.PLACE && v.raceId === 'race1');
+    expect(placeInsert).toBeDefined();
+    const combos = placeInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+
+    const hit1 = combos.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
+    expect(hit1).toBeDefined();
+    expect(hit1!.payout).toBe(100);
+
+    const refundUpdate = setCalls.find(
+      (call) => typeof call.status === 'object' && call.status !== null && call.status.toString().includes('REFUNDED')
+    );
+
+    expect(refundUpdate).toBeDefined();
+  });
 });

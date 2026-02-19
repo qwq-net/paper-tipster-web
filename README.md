@@ -48,29 +48,15 @@ Winning Post などのプレイデータをもとに、仲間内で仮想の競�
    task db:setup
    ```
 
-- [AI向け開発コンテキスト](docs/AI_CONTEXT.md): プロジェクトに参加するAIエージェント/開発者向けの必読ドキュメント。
+- [AI向け開発コンテキスト](.github/copilot-instructions.md): プロジェクトに参加するAIエージェント/開発者向けの必読ドキュメント。
 
 ### 便利なコマンド
 
-`Taskfile.yml` に定義している主要コマンドです。`task <command>` で実行します。
+利用可能なコマンドは以下で確認できます。
 
-| コマンド            | 説明                                        |
-| :------------------ | :------------------------------------------ |
-| `task dev`          | 開発サーバーを起動                          |
-| `task docker:up`    | Docker環境を起動 (バックグラウンド)         |
-| `task docker:down`  | Docker環境を停止                            |
-| `task docker:build` | Docker環境をビルドして起動                  |
-| `task docker:clean` | Docker環境を完全にリセット (Volume削除含む) |
-| `task install`      | 依存関係のインストール                      |
-| `task build`        | アプリケーションをビルド                    |
-| `task test`         | テストを実行                                |
-| `task check`        | Lint・型チェック・フォーマットを実行        |
-| `task db:setup`     | DBスキーマの適用とシードデータの投入        |
-| `task db:seed`      | シードデータの投入                          |
-| `task db:reset`     | DBのリセット                                |
-| `task redis:reset`  | Redisのリセット                             |
-| `task lint`         | ESLintを実行                                |
-| `task format`       | Prettierを実行                              |
+```bash
+task --list
+```
 
 ## シードデータ
 
@@ -92,7 +78,7 @@ Winning Post などのプレイデータをもとに、仲間内で仮想の競�
    Docker Profiles 機能を使用して、`prod` プロファイルを有効にします。
 
    ```bash
-   docker compose --profile prod up -d
+   task docker:up:prod
    ```
 
    これにより、通常のサービス（app, db, redis）に加えて `tunnel` コンテナが起動します。
@@ -114,19 +100,14 @@ task db:role -- --user=<username>
 ## ディレクトリ構成
 
 本プロジェクトは **Feature-Sliced Design (FSD)** を採用しています。
-詳細は [docs/APPLICATION_DESIGN.md](docs/APPLICATION_DESIGN.md) を参照してください。
+詳細は [.github/copilot-instructions.md](.github/copilot-instructions.md) を参照してください。
 
 - `src/app`: App Router Pages
 - `src/features`: 機能モジュール (admin, auth, betting, economy, forecasts, ranking, stats, user)
 - `src/entities`: ドメインモデル (bet, horse, race, ranking, user, wallet)
 - `src/shared`: 共有コンポーネント・ユーティリティ・DB・設定
 
-## ドキュメント
+## 開発ルール
 
-- [機能仕様書](docs/FUNCTIONAL_SPECIFICATION.md)
-- [アプリケーション設計](docs/APPLICATION_DESIGN.md)
-- [UI/UXガイドライン](docs/UI_UX_DESIGN.md)
-- [UIコンポーネントガイド](docs/UI_COMPONENT_GUIDE.md)
-- [データベース設計](docs/DATABASE_DESIGN.md)
-- [馬券UI設計](docs/BETTING_UI_DESIGN.md)
-- [オッズシステム仕様](docs/ODDS_SYSTEM.md)
+- [共通ルール](.github/copilot-instructions.md)
+- [スコープ別ルール](.github/instructions)

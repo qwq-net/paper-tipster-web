@@ -5,13 +5,16 @@
   "packageManager": "pnpm@10.29.1",
   "scripts": {
     "dev": "next dev",
-    "build": "next build || exit 1",
-    "start": "next start || exit 1",
-    "lint": "eslint || exit 1",
-    "lint:fix": "eslint --fix || exit 1",
-    "format": "prettier --write . || exit 1",
-    "check": "pnpm lint:fix && pnpm tsc --noEmit && pnpm prettier --write . || exit 1",
-    "test": "vitest --silent=passed-only || exit 1"
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm lint && pnpm typecheck && pnpm format:check",
+    "check:fix": "pnpm lint:fix && pnpm format",
+    "test": "vitest --run --silent=passed-only"
   },
   "dependencies": {
     "@auth/core": "0.41.1",

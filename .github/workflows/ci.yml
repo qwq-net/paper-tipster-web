@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+
+      - name: Prepare env file
+        run: |
+          cp .env.sample .env
+          echo "AUTH_SECRET=dummy-ci-secret" >> .env
+          echo "NEXTAUTH_URL=http://localhost:3000" >> .env
+
+      - name: Start containers
+        run: docker compose up -d --build db redis app
+
+      - name: Setup database
+        run: task db:setup
+
+      - name: Lint / Type / Format
+        run: task check
+
+      - name: Test (fast default)
+        run: task test
+
+      - name: Container logs (on failure)
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down -v

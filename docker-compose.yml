@@ -10,7 +10,6 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/webapp
       - REDIS_URL=redis://redis:6379
-      - CI=true
     depends_on:
       db:
         condition: service_healthy

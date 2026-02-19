@@ -29,6 +29,16 @@ tasks:
     cmds:
       - docker compose up -d --build
 
+  docker:up:prod:
+    desc: 本番用プロファイルでDockerコンテナを起動します
+    cmds:
+      - docker compose --profile prod up -d
+
+  docker:down:prod:
+    desc: 本番用プロファイルでDockerコンテナを停止します
+    cmds:
+      - docker compose --profile prod down
+
   docker:logs:
     desc: Dockerログを表示します
     cmds:
@@ -43,37 +53,52 @@ tasks:
   install:
     desc: 依存関係をインストールします
     cmds:
-      - docker compose exec {{.TTY}} app pnpm install || exit 1
+      - docker compose exec {{.TTY}} app pnpm install
 
   dev:
     desc: 開発サーバーを起動します
     cmds:
-      - docker compose exec app pnpm dev
+      - docker compose exec {{.TTY}} app pnpm dev
 
   build:
     desc: アプリケーションをビルドします
     cmds:
-      - docker compose exec {{.TTY}} app pnpm build || exit 1
+      - docker compose exec {{.TTY}} app pnpm build
+
+  start:
+    desc: アプリケーションを本番モードで起動します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm start
 
   add:
     desc: パッケージを追加します
     cmds:
-      - docker compose exec app pnpm add {{.CLI_ARGS}} || exit 1
+      - docker compose exec {{.TTY}} app pnpm add {{.CLI_ARGS}}
 
   test:
-    desc: "テストを実行します（デフォルト: 重いテストはスキップ）"
+    desc: 'テストを実行します（デフォルト: 重いテストはスキップ）'
     cmds:
       - docker compose exec {{.TTY}} app sh -lc "RUN_SLOW_TESTS=0 pnpm test {{.CLI_ARGS}}"
 
-  test:full:
+  test-full:
     desc: すべてのテストを実行します（重いテスト含む）
     cmds:
       - docker compose exec {{.TTY}} app sh -lc "RUN_SLOW_TESTS=1 pnpm test {{.CLI_ARGS}}"
 
   check:
-    desc: 型チェックとフォーマットチェックを実行します
+    desc: Lint・型チェック・フォーマットチェックを実行します
     cmds:
       - docker compose exec {{.TTY}} app pnpm check
+
+  check:fix:
+    desc: Lintとフォーマットの自動修正を実行します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm check:fix
+
+  typecheck:
+    desc: 型チェックのみ実行します
+    cmds:
+      - docker compose exec {{.TTY}} app pnpm typecheck
 
   db:setup:
     desc: データベースのセットアップを実行します

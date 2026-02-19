@@ -53,9 +53,7 @@ export default async function ForecastsPage() {
         </div>
 
         <Suspense fallback={<Card className="py-12 text-center text-gray-500">読み込み中...</Card>}>
-          <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm">
-            <ForecastRaceAccordion events={sortedEventGroups} />
-          </div>
+          <ForecastRaceAccordion events={sortedEventGroups} />
         </Suspense>
       </div>
     </div>

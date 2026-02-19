@@ -16,13 +16,7 @@ export default async function BetsPage() {
         <p className="mt-1 text-sm text-gray-500">イベント・レース別の馬券購入状況を確認します</p>
       </div>
 
-      <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
-        {events.length === 0 ? (
-          <div className="py-12 text-center text-gray-500">登録されているイベントはありません</div>
-        ) : (
-          <EventAccordion events={events} />
-        )}
-      </div>
+      <EventAccordion events={events} />
     </div>
   );
 }

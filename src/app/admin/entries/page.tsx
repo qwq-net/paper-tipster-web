@@ -22,12 +22,17 @@ export default function EntriesPage() {
         <p className="mt-1 text-sm text-gray-500">レースを選択して出走馬を登録します</p>
       </div>
 
-      <Card className="p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">レース一覧</h2>
-        <Suspense fallback={<div className="py-12 text-center text-gray-500">読み込み中...</div>}>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-semibold text-gray-900">登録可能なレース</h2>
+          </div>
+        </div>
+
+        <Suspense fallback={<Card className="py-12 text-center text-gray-500">読み込み中...</Card>}>
           <RaceSelectList />
         </Suspense>
-      </Card>
+      </div>
     </div>
   );
 }

@@ -11,39 +11,81 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-and-test:
+  check:
+    name: Lint / Type / Format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10.29.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run checks
+        run: pnpm check
+
+  test:
+    name: Unit & Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      db:
+        image: postgres:15-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: webapp
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:password@localhost:5432/webapp
+      REDIS_URL: redis://localhost:6379
+      AUTH_SECRET: dummy-ci-secret
+      NEXTAUTH_URL: http://localhost:3000
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Task
-        uses: arduino/setup-task@v2
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10.29.1
 
-      - name: Prepare env file
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Database
         run: |
-          cp .env.sample .env
-          echo "AUTH_SECRET=dummy-ci-secret" >> .env
-          echo "NEXTAUTH_URL=http://localhost:3000" >> .env
+          pnpm drizzle-kit push
+          pnpm tsx src/shared/db/seed.ts
 
-      - name: Start containers
-        run: docker compose up -d --build db redis app
-
-      - name: Setup database
-        run: task db:setup
-
-      - name: Lint / Type / Format
-        run: task check
-
-      - name: Test (fast default)
-        run: task test
-
-      - name: Container logs (on failure)
-        if: failure()
-        run: docker compose logs --no-color
-
-      - name: Stop containers
-        if: always()
-        run: docker compose down -v
+      - name: Run Tests
+        run: pnpm test

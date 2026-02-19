@@ -61,9 +61,14 @@ tasks:
       - docker compose exec app pnpm add {{.CLI_ARGS}} || exit 1
 
   test:
-    desc: テストを実行します
+    desc: "テストを実行します（デフォルト: 重いテストはスキップ）"
     cmds:
-      - docker compose exec {{.TTY}} app pnpm test {{.CLI_ARGS}}
+      - docker compose exec {{.TTY}} app sh -lc "RUN_SLOW_TESTS=0 pnpm test {{.CLI_ARGS}}"
+
+  test:full:
+    desc: すべてのテストを実行します（重いテスト含む）
+    cmds:
+      - docker compose exec {{.TTY}} app sh -lc "RUN_SLOW_TESTS=1 pnpm test {{.CLI_ARGS}}"
 
   check:
     desc: 型チェックとフォーマットチェックを実行します

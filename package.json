@@ -11,7 +11,7 @@
     "lint:fix": "eslint --fix || exit 1",
     "format": "prettier --write . || exit 1",
     "check": "pnpm lint:fix && pnpm tsc --noEmit && pnpm prettier --write . || exit 1",
-    "test": "vitest || exit 1"
+    "test": "vitest --silent=passed-only || exit 1"
   },
   "dependencies": {
     "@auth/core": "0.41.1",

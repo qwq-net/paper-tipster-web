@@ -13,6 +13,9 @@ import { eq, inArray } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { finalizePayout } from './payout';
 
+const runSlowTests = process.env.RUN_SLOW_TESTS === '1';
+const itSlow = runSlowTests ? it : it.skip;
+
 vi.mock('@/shared/utils/admin', () => ({
   requireAdmin: vi.fn(),
   revalidateRacePaths: vi.fn(),
@@ -559,7 +562,7 @@ describe('finalizePayout', () => {
     expect(refundTx?.type).toBe('REFUND');
   });
 
-  it('1000件超の大量購入でもバッチ更新とPAYOUT記録が整合する', async () => {
+  itSlow('1000件超の大量購入でもバッチ更新とPAYOUT記録が整合する', async () => {
     const hitCount = 1005;
     const loseCount = 205;
 
@@ -595,7 +598,7 @@ describe('finalizePayout', () => {
     expect(Number(event?.carryoverAmount)).toBe(0);
   });
 
-  it('大量かつ複数券種でも的中集計・キャリーオーバー集計が正しい', async () => {
+  itSlow('大量かつ複数券種でも的中集計・キャリーオーバー集計が正しい', async () => {
     const perTypeCount = 260;
 
     await createBulkBets({ type: 'WIN', selections: [1], amount: 100, count: perTypeCount });

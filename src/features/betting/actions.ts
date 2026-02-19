@@ -63,6 +63,10 @@ export async function placeBets({
     throw new Error(ADMIN_ERRORS.INVALID_WALLET);
   }
 
+  if (wallet.eventId !== race.eventId) {
+    throw new Error(ADMIN_ERRORS.INVALID_WALLET);
+  }
+
   if (wallet.balance < totalAmount) {
     throw new Error(ADMIN_ERRORS.INSUFFICIENT_BALANCE);
   }

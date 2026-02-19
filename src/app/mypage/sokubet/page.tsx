@@ -21,6 +21,10 @@ export default async function SokubetPage() {
     redirect('/login');
   }
 
+  if (!session.user.isOnboardingCompleted) {
+    redirect('/onboarding/name-change');
+  }
+
   const sortedEventGroups = await getSokubetDashboardData(session.user.id);
 
   return (

@@ -37,6 +37,7 @@ describe('finalizePayout', () => {
   let raceId: string;
   let walletId: string;
   let horseId: string;
+  let horseIds: string[];
 
   const createdBetGroupIds: string[] = [];
   const createdBetIds: string[] = [];
@@ -50,9 +51,10 @@ describe('finalizePayout', () => {
     if (!venue) throw new Error('No venue found');
     venueId = venue.id;
 
-    const horse = await db.query.horses.findFirst();
-    if (!horse) throw new Error('No horse found');
-    horseId = horse.id;
+    const horses = await db.query.horses.findMany({ columns: { id: true } });
+    if (horses.length < 3) throw new Error('At least 3 horses are required for payout tests');
+    horseIds = horses.map((horse) => horse.id);
+    horseId = horseIds[0];
 
     const [event] = await db
       .insert(events)
@@ -395,7 +397,7 @@ describe('finalizePayout', () => {
     await db.insert(raceEntries).values([
       {
         raceId,
-        horseId,
+        horseId: horseIds[0],
         horseNumber: 1,
         bracketNumber: 1,
         finishPosition: 1,
@@ -403,7 +405,7 @@ describe('finalizePayout', () => {
       },
       {
         raceId,
-        horseId,
+        horseId: horseIds[1],
         horseNumber: 4,
         bracketNumber: 4,
         status: 'SCRATCHED',
@@ -467,14 +469,14 @@ describe('finalizePayout', () => {
     await db.insert(raceEntries).values([
       {
         raceId,
-        horseId,
+        horseId: horseIds[0],
         horseNumber: 1,
         bracketNumber: 1,
         status: 'ENTRANT',
       },
       {
         raceId,
-        horseId,
+        horseId: horseIds[1],
         horseNumber: 4,
         bracketNumber: 4,
         status: 'SCRATCHED',
@@ -506,21 +508,21 @@ describe('finalizePayout', () => {
     await db.insert(raceEntries).values([
       {
         raceId,
-        horseId,
+        horseId: horseIds[0],
         horseNumber: 11,
         bracketNumber: 1,
         status: 'ENTRANT',
       },
       {
         raceId,
-        horseId,
+        horseId: horseIds[1],
         horseNumber: 22,
         bracketNumber: 2,
         status: 'ENTRANT',
       },
       {
         raceId,
-        horseId,
+        horseId: horseIds[2],
         horseNumber: 44,
         bracketNumber: 4,
         status: 'SCRATCHED',

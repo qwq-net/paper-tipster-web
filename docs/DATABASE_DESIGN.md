@@ -54,7 +54,11 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `totalLoaned` | BigInt    | Yes  | 借入累計金額 (デフォルト: 0) |
 | `createdAt`   | Timestamp | Yes  | 作成日時                     |
 
-**インデックス**: `(userId, eventId)` 複合インデックス
+**制約/インデックス**:
+
+- `(userId, eventId)` 複合 **ユニーク** インデックス
+- `eventId` インデックス
+- `(userId, createdAt)` 複合インデックス
 
 ### `transaction`
 
@@ -69,7 +73,7 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `referenceId` | UUID      | No   | 関連するID (レースIDやチケットID等)                             |
 | `createdAt`   | Timestamp | Yes  | 取引日時                                                        |
 
-**インデックス**: `referenceId`, `walletId`, `createdAt`
+**インデックス**: `referenceId`, `walletId`, `(walletId, createdAt)` 複合, `createdAt`
 
 ### `venue` (競馬場)
 
@@ -238,7 +242,11 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `createdAt`      | Timestamp | Yes  | 作成日時                           |
 | `updatedAt`      | Timestamp | Yes  | 更新日時                           |
 
-**インデックス**: `raceId`, `(raceId, finishPosition)` 複合インデックス, `horseId`
+**制約/インデックス**:
+
+- `(raceId, horseId)` 複合 **ユニーク** インデックス
+- `(raceId, horseNumber)` 複合 **ユニーク** インデックス
+- `raceId`, `(raceId, finishPosition)` 複合インデックス, `horseId`
 
 ### `race_odds` (レースオッズ)
 
@@ -264,6 +272,8 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `combinations` | JSONB     | Yes  | 払戻組番と金額のリスト            |
 | `createdAt`    | Timestamp | Yes  | 作成日時                          |
 
+**制約/インデックス**: `raceId`, `(raceId, type)` 複合 **ユニーク** インデックス
+
 ### `forecasts` (予想)
 
 ユーザーによるレース予想を記録するテーブル。
@@ -287,7 +297,7 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | カラム名             | 型        | 必須 | 説明                                    |
 | :------------------- | :-------- | :--- | :-------------------------------------- |
 | `id`                 | UUID      | Yes  | 主キー                                  |
-| `eventId`            | UUID      | Yes  | `event.id` への外部キー                 |
+| `eventId`            | UUID      | Yes  | `event.id` への外部キー (Unique)        |
 | `race1Id`〜`race5Id` | UUID      | Yes  | `race_instance.id` への外部キー (各5つ) |
 | `initialPot`         | BigInt    | Yes  | 初期ポット金額                          |
 | `status`             | Enum      | Yes  | 'SCHEDULED', 'CLOSED', 'FINALIZED'      |
@@ -295,7 +305,7 @@ NextAuth.js の標準テーブル構成に従い、アプリケーション固�
 | `updatedAt`          | Timestamp | Yes  | 更新日時                                |
 
 |
-| **インデックス**: `eventId`
+| **制約/インデックス**: `eventId` **ユニーク** インデックス
 
 ### `bet5_ticket` (BET5投票)
 

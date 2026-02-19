@@ -1,3 +1,4 @@
+import { auth } from '@/shared/config/auth';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import type { RaceOddsData, RaceResultItem, RankingMode } from '@/shared/lib/sse/types';
 import { NextRequest } from 'next/server';
@@ -5,6 +6,11 @@ import { NextRequest } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const encoder = new TextEncoder();
 
   const customReadable = new ReadableStream({

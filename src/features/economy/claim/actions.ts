@@ -3,7 +3,7 @@
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, transactions, wallets } from '@/shared/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function claimEvent(eventId: string) {
@@ -26,15 +26,18 @@ export async function claimEvent(eventId: string) {
     throw new Error('このイベントは現在開催中ではありません');
   }
 
-  const existingWallet = await db.query.wallets.findFirst({
-    where: and(eq(wallets.userId, userId), eq(wallets.eventId, eventId)),
-  });
-
-  if (existingWallet) {
-    throw new Error('Already joined this event');
-  }
-
   await db.transaction(async (tx) => {
+    const lockKey = `claim:${userId}:${eventId}`;
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
+
+    const existingWallet = await tx.query.wallets.findFirst({
+      where: and(eq(wallets.userId, userId), eq(wallets.eventId, eventId)),
+    });
+
+    if (existingWallet) {
+      throw new Error('Already joined this event');
+    }
+
     const [newWallet] = await tx
       .insert(wallets)
       .values({

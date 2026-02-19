@@ -45,16 +45,34 @@ export async function borrowLoan(eventId: string) {
   const loanAmount = event.loanAmount ?? event.distributeAmount;
 
   await db.transaction(async (tx) => {
+    const lockKey = `loan:${wallet.id}`;
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
+
+    const lockedWallet = await tx.query.wallets.findFirst({
+      where: eq(wallets.id, wallet.id),
+    });
+
+    if (!lockedWallet) {
+      throw new Error('ウォレットが見つかりません');
+    }
+
+    if (!isEligibleForLoan(lockedWallet.balance, event.distributeAmount, lockedWallet.totalLoaned > 0)) {
+      if (lockedWallet.totalLoaned > 0) {
+        throw new Error('既に借り入れ済みです');
+      }
+      throw new Error('現在の残高では借り入れできません');
+    }
+
     await tx
       .update(wallets)
       .set({
         balance: sql`${wallets.balance} + ${loanAmount}`,
         totalLoaned: sql`${wallets.totalLoaned} + ${loanAmount}`,
       })
-      .where(eq(wallets.id, wallet.id));
+      .where(eq(wallets.id, lockedWallet.id));
 
     await tx.insert(transactions).values({
-      walletId: wallet.id,
+      walletId: lockedWallet.id,
       type: 'LOAN',
       amount: loanAmount,
       referenceId: event.id,

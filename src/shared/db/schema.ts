@@ -14,6 +14,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { HORSE_TAG_TYPES, HORSE_TYPES } from '../constants/horse';
@@ -194,7 +195,9 @@ export const wallets = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
-    userEventIdx: index('wallet_user_event_idx').on(table.userId, table.eventId),
+    userEventUniqueIdx: uniqueIndex('wallet_user_event_unique_idx').on(table.userId, table.eventId),
+    eventIdx: index('wallet_event_idx').on(table.eventId),
+    userCreatedIdx: index('wallet_user_created_idx').on(table.userId, table.createdAt),
   })
 );
 
@@ -222,6 +225,7 @@ export const transactions = pgTable(
   (table) => ({
     referenceIdx: index('transaction_reference_idx').on(table.referenceId),
     walletIdx: index('transaction_wallet_idx').on(table.walletId),
+    walletCreatedIdx: index('transaction_wallet_created_idx').on(table.walletId, table.createdAt),
     createdIdx: index('transaction_created_idx').on(table.createdAt),
   })
 );
@@ -406,6 +410,11 @@ export const raceEntries = pgTable(
     raceIdx: index('race_entry_race_idx').on(table.raceId),
     racePosIdx: index('race_entry_race_pos_idx').on(table.raceId, table.finishPosition),
     horseIdx: index('race_entry_horse_idx').on(table.horseId),
+    raceHorseUniqueIdx: uniqueIndex('race_entry_race_horse_unique_idx').on(table.raceId, table.horseId),
+    raceHorseNumberUniqueIdx: uniqueIndex('race_entry_race_horse_number_unique_idx').on(
+      table.raceId,
+      table.horseNumber
+    ),
   })
 );
 
@@ -422,6 +431,7 @@ export const payoutResults = pgTable(
   },
   (table) => ({
     raceIdx: index('payout_result_race_idx').on(table.raceId),
+    raceTypeUniqueIdx: uniqueIndex('payout_result_race_type_unique_idx').on(table.raceId, table.type),
   })
 );
 
@@ -632,6 +642,7 @@ export const bet5Events = pgTable(
   },
   (table) => ({
     eventIdIdx: index('bet5_event_event_id_idx').on(table.eventId),
+    eventIdUniqueIdx: uniqueIndex('bet5_event_event_id_unique_idx').on(table.eventId),
   })
 );
 

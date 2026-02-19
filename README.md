@@ -2,8 +2,8 @@
 
 ## 概要
 
-Winning Post等のプレイデータを元に、仲間内で仮想的な競馬・馬券遊びを行うためのWebアプリケーションです。
-Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構築されています。
+Winning Post などのプレイデータをもとに、仲間内で仮想の競馬・馬券を楽しむためのWebアプリです。
+設計には Feature-Sliced Design (FSD) を採用し、Next.js で構築しています。
 
 ## 主要機能
 
@@ -26,8 +26,8 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 
 ### 前提条件
 
-- Docker & Docker Compose
-- Node.js (ホスト側で実行する場合)
+- Docker と Docker Compose
+- Node.js（ホスト側で実行する場合）
 
 ### 起動手順 (Docker)
 
@@ -40,7 +40,7 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
    task docker:up
    ```
 
-   コンテナが起動し、Next.jsアプリ、PostgreSQL、Redisが立ち上がります。
+   コンテナが起動し、Next.js アプリ、PostgreSQL、Redisが立ち上がります。
 
 3. データベースのセットアップ
    初回起動時やリセット時は以下を実行します。
@@ -52,7 +52,7 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 
 ### 便利なコマンド
 
-`Taskfile.yml` に定義されている主要なコマンドです。 `task <command>` で実行します。
+`Taskfile.yml` に定義している主要コマンドです。`task <command>` で実行します。
 
 | コマンド            | 説明                                        |
 | :------------------ | :------------------------------------------ |
@@ -64,7 +64,7 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 | `task install`      | 依存関係のインストール                      |
 | `task build`        | アプリケーションをビルド                    |
 | `task test`         | テストを実行                                |
-| `task check`        | 型チェック・フォーマットチェックを実行      |
+| `task check`        | Lint・型チェック・フォーマットを実行        |
 | `task db:setup`     | DBスキーマの適用とシードデータの投入        |
 | `task db:seed`      | シードデータの投入                          |
 | `task db:reset`     | DBのリセット                                |
@@ -97,13 +97,17 @@ Feature-Sliced Design (FSD) アーキテクチャを採用し、Next.js で構�
 
    これにより、通常のサービス（app, db, redis）に加えて `tunnel` コンテナが起動します。
 
-```
+### ユーザーロール変更
+
+ユーザーロールを変更する場合は、次のコマンドを使います。
+
+```bash
 task db:role
 ```
 
-または、以下で指定したユーザーの権限を変更します。
+特定ユーザーを指定する場合は、次の形式で実行します。
 
-```
+```bash
 task db:role -- --user=<username>
 ```
 
@@ -113,11 +117,9 @@ task db:role -- --user=<username>
 詳細は [docs/APPLICATION_DESIGN.md](docs/APPLICATION_DESIGN.md) を参照してください。
 
 - `src/app`: App Router Pages
-- `src/features`: 機能モジュール (admin, auth, betting, economy, race, ranking, user)
-- `src/entities`: ドメインモデル (user)
-- `src/shared`: 共有コンポーネント・ユーティリティ・DB
-- `src/lib`: ライブラリ設定
-- `src/types`: 型定義
+- `src/features`: 機能モジュール (admin, auth, betting, economy, forecasts, ranking, stats, user)
+- `src/entities`: ドメインモデル (bet, horse, race, ranking, user, wallet)
+- `src/shared`: 共有コンポーネント・ユーティリティ・DB・設定
 
 ## ドキュメント
 

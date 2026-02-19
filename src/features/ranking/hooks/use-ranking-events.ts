@@ -12,11 +12,13 @@ export function useRankingEvents({ eventId }: UseRankingEventsProps) {
   const handleMessage = useCallback(
     (data: SSEMessage) => {
       if (data.type === 'RANKING_UPDATED' && data.eventId === eventId) {
-        const mode = data.mode as 'HIDDEN' | 'ANONYMOUS' | 'FULL';
+        const mode = data.mode as 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';
         if (mode === 'HIDDEN') {
           toast.info('ランキングが非公開になりました');
         } else if (mode === 'ANONYMOUS') {
           toast.info('ランキングが更新されました（匿名公開）');
+        } else if (mode === 'FULL_WITH_LOAN') {
+          toast.success('ランキングが公開されました（借金込み）');
         } else {
           toast.success('ランキングが公開されました！');
         }

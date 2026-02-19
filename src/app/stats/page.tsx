@@ -1,9 +1,11 @@
-import { getGlobalStats } from '@/features/stats/actions';
-import { AssetChart } from '@/features/stats/components/asset-chart';
-import { CurrentBalanceDisplay } from '@/features/stats/components/current-balance-display';
-import { EventStatsCard } from '@/features/stats/components/event-stats-card';
-import { KarmaDisplay } from '@/features/stats/components/karma-display';
-import { NetWorthDisplay } from '@/features/stats/components/net-worth-display';
+import {
+  AssetChart,
+  CurrentBalanceDisplay,
+  EventStatsCard,
+  getGlobalStats,
+  KarmaDisplay,
+  NetWorthDisplay,
+} from '@/features/stats';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import Link from 'next/link';

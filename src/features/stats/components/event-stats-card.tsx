@@ -7,7 +7,7 @@ import { Card } from '@/shared/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible';
 import { cn } from '@/shared/utils/cn';
 import { ChevronDown } from 'lucide-react';
-import { EventStats } from '../actions';
+import { EventStats } from '../utils';
 
 interface EventStatsCardProps {
   event: EventStats;
@@ -17,36 +17,36 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
   return (
     <Collapsible className="group">
       <Card>
-        <div className="flex items-center p-4">
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold">{event.name}</h3>
-              {event.loan > 0 && (
-                <span className="bg-destructive/10 text-destructive rounded px-2 py-0.5 text-sm font-medium">
-                  借入あり
-                </span>
-              )}
-            </div>
-            <div className="flex gap-4 text-sm">
-              <div>
-                所持金: <span className="font-medium">¥{event.balance.toLocaleString()}</span>
+        <CollapsibleTrigger asChild>
+          <div className="flex cursor-pointer items-center p-4 hover:bg-gray-50/50">
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">{event.name}</h3>
+                {event.loan > 0 && (
+                  <span className="rounded-full bg-orange-100 px-2 py-0.5 text-sm font-semibold text-orange-700">
+                    借入あり
+                  </span>
+                )}
               </div>
-              <div className={cn(event.net >= 0 ? 'text-blue-600' : 'text-red-600')}>
-                収支:{' '}
-                <span className="font-medium">
-                  {event.net > 0 && '+'}
-                  {event.net.toLocaleString()}
-                </span>
+              <div className="flex gap-4 text-sm">
+                <div>
+                  所持金: <span className="font-medium">¥{event.balance.toLocaleString()}</span>
+                </div>
+                <div className={cn(event.net >= 0 ? 'text-blue-600' : 'text-red-600')}>
+                  収支:{' '}
+                  <span className="font-medium">
+                    {event.net > 0 && '+'}
+                    {event.net.toLocaleString()}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-          <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
               <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
               <span className="sr-only">詳細を開く</span>
             </Button>
-          </CollapsibleTrigger>
-        </div>
+          </div>
+        </CollapsibleTrigger>
 
         <CollapsibleContent>
           <div className="space-y-4 border-t px-4 py-4">

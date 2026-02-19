@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 
 import { useId } from 'react';
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { AssetHistoryPoint } from '../actions';
+import { AssetHistoryPoint } from '../utils';
 
 interface AssetChartProps {
   data: AssetHistoryPoint[];
@@ -63,23 +63,32 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickFormatter={(value) => {
-                  return value;
-                }}
-                minTickGap={30}
-                tick={{ fontSize: 12 }}
-              />
+              <XAxis dataKey="date" hide />
               <YAxis tickFormatter={(value) => `¥${value.toLocaleString()}`} tick={{ fontSize: 12 }} width={80} />
               <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
               <Tooltip
-                formatter={(value: number | undefined) => [
-                  value !== undefined ? `¥${value.toLocaleString()}` : '',
-                  '資産',
-                ]}
-                labelFormatter={(label) => label}
-                contentStyle={{ borderRadius: '8px' }}
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0].payload as AssetHistoryPoint;
+                    return (
+                      <div className="rounded-lg border bg-white p-3 text-sm shadow-md">
+                        <div className="mb-1 font-semibold text-gray-900">{data.label || '不明な操作'}</div>
+                        <div className="flex flex-col gap-0.5">
+                          <div
+                            className={`text-lg font-semibold ${
+                              data.amount > 0 ? 'text-blue-600' : data.amount < 0 ? 'text-red-600' : 'text-gray-600'
+                            }`}
+                          >
+                            {data.amount > 0 ? '+' : ''}
+                            {data.amount.toLocaleString()}円
+                          </div>
+                          <div className="text-sm text-gray-500">残高: {data.balance.toLocaleString()}円</div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
               />
               <Area
                 type="monotone"
@@ -94,13 +103,28 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                     <circle
                       cx={cx}
                       cy={cy}
-                      r={3}
+                      r={4}
                       fill={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
                       stroke={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
+                      fillOpacity={1}
+                      strokeWidth={1}
                     />
                   );
                 }}
-                activeDot={{ r: 6 }}
+                activeDot={(props) => {
+                  const { cx, cy, payload } = props;
+                  const isPositive = payload.balance >= 0;
+                  return (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={6}
+                      fill={isPositive ? 'var(--color-primary)' : 'var(--color-error)'}
+                      stroke="white"
+                      strokeWidth={2}
+                    />
+                  );
+                }}
               />
             </AreaChart>
           </ResponsiveContainer>

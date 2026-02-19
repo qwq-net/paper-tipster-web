@@ -3,33 +3,25 @@
 import { db } from '@/shared/db';
 import { transactions, wallets } from '@/shared/db/schema';
 import { requireUser } from '@/shared/utils/admin';
-import { format } from 'date-fns';
 import { asc, desc, eq, inArray } from 'drizzle-orm';
+import { formatChartDate, formatTransactionDate, getActionName, getTransactionDescription } from './utils';
 
-export interface AssetHistoryPoint {
-  date: string;
-  timestamp: number;
-  balance: number;
-  label?: string;
-}
+import type { AssetHistoryPoint, EventStats } from './utils';
 
-export interface EventStats {
+type StatTransaction = {
   id: string;
-  name: string;
-  balance: number;
-  loan: number;
-  net: number;
-  history: AssetHistoryPoint[];
-  logs: TransactionLog[];
-}
-
-export interface TransactionLog {
-  id: string;
-  date: string;
   type: string;
   amount: number;
-  description: string;
-}
+  createdAt: Date;
+  wallet: {
+    eventId: string;
+  };
+  bet: {
+    race: {
+      name: string;
+    } | null;
+  } | null;
+};
 
 export async function getGlobalStats() {
   const session = await requireUser();
@@ -92,20 +84,7 @@ export async function getGlobalStats() {
 
   let currentGlobalBalance = 0;
   const globalHistory: AssetHistoryPoint[] = [];
-
   const eventCurrentBalances = new Map<string, number>();
-
-  if (allTransactions.length > 0) {
-    const startDate = format(allTransactions[0].createdAt, 'yyyy-MM-dd HH:mm:ss');
-    const startTimestamp = allTransactions[0].createdAt.getTime();
-
-    globalHistory.push({
-      date: startDate,
-      timestamp: startTimestamp,
-      balance: 0,
-      label: 'Start',
-    });
-  }
 
   for (const tx of allTransactions) {
     const eventId = tx.wallet.eventId;
@@ -115,26 +94,19 @@ export async function getGlobalStats() {
       currentGlobalBalance += tx.amount;
     }
 
-    const description = getTransactionDescription(tx);
-    const eventName = eventData?.name || '';
-    const globalLabel = getGlobalLabel(description, eventName);
+    const lastGlobalPoint = globalHistory[globalHistory.length - 1];
+    const isSameTypeAsLastGlobal =
+      lastGlobalPoint && lastGlobalPoint.type === tx.type && lastGlobalPoint.eventId === eventId;
 
-    globalHistory.push({
-      date: format(tx.createdAt, 'yyyy-MM-dd HH:mm:ss'),
-      timestamp: tx.createdAt.getTime(),
-      balance: currentGlobalBalance,
-      label: globalLabel,
-    });
+    const eventName = eventData?.name || '';
+    const actionName = getActionName(tx.type);
+    const globalLabel = `${eventName} ${actionName}`;
+
+    updateHistoryPoint(globalHistory, tx, currentGlobalBalance, isSameTypeAsLastGlobal, globalLabel, undefined, true);
 
     if (eventData) {
       if (!eventCurrentBalances.has(eventId)) {
         eventCurrentBalances.set(eventId, 0);
-        eventData.history.push({
-          date: format(tx.createdAt, 'MM/dd HH:mm:ss'),
-          timestamp: tx.createdAt.getTime() - 1,
-          balance: 0,
-          label: 'Start',
-        });
       }
 
       let eventBalance = eventCurrentBalances.get(eventId)!;
@@ -143,19 +115,21 @@ export async function getGlobalStats() {
         eventCurrentBalances.set(eventId, eventBalance);
       }
 
-      eventData.history.push({
-        date: format(tx.createdAt, 'MM/dd HH:mm:ss'),
-        timestamp: tx.createdAt.getTime(),
-        balance: eventBalance,
-        label: description,
-      });
+      const lastEventPoint = eventData.history[eventData.history.length - 1];
+      const txRaceName = tx.bet?.race?.name;
+      const isSameTypeAsLastEvent =
+        lastEventPoint && lastEventPoint.type === tx.type && lastEventPoint.raceName === txRaceName;
+
+      const eventLabel = txRaceName ? `${txRaceName} ${actionName}` : actionName;
+
+      updateHistoryPoint(eventData.history, tx, eventBalance, isSameTypeAsLastEvent, eventLabel, txRaceName, false);
 
       eventData.logs.push({
         id: tx.id,
-        date: format(tx.createdAt, 'yyyy/MM/dd HH:mm:ss'),
+        date: formatTransactionDate(tx.createdAt),
         type: tx.type,
         amount: tx.amount,
-        description,
+        description: getTransactionDescription(tx),
       });
     }
   }
@@ -173,37 +147,33 @@ export async function getGlobalStats() {
   };
 }
 
-type TransactionWithDetails = {
-  type: string;
-  bet: {
-    race: {
-      name: string;
-    } | null;
-  } | null;
-};
+function updateHistoryPoint(
+  history: AssetHistoryPoint[],
+  tx: StatTransaction,
+  currentBalance: number,
+  shouldGroup: boolean | undefined,
+  label: string,
+  raceName: string | undefined,
+  isGlobal: boolean
+) {
+  const lastPoint = history[history.length - 1];
 
-function getTransactionDescription(tx: TransactionWithDetails): string {
-  if (tx.type === 'BET' && tx.bet?.race) {
-    return `${tx.bet.race.name} 投票`;
-  } else if (tx.type === 'PAYOUT' && tx.bet?.race) {
-    return `${tx.bet.race.name} 払戻`;
-  } else if (tx.type === 'LOAN') {
-    return '借入';
-  } else if (tx.type === 'DISTRIBUTION') {
-    return '初期配布';
+  if (lastPoint && shouldGroup) {
+    lastPoint.balance = currentBalance;
+    lastPoint.amount += tx.amount;
+    lastPoint.date = formatChartDate(tx.createdAt, isGlobal);
+    lastPoint.timestamp = tx.createdAt.getTime();
+    lastPoint.label = label;
   } else {
-    if (tx.type === 'BET' || tx.type === 'PAYOUT') {
-      return `${tx.type}`;
-    } else {
-      return tx.type;
-    }
+    history.push({
+      date: formatChartDate(tx.createdAt, isGlobal),
+      timestamp: tx.createdAt.getTime(),
+      balance: currentBalance,
+      label: label,
+      amount: tx.amount,
+      type: tx.type,
+      eventId: tx.wallet.eventId,
+      raceName: raceName,
+    });
   }
-}
-
-function getGlobalLabel(description: string, eventName: string): string {
-  if (!eventName) return description;
-  if (description.includes(eventName) || description.includes('投票') || description.includes('払戻')) {
-    return description;
-  }
-  return `${eventName} ${description}`;
 }

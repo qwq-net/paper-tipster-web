@@ -40,7 +40,10 @@ export async function GET(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
       };
 
-      const onRankingUpdated = (data: { eventId: string; published: boolean; ranking?: unknown[] }) => {
+      const onRankingUpdated = (data: {
+        eventId: string;
+        mode: 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';
+      }) => {
         console.log(`[SSE] Emitting RANKING_UPDATED for event: ${data.eventId}`);
         const payload = JSON.stringify({ type: 'RANKING_UPDATED', ...data });
         controller.enqueue(encoder.encode(`data: ${payload}\n\n`));

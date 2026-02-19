@@ -106,9 +106,9 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="initialPot">追加ボーナス金額 (任意)</Label>
+            <Label htmlFor="initialPot">初期プール</Label>
             <NumericInput id="initialPot" value={initialPot} onChange={setInitialPot} min={0} />
-            <p className="text-sm text-gray-500">キャリーオーバーとは別に、今回特別に設定するボーナス金額です。</p>
+            <p className="text-sm text-gray-500">売上によるプール金額とは別に、今回特別に設定するボーナス金額です。</p>
           </div>
 
           <Button type="submit" disabled={isPending || selectedRaces.length !== 5}>

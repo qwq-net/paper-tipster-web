@@ -120,7 +120,9 @@ function renderResultBlock(results: ResultItem[], type: BetType, minRows: number
               <div className="font-mono text-2xl font-semibold tracking-wider">
                 {isPlaceholder ? '-' : row.numbers.join(' - ')}
               </div>
-              <div className="w-32 text-right font-mono text-xl font-semibold">{row.payout.toLocaleString()}円</div>
+              <div className="w-32 text-right font-mono text-xl font-semibold">
+                {row.payout.toLocaleString('ja-JP')}円
+              </div>
             </div>
           );
         })}

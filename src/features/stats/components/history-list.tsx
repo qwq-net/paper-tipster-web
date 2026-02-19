@@ -38,7 +38,7 @@ export function HistoryList({ logs }: HistoryListProps) {
                 <TableCell>{log.description}</TableCell>
                 <TableCell className={cn('text-right font-mono', log.amount > 0 ? 'text-green-600' : 'text-red-600')}>
                   {log.amount > 0 ? '+' : ''}
-                  {log.amount.toLocaleString()}
+                  {log.amount.toLocaleString('ja-JP')}
                 </TableCell>
               </TableRow>
             ))

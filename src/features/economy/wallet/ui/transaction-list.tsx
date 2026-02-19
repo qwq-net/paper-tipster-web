@@ -23,6 +23,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
   const typeLabels: Record<string, string> = {
     CLAIM: '配布金',
     BET: '投票',
+    PAYOUT: '払戻',
     REFUND: '払戻',
     WIN: '配当',
     BONUS: 'ボーナス',
@@ -62,7 +63,7 @@ export function TransactionList({ transactions }: TransactionListProps) {
 
             <div className={`text-lg font-semibold ${isExpense ? 'text-red-600' : 'text-green-600'}`}>
               {isExpense ? '' : '+'}
-              {tx.amount.toLocaleString()}
+              {tx.amount.toLocaleString('ja-JP')}
             </div>
           </div>
         );

@@ -19,7 +19,7 @@ export function NetWorthDisplay({ amount }: NetWorthDisplayProps) {
       </CardHeader>
       <CardContent>
         <div className={cn('text-2xl font-semibold', isPositive ? 'text-blue-700' : 'text-red-700')}>
-          ¥{amount.toLocaleString()}
+          ¥{amount.toLocaleString('ja-JP')}
         </div>
         <p className="text-muted-foreground text-sm">資産 - 借金</p>
       </CardContent>

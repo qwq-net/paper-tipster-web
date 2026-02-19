@@ -28,6 +28,15 @@ export async function getWalletTransactions(walletId: string) {
         },
       },
       event: true,
+      bet5Ticket: {
+        with: {
+          bet5Event: {
+            with: {
+              event: true,
+            },
+          },
+        },
+      },
     },
     orderBy: [desc(transactions.createdAt)],
   });

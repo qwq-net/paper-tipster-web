@@ -64,7 +64,11 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="date" hide />
-              <YAxis tickFormatter={(value) => `¥${value.toLocaleString()}`} tick={{ fontSize: 12 }} width={80} />
+              <YAxis
+                tickFormatter={(value) => `¥${value.toLocaleString('ja-JP')}`}
+                tick={{ fontSize: 12 }}
+                width={80}
+              />
               <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
               <Tooltip
                 content={({ active, payload }) => {
@@ -80,9 +84,9 @@ export function AssetChart({ data, title = '資産推移' }: AssetChartProps) {
                             }`}
                           >
                             {data.amount > 0 ? '+' : ''}
-                            {data.amount.toLocaleString()}円
+                            {data.amount.toLocaleString('ja-JP')}円
                           </div>
-                          <div className="text-sm text-gray-500">残高: {data.balance.toLocaleString()}円</div>
+                          <div className="text-sm text-gray-500">残高: {data.balance.toLocaleString('ja-JP')}円</div>
                         </div>
                       </div>
                     );

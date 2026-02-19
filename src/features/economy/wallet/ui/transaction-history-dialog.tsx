@@ -35,7 +35,12 @@ export function TransactionHistoryDialog({ walletId, eventName, open, onOpenChan
           if (active) {
             const mapped = data.map((tx: WalletTransaction) => {
               let description = null;
-              if (tx.type === 'BET' || tx.type === 'PAYOUT' || tx.type === 'REFUND') {
+              if ((tx.type === 'BET' || tx.type === 'PAYOUT') && tx.bet5Ticket) {
+                const bet5EventName = tx.bet5Ticket.bet5Event?.event?.name;
+                description = bet5EventName
+                  ? `${bet5EventName} BET5 ${tx.type === 'PAYOUT' ? '払戻' : '購入'}`
+                  : `BET5 ${tx.type === 'PAYOUT' ? '払戻' : '購入'}`;
+              } else if (tx.type === 'BET' || tx.type === 'PAYOUT' || tx.type === 'REFUND') {
                 const raceName = tx.bet?.race?.name;
                 const venueShortName = tx.bet?.race?.venue?.shortName;
                 if (raceName) {

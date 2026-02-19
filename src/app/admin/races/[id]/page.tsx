@@ -3,7 +3,7 @@ import { getRaceById } from '@/features/admin/manage-races/actions';
 import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { horses, raceEntries } from '@/shared/db/schema';
+import { bet5Events, horses, raceEntries } from '@/shared/db/schema';
 import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
@@ -42,6 +42,24 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
     .where(eq(raceEntries.raceId, id))
     .orderBy(raceEntries.finishPosition, raceEntries.horseNumber);
 
+  const bet5Event = await db.query.bet5Events.findFirst({
+    where: eq(bet5Events.eventId, race.eventId),
+    columns: {
+      id: true,
+      status: true,
+      race1Id: true,
+      race2Id: true,
+      race3Id: true,
+      race4Id: true,
+      race5Id: true,
+    },
+  });
+
+  const isBet5TargetRace =
+    bet5Event !== undefined &&
+    [bet5Event.race1Id, bet5Event.race2Id, bet5Event.race3Id, bet5Event.race4Id, bet5Event.race5Id].includes(race.id);
+  const showBet5CloseReminder = isBet5TargetRace && bet5Event?.status === 'SCHEDULED';
+
   const hasFinishPositions = entriesWithResult.some((e) => e.finishPosition !== null);
   const canFinalizePayout = payoutResults.length > 0 || (race.status === 'CLOSED' && hasFinishPositions);
 
@@ -56,7 +74,12 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
         </Link>
         <div className="flex flex-1 items-start justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">{race.name}</h1>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-gray-200 bg-gray-100 px-2 text-sm font-semibold text-gray-700">
+                {race.raceNumber ? `${race.raceNumber}R` : '-'}
+              </span>
+              <h1 className="text-2xl font-semibold text-gray-900">{race.name}</h1>
+            </div>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <p>
                 {race.date.replace(/-/g, '/')} @ {race.venue?.name}
@@ -140,6 +163,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
             <RaceResultForm
               raceId={race.id}
               canFinalizePayout={canFinalizePayout}
+              showBet5CloseReminder={showBet5CloseReminder}
               entries={entriesWithResult.map((e) => ({
                 id: e.id,
                 horseNumber: e.horseNumber,

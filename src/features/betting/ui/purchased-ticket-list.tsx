@@ -60,12 +60,12 @@ export function PurchasedTicketList({ ticketGroups }: PurchasedTicketListProps) 
       <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div>
           <div className="mb-1 text-sm font-semibold text-gray-500">購入合計</div>
-          <div className="text-xl font-semibold text-gray-900">{totalAmount.toLocaleString()}円</div>
+          <div className="text-xl font-semibold text-gray-900">{totalAmount.toLocaleString('ja-JP')}円</div>
         </div>
         {totalPayout > 0 && (
           <div className="text-right">
             <div className="mb-1 text-sm font-semibold text-gray-500">払戻合計</div>
-            <div className="text-xl font-semibold text-red-600">{totalPayout.toLocaleString()}円</div>
+            <div className="text-xl font-semibold text-red-600">{totalPayout.toLocaleString('ja-JP')}円</div>
           </div>
         )}
       </div>
@@ -170,17 +170,17 @@ function TicketGroupItem({ group }: { group: BetGroup }) {
         </div>
         <div className="text-right">
           <div className="text-sm font-semibold text-gray-900">
-            {unitAmount.toLocaleString()}円 × {betCount}点 = {group.totalAmount.toLocaleString()}円
+            {unitAmount.toLocaleString('ja-JP')}円 × {betCount}点 = {group.totalAmount.toLocaleString('ja-JP')}円
           </div>
           {groupPayout > 0 ? (
-            <div className="text-sm font-semibold text-red-600">+{groupPayout.toLocaleString()}円</div>
+            <div className="text-sm font-semibold text-red-600">+{groupPayout.toLocaleString('ja-JP')}円</div>
           ) : (
             hasProvisional && (
               <div className="mt-0.5 text-sm font-medium text-amber-600">
                 想定払戻:{' '}
                 {minProvisional === maxProvisional
-                  ? `${minProvisional.toLocaleString()}円`
-                  : `${minProvisional.toLocaleString()}〜${maxProvisional.toLocaleString()}円`}
+                  ? `${minProvisional.toLocaleString('ja-JP')}円`
+                  : `${minProvisional.toLocaleString('ja-JP')}〜${maxProvisional.toLocaleString('ja-JP')}円`}
               </div>
             )
           )}

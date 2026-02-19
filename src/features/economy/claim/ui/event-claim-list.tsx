@@ -52,7 +52,9 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
           <CardContent className="flex flex-1 flex-col">
             <p className="mb-4 line-clamp-2 flex-1 text-sm text-gray-500">{event.description || '説明はありません'}</p>
             <div className="mt-auto flex items-center justify-between border-t border-gray-50 pt-4">
-              <span className="text-primary font-semibold">配布: {event.distributeAmount.toLocaleString()} 円</span>
+              <span className="text-primary font-semibold">
+                配布: {event.distributeAmount.toLocaleString('ja-JP')} 円
+              </span>
               <Button
                 onClick={() => handleClaim(event.id)}
                 disabled={isPending || event.status !== 'ACTIVE' || event.isJoined}

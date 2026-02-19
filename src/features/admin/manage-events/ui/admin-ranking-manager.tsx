@@ -178,7 +178,7 @@ export function AdminRankingManager({
                     </td>
                     <td className="px-6 py-4 font-medium whitespace-nowrap text-gray-900">{user.name}</td>
                     <td className="px-6 py-4 text-right font-medium whitespace-nowrap text-gray-900">
-                      {Number(user.balance).toLocaleString()} 円
+                      {Number(user.balance).toLocaleString('ja-JP')} 円
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       <span
@@ -187,13 +187,13 @@ export function AdminRankingManager({
                         }`}
                       >
                         {Number(user.balance) - distributeAmount >= 0 ? '+' : ''}
-                        {(Number(user.balance) - distributeAmount).toLocaleString()}
+                        {(Number(user.balance) - distributeAmount).toLocaleString('ja-JP')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right whitespace-nowrap">
                       {user.totalLoaned && user.totalLoaned > 0 ? (
                         <Badge
-                          label={`${user.totalLoaned.toLocaleString()} 円`}
+                          label={`${user.totalLoaned.toLocaleString('ja-JP')} 円`}
                           className="bg-orange-100 text-orange-800 ring-orange-200"
                         />
                       ) : (

@@ -5,6 +5,7 @@ import { db } from '@/shared/db';
 import { bet5Tickets } from '@/shared/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import {
   Bet5Selection,
   Bet5SelectionSchema,
@@ -12,7 +13,14 @@ import {
   closeBet5Event,
   createBet5Event,
   placeBet5Bet,
+  updateBet5InitialPot,
 } from '../logic/bet5';
+
+const Bet5UnitAmountSchema = z
+  .number()
+  .int()
+  .min(100)
+  .refine((value) => value % 100 === 0, { message: 'unitAmount must be a multiple of 100' });
 
 export async function createBet5EventAction({
   eventId,
@@ -44,13 +52,26 @@ export async function closeBet5EventAction(bet5EventId: string, eventId: string)
   return updated;
 }
 
+export async function updateBet5InitialPotAction(bet5EventId: string, eventId: string, initialPot: number) {
+  const session = await auth();
+  if (session?.user?.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  const updated = await updateBet5InitialPot(bet5EventId, initialPot);
+  revalidatePath(`/admin/events/${eventId}`);
+  return updated;
+}
+
 export async function placeBet5BetAction({
   bet5EventId,
   eventId,
+  unitAmount,
   selections,
 }: {
   bet5EventId: string;
   eventId: string;
+  unitAmount: number;
   selections: Bet5Selection;
 }) {
   const session = await auth();
@@ -63,9 +84,15 @@ export async function placeBet5BetAction({
     throw new Error('Invalid selections');
   }
 
+  const amountValidation = Bet5UnitAmountSchema.safeParse(unitAmount);
+  if (!amountValidation.success) {
+    throw new Error('Invalid unit amount');
+  }
+
   const ticket = await placeBet5Bet({
     userId: session.user.id!,
     bet5EventId,
+    unitAmount: amountValidation.data,
     selections: validation.data,
   });
 

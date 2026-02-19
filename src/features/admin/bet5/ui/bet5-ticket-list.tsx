@@ -48,12 +48,16 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Tokyo',
+      hour12: false,
     }).format(new Date(date));
   };
 
+  const formatYen = (value: number) => new Intl.NumberFormat('ja-JP').format(value);
+
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900">購入チケット一覧 ({tickets.length}件)</h3>
+      <h3 className="text-lg font-semibold text-gray-900">購入されたBET5一覧 ({tickets.length}件)</h3>
       <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm">
         <table className="w-full min-w-[800px] border-collapse text-left">
           <thead className="bg-gray-50">
@@ -92,14 +96,14 @@ export function Bet5TicketList({ tickets, horseMap, isFinalized }: Bet5TicketLis
                   </div>
                 </td>
                 <td className="px-4 py-3 text-sm font-semibold whitespace-nowrap text-gray-700">
-                  {ticket.amount.toLocaleString()}円
+                  {formatYen(ticket.amount)}円
                 </td>
                 <td className="px-4 py-3 text-sm whitespace-nowrap">
                   {ticket.isWin ? (
                     <div className="flex flex-col items-start gap-1">
                       <Badge label="的中" className="bg-red-100 text-red-700 ring-red-200" />
                       {ticket.payout && (
-                        <span className="text-sm font-semibold text-red-600">{ticket.payout.toLocaleString()}円</span>
+                        <span className="text-sm font-semibold text-red-600">{formatYen(ticket.payout)}円</span>
                       )}
                     </div>
                   ) : isFinalized ? (

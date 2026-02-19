@@ -95,7 +95,7 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
                       {JSON.stringify((bet.details as { selections?: unknown })?.selections || [])}
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900">
-                      {bet.amount.toLocaleString()}円
+                      {bet.amount.toLocaleString('ja-JP')}円
                     </td>
                     <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
                       <FormattedDate date={bet.createdAt} />
@@ -128,7 +128,7 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
           <div>
             <div className="text-sm text-gray-500">総投票額</div>
             <div className="mt-1 text-2xl font-semibold text-gray-900">
-              {bets.reduce((sum, bet) => sum + bet.amount, 0).toLocaleString()}円
+              {bets.reduce((sum, bet) => sum + bet.amount, 0).toLocaleString('ja-JP')}円
             </div>
           </div>
           <div>

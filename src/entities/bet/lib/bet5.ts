@@ -14,9 +14,9 @@ export function calculateBet5Count(selections: {
   );
 }
 
-export function calculateBet5Dividend(totalPot: number, winCount: number): number {
-  if (winCount === 0) return 0;
-  return Math.floor(totalPot / winCount);
+export function calculateBet5Dividend(totalPot: number, winningUnitCount: number): number {
+  if (winningUnitCount === 0) return 0;
+  return Math.floor(totalPot / winningUnitCount);
 }
 
 export function isBet5Winner(

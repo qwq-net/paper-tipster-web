@@ -94,6 +94,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
         await placeBet5BetAction({
           bet5EventId,
           eventId,
+          unitAmount: amount,
           selections: {
             race1: selections[raceIds[0]] || [],
             race2: selections[raceIds[1]] || [],
@@ -282,7 +283,7 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
               </div>
               <div className="flex justify-between border-t border-gray-200 pt-2 text-lg font-semibold">
                 <span>合計金額</span>
-                <span className="text-indigo-600">{totalCost.toLocaleString()}円</span>
+                <span className="text-indigo-600">{totalCost.toLocaleString('ja-JP')}円</span>
               </div>
             </div>
           </div>

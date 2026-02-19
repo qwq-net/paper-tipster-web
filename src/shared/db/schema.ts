@@ -491,6 +491,10 @@ export const transactionRelations = relations(transactions, ({ one }) => ({
     fields: [transactions.referenceId],
     references: [events.id],
   }),
+  bet5Ticket: one(bet5Tickets, {
+    fields: [transactions.referenceId],
+    references: [bet5Tickets.id],
+  }),
 }));
 
 export const betRelations = relations(bets, ({ one }) => ({

@@ -99,12 +99,12 @@ export function RankingList({
                 <div className="flex items-center gap-2">
                   {user.totalLoaned !== undefined && user.totalLoaned > 0 && (
                     <span className="mr-1 rounded-full bg-orange-100 px-2 py-0.5 text-sm font-semibold text-orange-700">
-                      借入 {user.totalLoaned.toLocaleString()}円
+                      借入 {user.totalLoaned.toLocaleString('ja-JP')}円
                     </span>
                   )}
                   <div className="text-right">
                     <div className="font-semibold text-gray-900">
-                      {typeof user.balance === 'number' ? user.balance.toLocaleString() : user.balance}
+                      {typeof user.balance === 'number' ? user.balance.toLocaleString('ja-JP') : user.balance}
                       {typeof user.balance === 'number' && '円'}
                     </div>
                     {typeof user.balance === 'number' && (
@@ -114,7 +114,7 @@ export function RankingList({
                         }`}
                       >
                         ({user.balance - distributeAmount >= 0 ? '+' : ''}
-                        {(user.balance - distributeAmount).toLocaleString()})
+                        {(user.balance - distributeAmount).toLocaleString('ja-JP')})
                       </div>
                     )}
                   </div>

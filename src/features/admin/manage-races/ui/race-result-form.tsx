@@ -17,7 +17,8 @@ import {
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { AlertCircle, CheckCircle2, GripVertical, Info, RotateCcw, Settings2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ExternalLink, GripVertical, Info, RotateCcw, Settings2 } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -36,6 +37,7 @@ interface RaceResultFormProps {
   raceId: string;
   entries: Entry[];
   canFinalizePayout?: boolean;
+  showBet5CloseReminder?: boolean;
   race: {
     id: string;
     eventId: string;
@@ -122,7 +124,13 @@ function SortableResultItem({ entry, position }: { entry: Entry; position: numbe
   );
 }
 
-export function RaceResultForm({ raceId, entries: initialEntries, race, canFinalizePayout }: RaceResultFormProps) {
+export function RaceResultForm({
+  raceId,
+  entries: initialEntries,
+  race,
+  canFinalizePayout,
+  showBet5CloseReminder,
+}: RaceResultFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [sortedEntries, setSortedEntries] = useState(initialEntries);
@@ -234,6 +242,7 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, canFinal
 
   const activeEntry = activeId ? sortedEntries.find((e) => e.id === activeId) : null;
   const activePosition = activeEntry ? sortedEntries.findIndex((e) => e.id === activeEntry.id) + 1 : 0;
+  const entryCount = initialEntries.length;
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -241,7 +250,6 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, canFinal
       <div className="space-y-4 lg:col-span-2">
         <div className="flex items-end justify-between px-1">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold text-gray-900">着順を確定する</h2>
             <div className="mb-0.5 flex items-center gap-1.5 text-sm font-semibold text-gray-400">
               <Info className="h-4 w-4" />
               ドラッグして着順を並び替えてください
@@ -312,7 +320,7 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, canFinal
             <p className="text-sm font-semibold">
               受付が終了すると着順の操作が可能になります。
               <br />
-              締切時刻を待つか、「手動締切」を行ってください。
+              「自動タイマー」による締め切りか、「手動締切」を行ってください。
             </p>
             <div className="mt-6">
               <KitchenTimer
@@ -327,6 +335,22 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, canFinal
 
       {}
       <div className="space-y-6">
+        {showBet5CloseReminder && (
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
+            <div className="flex items-center font-medium text-amber-800">
+              <Info className="mr-1.5 h-4 w-4 shrink-0" />
+              BET5が締め切られていません。出走前に締め切ってください。
+            </div>
+            <Link
+              href={`/admin/events/${race.eventId}/bet5`}
+              className="inline-flex shrink-0 items-center font-semibold text-amber-900 hover:underline"
+            >
+              BET5管理へ
+              <ExternalLink className="ml-1 h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
+
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="mb-6 space-y-4 text-sm">
             <div className="flex items-center gap-2 border-b border-gray-50 pb-4">
@@ -337,6 +361,12 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, canFinal
               <span className="font-medium text-gray-500">ステータス</span>
               <div className="flex flex-col items-end gap-1">
                 <Badge variant="status" label={race.status} />
+              </div>
+            </div>
+            <div className="border-b border-gray-50 pb-2">
+              <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                <span className="font-medium text-gray-500">出走馬数</span>
+                <span className="text-sm font-semibold text-gray-900">{entryCount}頭</span>
               </div>
             </div>
             <div className="border-b border-gray-50 pb-2">
@@ -365,7 +395,7 @@ export function RaceResultForm({ raceId, entries: initialEntries, race, canFinal
               <span className="font-medium text-gray-500">コース</span>
               <div>
                 <Badge variant="surface" label={race.surface} />
-                <span className="ml-1 text-sm font-semibold text-gray-400">{race.distance}m</span>
+                <span className="text-md ml-1 font-semibold text-gray-700">{race.distance}m</span>
               </div>
             </div>
             <div className="flex items-center justify-between pb-2">

@@ -13,7 +13,7 @@ export function KarmaDisplay({ totalKarma }: KarmaDisplayProps) {
         <Skull className="h-4 w-4 text-violet-600" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-semibold text-violet-700">¥{totalKarma.toLocaleString()}</div>
+        <div className="text-2xl font-semibold text-violet-700">¥{totalKarma.toLocaleString('ja-JP')}</div>
         <p className="text-muted-foreground text-sm">このカルマが消えることはありません...</p>
       </CardContent>
     </Card>

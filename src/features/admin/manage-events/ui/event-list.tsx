@@ -63,7 +63,7 @@ export function EventList({ events }: { events: Event[] }) {
                 </Link>
               </td>
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-600">
-                {event.distributeAmount.toLocaleString()} 円
+                {event.distributeAmount.toLocaleString('ja-JP')} 円
               </td>
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-400">{event.date}</td>
               <td className="px-6 py-4 text-right whitespace-nowrap">

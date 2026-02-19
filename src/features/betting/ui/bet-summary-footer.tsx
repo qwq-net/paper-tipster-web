@@ -36,7 +36,7 @@ export function BetSummaryFooter({
           </div>
           <div className="flex flex-col gap-1 lg:items-start">
             <span className="text-sm font-semibold text-gray-500">合計金額</span>
-            <span className="text-xl font-semibold text-gray-900">{totalAmount.toLocaleString()}円</span>
+            <span className="text-xl font-semibold text-gray-900">{totalAmount.toLocaleString('ja-JP')}円</span>
           </div>
           <div className="col-span-2 flex flex-col gap-2 lg:col-auto lg:flex-row lg:items-center lg:gap-3">
             <label className="text-sm font-semibold text-gray-500">1点あたり</label>
@@ -84,7 +84,7 @@ export function BetSummaryFooter({
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between lg:justify-end">
           <div className="flex flex-col items-center gap-1 sm:items-end">
             <span className="text-sm font-semibold text-gray-400">投票可能残高</span>
-            <span className="text-sm font-semibold text-gray-600">{balance.toLocaleString()}円</span>
+            <span className="text-sm font-semibold text-gray-600">{balance.toLocaleString('ja-JP')}円</span>
           </div>
           <Button
             type="button"

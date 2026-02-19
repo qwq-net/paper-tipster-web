@@ -48,7 +48,7 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
           </div>
           <p className="text-sm text-orange-50">
             勝利まであと一歩かもしれません。今ここで諦めるのはもったいない。
-            <span className="font-semibold">{loanAmount.toLocaleString()}円</span> の特別融資で、栄光をその手に。
+            <span className="font-semibold">{loanAmount.toLocaleString('ja-JP')}円</span> の特別融資で、栄光をその手に。
             手続きは一瞬、夢は永遠です。借り入れはイベントにつき1回のみ可能です。
           </p>
           <div className="flex gap-2">
@@ -87,7 +87,7 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
             資金が少し不足していませんか？
           </h3>
           <p className="mt-1 text-sm text-orange-100">
-            <span className="font-semibold">{loanAmount.toLocaleString()}円</span>{' '}
+            <span className="font-semibold">{loanAmount.toLocaleString('ja-JP')}円</span>{' '}
             の追加資金で、大きな夢を掴みましょう。
           </p>
         </div>

@@ -82,7 +82,7 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
 
       <Card>
         <CardHeader>
-          <CardTitle>キャリーオーバー: {bet5Event.initialPot.toLocaleString()}円 + α</CardTitle>
+          <CardTitle>キャリーオーバー: {bet5Event.initialPot.toLocaleString('ja-JP')}円 + α</CardTitle>
         </CardHeader>
         <CardContent>
           <p>5つのレース全ての1着馬を予想してください。1口100円から投票できます。</p>

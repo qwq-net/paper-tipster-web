@@ -30,13 +30,13 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
               </div>
               <div className="flex gap-4 text-sm">
                 <div>
-                  所持金: <span className="font-medium">¥{event.balance.toLocaleString()}</span>
+                  所持金: <span className="font-medium">¥{event.balance.toLocaleString('ja-JP')}</span>
                 </div>
                 <div className={cn(event.net >= 0 ? 'text-blue-600' : 'text-red-600')}>
                   収支:{' '}
                   <span className="font-medium">
                     {event.net > 0 && '+'}
-                    {event.net.toLocaleString()}
+                    {event.net.toLocaleString('ja-JP')}
                   </span>
                 </div>
               </div>
@@ -53,7 +53,7 @@ export function EventStatsCard({ event }: EventStatsCardProps) {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-1">
                 <span className="text-muted-foreground text-sm">借入総額</span>
-                <div className="text-destructive text-lg font-semibold">¥{event.loan.toLocaleString()}</div>
+                <div className="text-destructive text-lg font-semibold">¥{event.loan.toLocaleString('ja-JP')}</div>
               </div>
             </div>
 

@@ -90,7 +90,7 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
           combinations: validCombinations,
           amountPerBet: amount,
         });
-        toast.success(`${totalAmount.toLocaleString()}円分の馬券を購入しました`);
+        toast.success(`${totalAmount.toLocaleString('ja-JP')}円分の馬券を購入しました`);
         resetSelections();
         router.refresh();
       } catch (error) {

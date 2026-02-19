@@ -36,7 +36,6 @@ describe('finalizePayout', () => {
   let venueId: string;
   let raceId: string;
   let walletId: string;
-  let horseId: string;
   let horseIds: string[];
 
   const createdBetGroupIds: string[] = [];
@@ -54,7 +53,6 @@ describe('finalizePayout', () => {
     const horses = await db.query.horses.findMany({ columns: { id: true } });
     if (horses.length < 3) throw new Error('At least 3 horses are required for payout tests');
     horseIds = horses.map((horse) => horse.id);
-    horseId = horseIds[0];
 
     const [event] = await db
       .insert(events)

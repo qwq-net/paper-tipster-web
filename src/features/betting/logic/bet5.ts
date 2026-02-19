@@ -75,13 +75,43 @@ export async function closeBet5Event(bet5EventId: string) {
   return updated;
 }
 
+export async function updateBet5InitialPot(bet5EventId: string, initialPot: number) {
+  const normalizedPot = Math.max(0, Math.floor(initialPot));
+
+  const current = await db.query.bet5Events.findFirst({
+    where: eq(bet5Events.id, bet5EventId),
+    columns: {
+      id: true,
+      status: true,
+    },
+  });
+
+  if (!current) {
+    throw new Error('BET5 event not found');
+  }
+
+  if (current.status === 'FINALIZED') {
+    throw new Error('BET5 event already finalized');
+  }
+
+  const [updated] = await db
+    .update(bet5Events)
+    .set({ initialPot: normalizedPot })
+    .where(eq(bet5Events.id, bet5EventId))
+    .returning();
+
+  return updated;
+}
+
 export async function placeBet5Bet({
   userId,
   bet5EventId,
+  unitAmount,
   selections,
 }: {
   userId: string;
   bet5EventId: string;
+  unitAmount: number;
   selections: Bet5Selection;
 }) {
   return db.transaction(async (tx) => {
@@ -98,7 +128,8 @@ export async function placeBet5Bet({
     const count = calculateBet5Count(selections);
 
     if (count === 0) throw new Error('Invalid selection');
-    const cost = count * 100;
+    const normalizedUnitAmount = Math.max(100, Math.floor(unitAmount / 100) * 100);
+    const cost = count * normalizedUnitAmount;
 
     const wallet = await tx.query.wallets.findFirst({
       where: and(eq(wallets.userId, userId), eq(wallets.eventId, event.eventId)),
@@ -187,21 +218,49 @@ export async function calculateBet5Payout(bet5EventId: string) {
     });
 
     const winCount = winningTickets.length;
-    const dividend = calculateBet5Dividend(totalPot, winCount);
+    const winningTicketUnits = winningTickets.map((ticket) => {
+      const ticketSelections = {
+        race1: ticket.race1HorseIds as string[],
+        race2: ticket.race2HorseIds as string[],
+        race3: ticket.race3HorseIds as string[],
+        race4: ticket.race4HorseIds as string[],
+        race5: ticket.race5HorseIds as string[],
+      };
+      const combinationCount = calculateBet5Count(ticketSelections);
+      if (combinationCount <= 0) {
+        return {
+          ticket,
+          winningUnits: 0,
+        };
+      }
+
+      const unitAmountPerCombination = Math.floor(ticket.amount / combinationCount);
+      const winningUnits = Math.floor(unitAmountPerCombination / 100);
+
+      return {
+        ticket,
+        winningUnits,
+      };
+    });
+
+    const totalWinningUnits = winningTicketUnits.reduce((sum, row) => sum + row.winningUnits, 0);
+    const dividend = calculateBet5Dividend(totalPot, totalWinningUnits);
 
     if (winCount > 0) {
-      for (const ticket of winningTickets) {
-        await tx.update(bet5Tickets).set({ isWin: true, payout: dividend }).where(eq(bet5Tickets.id, ticket.id));
+      for (const { ticket, winningUnits } of winningTicketUnits) {
+        const payout = dividend * winningUnits;
+
+        await tx.update(bet5Tickets).set({ isWin: true, payout }).where(eq(bet5Tickets.id, ticket.id));
 
         await tx
           .update(wallets)
-          .set({ balance: sql`${wallets.balance} + ${dividend}` })
+          .set({ balance: sql`${wallets.balance} + ${payout}` })
           .where(eq(wallets.id, ticket.walletId));
 
         await tx.insert(transactions).values({
           walletId: ticket.walletId,
           type: 'PAYOUT',
-          amount: dividend,
+          amount: payout,
           referenceId: ticket.id,
         });
       }

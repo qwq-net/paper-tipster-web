@@ -10,6 +10,13 @@ export async function getBet5AdminData(eventId: string) {
     db.query.raceInstances.findMany({
       where: eq(raceInstances.eventId, eventId),
       orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber), asc(raceInstances.name)],
+      with: {
+        entries: {
+          columns: {
+            id: true,
+          },
+        },
+      },
     }),
     db.query.bet5Events.findFirst({
       where: eq(bet5Events.eventId, eventId),

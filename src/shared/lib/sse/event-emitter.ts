@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import type { RaceOddsData, RaceResultItem, RankingMode } from './types';
 
 class RaceEventEmitter extends EventEmitter {
   public id = Math.random().toString(36).substring(7);
@@ -32,12 +33,8 @@ export type EventPayloads = {
   [RACE_EVENTS.RACE_REOPENED]: { raceId: string };
   [RACE_EVENTS.RACE_ODDS_UPDATED]: {
     raceId: string;
-    data: {
-      winOdds: unknown;
-      placeOdds: unknown;
-      updatedAt: Date | string;
-    };
+    data: RaceOddsData;
   };
-  [RACE_EVENTS.RANKING_UPDATED]: { eventId: string; mode: 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN' };
-  [RACE_EVENTS.RACE_RESULT_UPDATED]: { raceId: string; results: unknown[]; timestamp: number };
+  [RACE_EVENTS.RANKING_UPDATED]: { eventId: string; mode: RankingMode };
+  [RACE_EVENTS.RACE_RESULT_UPDATED]: { raceId: string; results: RaceResultItem[]; timestamp: number };
 };

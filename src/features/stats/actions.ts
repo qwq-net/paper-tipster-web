@@ -4,6 +4,7 @@ import { db } from '@/shared/db';
 import { transactions, wallets } from '@/shared/db/schema';
 import { requireUser } from '@/shared/utils/admin';
 import { asc, desc, eq, inArray } from 'drizzle-orm';
+import { shouldGroupEventHistoryPoint, shouldGroupGlobalHistoryPoint } from './history';
 import { formatChartDate, formatTransactionDate, getActionName, getTransactionDescription } from './utils';
 
 import type { AssetHistoryPoint, EventStats } from './utils';
@@ -41,17 +42,17 @@ export async function getGlobalStats() {
   const eventMap = new Map<string, EventStats>();
   const walletIds: string[] = [];
 
-  for (const w of userWallets) {
-    totalBalance += w.balance;
-    totalLoan += w.totalLoaned;
-    walletIds.push(w.id);
+  for (const wallet of userWallets) {
+    totalBalance += wallet.balance;
+    totalLoan += wallet.totalLoaned;
+    walletIds.push(wallet.id);
 
-    eventMap.set(w.eventId, {
-      id: w.eventId,
-      name: w.event.name,
-      balance: w.balance,
-      loan: w.totalLoaned,
-      net: w.balance - w.totalLoaned,
+    eventMap.set(wallet.eventId, {
+      id: wallet.eventId,
+      name: wallet.event.name,
+      balance: wallet.balance,
+      loan: wallet.totalLoaned,
+      net: wallet.balance - wallet.totalLoaned,
       history: [],
       logs: [],
     });
@@ -86,23 +87,33 @@ export async function getGlobalStats() {
   const globalHistory: AssetHistoryPoint[] = [];
   const eventCurrentBalances = new Map<string, number>();
 
-  for (const tx of allTransactions) {
-    const eventId = tx.wallet.eventId;
+  for (const transaction of allTransactions) {
+    const eventId = transaction.wallet.eventId;
     const eventData = eventMap.get(eventId);
+    const transactionRaceName = transaction.bet?.race?.name;
+    const actionName = getActionName(transaction.type);
+    const eventName = eventData?.name || '';
 
-    if (tx.type !== 'LOAN') {
-      currentGlobalBalance += tx.amount;
+    const globalLabel = transactionRaceName
+      ? `${eventName} ${transactionRaceName} ${actionName}`
+      : `${eventName} ${actionName}`;
+
+    if (transaction.type !== 'LOAN') {
+      currentGlobalBalance += transaction.amount;
     }
 
     const lastGlobalPoint = globalHistory[globalHistory.length - 1];
-    const isSameTypeAsLastGlobal =
-      lastGlobalPoint && lastGlobalPoint.type === tx.type && lastGlobalPoint.eventId === eventId;
+    const shouldGroupGlobal = shouldGroupGlobalHistoryPoint(lastGlobalPoint, transaction, eventId, globalLabel);
 
-    const eventName = eventData?.name || '';
-    const actionName = getActionName(tx.type);
-    const globalLabel = `${eventName} ${actionName}`;
-
-    updateHistoryPoint(globalHistory, tx, currentGlobalBalance, isSameTypeAsLastGlobal, globalLabel, undefined, true);
+    updateHistoryPoint(
+      globalHistory,
+      transaction,
+      currentGlobalBalance,
+      shouldGroupGlobal,
+      globalLabel,
+      undefined,
+      true
+    );
 
     if (eventData) {
       if (!eventCurrentBalances.has(eventId)) {
@@ -110,26 +121,36 @@ export async function getGlobalStats() {
       }
 
       let eventBalance = eventCurrentBalances.get(eventId)!;
-      if (tx.type !== 'LOAN') {
-        eventBalance += tx.amount;
+      if (transaction.type !== 'LOAN') {
+        eventBalance += transaction.amount;
         eventCurrentBalances.set(eventId, eventBalance);
       }
 
       const lastEventPoint = eventData.history[eventData.history.length - 1];
-      const txRaceName = tx.bet?.race?.name;
-      const isSameTypeAsLastEvent =
-        lastEventPoint && lastEventPoint.type === tx.type && lastEventPoint.raceName === txRaceName;
+      const eventLabel = transactionRaceName ? `${transactionRaceName} ${actionName}` : actionName;
+      const shouldGroupEvent = shouldGroupEventHistoryPoint(
+        lastEventPoint,
+        transaction,
+        transactionRaceName,
+        eventLabel
+      );
 
-      const eventLabel = txRaceName ? `${txRaceName} ${actionName}` : actionName;
-
-      updateHistoryPoint(eventData.history, tx, eventBalance, isSameTypeAsLastEvent, eventLabel, txRaceName, false);
+      updateHistoryPoint(
+        eventData.history,
+        transaction,
+        eventBalance,
+        shouldGroupEvent,
+        eventLabel,
+        transactionRaceName,
+        false
+      );
 
       eventData.logs.push({
-        id: tx.id,
-        date: formatTransactionDate(tx.createdAt),
-        type: tx.type,
-        amount: tx.amount,
-        description: getTransactionDescription(tx),
+        id: transaction.id,
+        date: formatTransactionDate(transaction.createdAt),
+        type: transaction.type,
+        amount: transaction.amount,
+        description: getTransactionDescription(transaction),
       });
     }
   }
@@ -149,9 +170,9 @@ export async function getGlobalStats() {
 
 function updateHistoryPoint(
   history: AssetHistoryPoint[],
-  tx: StatTransaction,
+  transaction: StatTransaction,
   currentBalance: number,
-  shouldGroup: boolean | undefined,
+  shouldGroup: boolean,
   label: string,
   raceName: string | undefined,
   isGlobal: boolean
@@ -160,19 +181,19 @@ function updateHistoryPoint(
 
   if (lastPoint && shouldGroup) {
     lastPoint.balance = currentBalance;
-    lastPoint.amount += tx.amount;
-    lastPoint.date = formatChartDate(tx.createdAt, isGlobal);
-    lastPoint.timestamp = tx.createdAt.getTime();
+    lastPoint.amount += transaction.amount;
+    lastPoint.date = formatChartDate(transaction.createdAt, isGlobal);
+    lastPoint.timestamp = transaction.createdAt.getTime();
     lastPoint.label = label;
   } else {
     history.push({
-      date: formatChartDate(tx.createdAt, isGlobal),
-      timestamp: tx.createdAt.getTime(),
+      date: formatChartDate(transaction.createdAt, isGlobal),
+      timestamp: transaction.createdAt.getTime(),
       balance: currentBalance,
       label: label,
-      amount: tx.amount,
-      type: tx.type,
-      eventId: tx.wallet.eventId,
+      amount: transaction.amount,
+      type: transaction.type,
+      eventId: transaction.wallet.eventId,
       raceName: raceName,
     });
   }

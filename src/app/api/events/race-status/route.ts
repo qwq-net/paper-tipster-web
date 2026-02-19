@@ -1,4 +1,5 @@
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
+import type { RaceOddsData, RaceResultItem, RankingMode } from '@/shared/lib/sse/types';
 import { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -34,22 +35,19 @@ export async function GET(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
       };
 
-      const onRaceOddsUpdated = (data: { raceId: string; data?: Record<string, unknown> }) => {
+      const onRaceOddsUpdated = (data: { raceId: string; data: RaceOddsData }) => {
         console.log(`[SSE] Emitting RACE_ODDS_UPDATED for race: ${data.raceId}`);
         const payload = JSON.stringify({ type: 'RACE_ODDS_UPDATED', ...data });
         controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
       };
 
-      const onRankingUpdated = (data: {
-        eventId: string;
-        mode: 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';
-      }) => {
+      const onRankingUpdated = (data: { eventId: string; mode: RankingMode }) => {
         console.log(`[SSE] Emitting RANKING_UPDATED for event: ${data.eventId}`);
         const payload = JSON.stringify({ type: 'RANKING_UPDATED', ...data });
         controller.enqueue(encoder.encode(`data: ${payload}\n\n`));
       };
 
-      const onRaceResultUpdated = (data: { raceId: string; results: unknown[] }) => {
+      const onRaceResultUpdated = (data: { raceId: string; results: RaceResultItem[]; timestamp: number }) => {
         console.log(`[SSE] Emitting RACE_RESULT_UPDATED for race: ${data.raceId}`);
         const payload = JSON.stringify({ type: 'RACE_RESULT_UPDATED', ...data });
         controller.enqueue(encoder.encode(`data: ${payload}\n\n`));

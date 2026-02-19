@@ -41,6 +41,12 @@ describe('isWinningBet (的中判定)', () => {
     expect(isWinningBet({ type: BET_TYPES.WIDE, selections: [1, 4] }, finishers)).toBe(false);
   });
 
+  it('ワイド (WIDE): 選択数不正・重複は不的中', () => {
+    expect(isWinningBet({ type: BET_TYPES.WIDE, selections: [1] }, finishers)).toBe(false);
+    expect(isWinningBet({ type: BET_TYPES.WIDE, selections: [1, 2, 3] }, finishers)).toBe(false);
+    expect(isWinningBet({ type: BET_TYPES.WIDE, selections: [1, 1] }, finishers)).toBe(false);
+  });
+
   it('枠連 (BRACKET_QUINELLA): 1-2着の枠順不同', () => {
     expect(isWinningBet({ type: BET_TYPES.BRACKET_QUINELLA, selections: [1, 2] }, finishers)).toBe(true);
     expect(isWinningBet({ type: BET_TYPES.BRACKET_QUINELLA, selections: [2, 1] }, finishers)).toBe(true);
@@ -51,6 +57,12 @@ describe('isWinningBet (的中判定)', () => {
     expect(isWinningBet({ type: BET_TYPES.TRIO, selections: [1, 2, 3] }, finishers)).toBe(true);
     expect(isWinningBet({ type: BET_TYPES.TRIO, selections: [3, 2, 1] }, finishers)).toBe(true);
     expect(isWinningBet({ type: BET_TYPES.TRIO, selections: [1, 2, 4] }, finishers)).toBe(false);
+  });
+
+  it('3連複 (TRIO): 選択数不正・重複は不的中', () => {
+    expect(isWinningBet({ type: BET_TYPES.TRIO, selections: [1, 2] }, finishers)).toBe(false);
+    expect(isWinningBet({ type: BET_TYPES.TRIO, selections: [1, 2, 3, 4] }, finishers)).toBe(false);
+    expect(isWinningBet({ type: BET_TYPES.TRIO, selections: [1, 1, 2] }, finishers)).toBe(false);
   });
 
   it('3連単 (TRIFECTA): 1-3着順序通り', () => {

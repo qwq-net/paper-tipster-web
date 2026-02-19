@@ -12,7 +12,7 @@ export function useRankingEvents({ eventId }: UseRankingEventsProps) {
   const handleMessage = useCallback(
     (data: SSEMessage) => {
       if (data.type === 'RANKING_UPDATED' && data.eventId === eventId) {
-        const mode = data.mode as 'HIDDEN' | 'ANONYMOUS' | 'FULL' | 'FULL_WITH_LOAN';
+        const mode = data.mode;
         if (mode === 'HIDDEN') {
           toast.info('ランキングが非公開になりました');
         } else if (mode === 'ANONYMOUS') {

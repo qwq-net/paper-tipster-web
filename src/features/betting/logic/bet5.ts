@@ -14,6 +14,33 @@ export const Bet5SelectionSchema = z.object({
 
 export type Bet5Selection = z.infer<typeof Bet5SelectionSchema>;
 
+type Bet5WinnerRow = {
+  raceId: string;
+  horseId: string;
+};
+
+export function resolveBet5Winners(races: string[], winnerRows: Bet5WinnerRow[]): string[] | null {
+  const winnerSetByRace = new Map<string, Set<string>>();
+
+  for (const row of winnerRows) {
+    if (!winnerSetByRace.has(row.raceId)) {
+      winnerSetByRace.set(row.raceId, new Set<string>());
+    }
+    winnerSetByRace.get(row.raceId)!.add(row.horseId);
+  }
+
+  const winners: string[] = [];
+  for (const raceId of races) {
+    const winnerSet = winnerSetByRace.get(raceId);
+    if (!winnerSet || winnerSet.size !== 1) {
+      return null;
+    }
+    winners.push([...winnerSet][0]);
+  }
+
+  return winners;
+}
+
 export async function createBet5Event({
   eventId,
   raceIds,
@@ -130,15 +157,16 @@ export async function calculateBet5Payout(bet5EventId: string) {
         and(inArray(raceEntries.raceId, races), eq(raceEntries.finishPosition, 1)),
     });
 
-    if (allWinners.length !== 5) {
-      return { success: false, winCount: 0, dividend: 0, totalPot: 0, message: 'Not all races have a winner' };
+    const sortedWinners = resolveBet5Winners(races, allWinners as Bet5WinnerRow[]);
+    if (!sortedWinners) {
+      return {
+        success: false,
+        winCount: 0,
+        dividend: 0,
+        totalPot: 0,
+        message: 'Not all races have exactly one winner',
+      };
     }
-
-    const sortedWinners = races.map((raceId) => {
-      const winner = allWinners.find((w) => w.raceId === raceId);
-      if (!winner) throw new Error(`Winner not found for race ${raceId}`);
-      return winner.horseId;
-    });
 
     const tickets = await tx.query.bet5Tickets.findMany({
       where: eq(bet5Tickets.bet5EventId, bet5EventId),

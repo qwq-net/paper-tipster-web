@@ -2,7 +2,7 @@
 
 import { fetchRaceOdds } from '@/features/betting/actions';
 import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
-import { SSEMessage } from '@/shared/hooks/use-sse';
+import type { SSERaceOddsUpdatedMessage } from '@/shared/lib/sse/types';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -11,12 +11,10 @@ type OddsData = Awaited<ReturnType<typeof fetchRaceOdds>>;
 export function useRaceOdds(raceId: string, initialOdds: OddsData, isFinalized: boolean = false) {
   const [odds, setOdds] = useState<OddsData>(initialOdds);
 
-  const handleOddsUpdated = useCallback((message: SSEMessage) => {
-    const data = message.data as OddsData | undefined;
-    if (data) {
-      setOdds(data);
-      toast.info('オッズが更新されました');
-    }
+  const handleOddsUpdated = useCallback((message: SSERaceOddsUpdatedMessage) => {
+    const nextOdds = message.data as OddsData;
+    setOdds(nextOdds);
+    toast.info('オッズが更新されました');
   }, []);
 
   useRaceEvents({

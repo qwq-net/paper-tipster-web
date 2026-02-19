@@ -1,12 +1,9 @@
+import type { RaceStatusSSEMessage } from '@/shared/lib/sse/types';
 import { useEffect, useState } from 'react';
 
 export type ConnectionStatus = 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING';
 
-export type SSEMessage = {
-  type: string;
-  raceId: string;
-  [key: string]: unknown;
-};
+export type SSEMessage = RaceStatusSSEMessage;
 
 interface UseSSEProps {
   url: string;
@@ -44,8 +41,8 @@ export function useSSE({ url, onMessage, disabled = false }: UseSSEProps) {
           if (data.type === 'connected') return;
 
           onMessage?.(data);
-        } catch (e) {
-          console.error('[SSE] Parse Error', e);
+        } catch (error) {
+          console.error('[SSE] Parse Error', error);
         }
       };
 

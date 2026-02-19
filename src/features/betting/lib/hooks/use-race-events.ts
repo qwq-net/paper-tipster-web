@@ -1,4 +1,5 @@
 import { SSEMessage, useSSE } from '@/shared/hooks/use-sse';
+import type { RaceResultItem, SSERaceOddsUpdatedMessage } from '@/shared/lib/sse/types';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
@@ -7,10 +8,10 @@ interface UseRaceEventsProps {
   raceId: string;
   isFinalized: boolean;
   onRaceBroadcast?: () => void;
-  onRaceOddsUpdated?: (data: SSEMessage) => void;
+  onRaceOddsUpdated?: (data: SSERaceOddsUpdatedMessage) => void;
   onRaceClosed?: () => void;
   onRaceReopened?: () => void;
-  onRaceResultUpdated?: (results: unknown[]) => void;
+  onRaceResultUpdated?: (results: RaceResultItem[]) => void;
 }
 
 export function useRaceEvents({
@@ -49,7 +50,7 @@ export function useRaceEvents({
       }
 
       if (data.type === 'RACE_RESULT_UPDATED' && data.raceId === raceId) {
-        const results = data.results as unknown[];
+        const results = data.results;
         if (results.length > 0) {
           toast.success('着順が確定しました');
         } else {

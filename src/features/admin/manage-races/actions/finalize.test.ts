@@ -75,7 +75,7 @@ describe('finalizeRace', () => {
     query: {
       raceEntries: { findMany: vi.fn() },
       bets: { findMany: vi.fn() },
-      raceInstances: { findFirst: vi.fn().mockResolvedValue({ guaranteedOdds: {}, eventId: 'event1' }) },
+      raceInstances: { findFirst: vi.fn().mockResolvedValue({ status: 'CLOSED', guaranteedOdds: {} }) },
     },
   };
 
@@ -103,13 +103,27 @@ describe('finalizeRace', () => {
     (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<void>) =>
       cb(mockTx)
     );
-    mockTx.query.raceInstances.findFirst.mockResolvedValue({ guaranteedOdds: {}, eventId: 'event1' });
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'CLOSED', guaranteedOdds: {} });
   });
 
   it('管理者でないユーザーはエラーになる', async () => {
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
     await expect(finalizeRace('123', [])).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+  });
+
+  it('レースがCLOSED以外の場合は着順確定できない', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'SCHEDULED', guaranteedOdds: {} });
+
+    await expect(finalizeRace('race1', defaultResults)).rejects.toThrow('レースが締切状態ではありません');
+  });
+
+  it('払戻確定済みレースは着順変更できない', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'FINALIZED', guaranteedOdds: {} });
+
+    await expect(finalizeRace('race1', defaultResults)).rejects.toThrow('払戻確定済みのため着順を変更できません');
   });
 
   it('単勝: 1着馬に賭けた馬券が的中し、正しいpayoutResultsが生成される', async () => {
@@ -128,7 +142,6 @@ describe('finalizeRace', () => {
     const winHit = winCombinations.find((c) => JSON.stringify(c.numbers) === JSON.stringify([1]));
     expect(winHit).toBeDefined();
     expect(winHit!.payout).toBe(200);
-    expect(setCalls).toEqual(expect.arrayContaining([expect.objectContaining({ status: 'CLOSED' })]));
   });
 
   it('馬連: 1-2着の組み合わせが順序に関係なく的中する', async () => {
@@ -186,7 +199,7 @@ describe('finalizeRace', () => {
     expect(hit3).toBeDefined();
   });
 
-  it('的中者がいない券種のプールがキャリーオーバーとして加算される', async () => {
+  it('着順確定ではキャリーオーバーを更新しない（払戻確定で反映する）', async () => {
     await setupAdminAuth();
     mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
     mockTx.query.bets.findMany.mockResolvedValue([
@@ -196,15 +209,15 @@ describe('finalizeRace', () => {
     await finalizeRace('race1', defaultResults);
 
     const carryoverUpdate = setCalls.find((call) => 'carryoverAmount' in call);
-    expect(carryoverUpdate).toBeDefined();
+    expect(carryoverUpdate).toBeUndefined();
   });
 
   it('保証オッズが設定されている場合、計算倍率より保証倍率が高ければ保証倍率が採用される', async () => {
     await setupAdminAuth();
     mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
     mockTx.query.raceInstances.findFirst.mockResolvedValue({
+      status: 'CLOSED',
       guaranteedOdds: { [BET_TYPES.WIN]: 10.0 },
-      eventId: 'event1',
     });
     mockTx.query.bets.findMany.mockResolvedValue([
       { id: 'b1', amount: 100, details: { type: BET_TYPES.WIN, selections: [1] } },
@@ -271,7 +284,7 @@ describe('finalizeRace', () => {
     expect(winHit!.payout).toBe(200);
   });
 
-  it('取消馬への投票は返還され、プールに含まれない', async () => {
+  it('取消馬への投票はプール計算から除外される（返還は払戻確定時に実施）', async () => {
     await setupAdminAuth();
     const finishersWithScratch = [
       ...threeFinishers,
@@ -301,7 +314,7 @@ describe('finalizeRace', () => {
     expect(hit1).toBeDefined();
     expect(hit1!.payout).toBe(100);
 
-    const allUpdates = JSON.stringify(setCalls);
-    expect(allUpdates).toContain('REFUNDED');
+    const financialSetCall = setCalls.find((call) => 'balance' in call || 'payout' in call || 'odds' in call);
+    expect(financialSetCall).toBeUndefined();
   });
 });

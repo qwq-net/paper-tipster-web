@@ -4,6 +4,7 @@ import { useRaceEvents } from '@/features/betting/lib/hooks/use-race-events';
 import { PayoutResult, useRaceResults } from '@/features/betting/lib/hooks/use-race-results';
 import { PayoutResultModal } from '@/features/betting/ui/payout-result-modal';
 import { RACE_STATUS_LABELS, RaceStatus } from '@/shared/constants/status';
+import type { RaceResultItem } from '@/shared/lib/sse/types';
 import { Badge, Button, LiveConnectionStatus } from '@/shared/ui';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { getDisplayStatus } from '@/shared/utils/race-status';
@@ -44,10 +45,7 @@ export function StandbyClient({
     if (!race.closingAt) return false;
     return new Date(race.closingAt) < new Date();
   });
-  const [ranking, setRanking] =
-    useState<{ finishPosition: number; horseNumber: number; bracketNumber: number; horseName: string }[]>(
-      initialRanking
-    );
+  const [ranking, setRanking] = useState<RaceResultItem[]>(initialRanking);
 
   const { results, fetchResults } = useRaceResults(race.id, initialResults, initialIsFinalized);
 
@@ -92,10 +90,8 @@ export function StandbyClient({
     onRaceBroadcast: handleRaceBroadcast,
     onRaceClosed: useCallback(() => setIsClosed(true), []),
     onRaceReopened: useCallback(() => setIsClosed(false), []),
-    onRaceResultUpdated: useCallback((results: unknown[]) => {
-      setRanking(
-        results as { finishPosition: number; horseNumber: number; bracketNumber: number; horseName: string }[]
-      );
+    onRaceResultUpdated: useCallback((results: RaceResultItem[]) => {
+      setRanking(results);
     }, []),
   });
 

@@ -33,6 +33,7 @@ export function useRaceTimer({ raceId, initialStatus, closingAt }: UseRaceTimerP
 
   const handleSSEMessage = useCallback(
     (data: SSEMessage) => {
+      if (!('raceId' in data)) return;
       if (data.raceId !== raceId) return;
 
       if (data.type === 'RACE_CLOSED' || data.type === 'RACE_FINALIZED' || data.type === 'RACE_BROADCAST') {

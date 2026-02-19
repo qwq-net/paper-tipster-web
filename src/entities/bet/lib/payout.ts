@@ -9,52 +9,60 @@ export interface Finisher {
 
 export function isWinningBet(detail: BetDetail, finishers: Finisher[]): boolean {
   const { type, selections } = detail;
-  const f1 = finishers[0];
-  const f2 = finishers[1];
-  const f3 = finishers[2];
+  const firstFinisher = finishers[0];
+  const secondFinisher = finishers[1];
+  const thirdFinisher = finishers[2];
 
-  if (!f1) return false;
+  if (!firstFinisher) return false;
 
   switch (type) {
     case BET_TYPES.WIN:
-      return selections[0] === f1.horseNumber;
+      return selections[0] === firstFinisher.horseNumber;
 
     case BET_TYPES.PLACE:
       return finishers.slice(0, 3).some((f) => f.horseNumber === selections[0]);
 
     case BET_TYPES.QUINELLA:
-      if (!f2) return false;
+      if (!secondFinisher) return false;
       return (
-        (selections[0] === f1.horseNumber && selections[1] === f2.horseNumber) ||
-        (selections[0] === f2.horseNumber && selections[1] === f1.horseNumber)
+        (selections[0] === firstFinisher.horseNumber && selections[1] === secondFinisher.horseNumber) ||
+        (selections[0] === secondFinisher.horseNumber && selections[1] === firstFinisher.horseNumber)
       );
 
     case BET_TYPES.EXACTA:
-      if (!f2) return false;
-      return selections[0] === f1.horseNumber && selections[1] === f2.horseNumber;
+      if (!secondFinisher) return false;
+      return selections[0] === firstFinisher.horseNumber && selections[1] === secondFinisher.horseNumber;
 
     case BET_TYPES.WIDE: {
-      if (!f2) return false;
+      if (!secondFinisher) return false;
+      if (selections.length !== 2) return false;
+      if (new Set(selections).size !== 2) return false;
       const top3 = finishers.slice(0, 3).map((f) => f.horseNumber);
       return selections.every((s) => top3.includes(s));
     }
 
     case BET_TYPES.BRACKET_QUINELLA:
-      if (!f2) return false;
+      if (!secondFinisher) return false;
       return (
-        (selections[0] === f1.bracketNumber && selections[1] === f2.bracketNumber) ||
-        (selections[0] === f2.bracketNumber && selections[1] === f1.bracketNumber)
+        (selections[0] === firstFinisher.bracketNumber && selections[1] === secondFinisher.bracketNumber) ||
+        (selections[0] === secondFinisher.bracketNumber && selections[1] === firstFinisher.bracketNumber)
       );
 
     case BET_TYPES.TRIO: {
-      if (!f2 || !f3) return false;
+      if (!secondFinisher || !thirdFinisher) return false;
+      if (selections.length !== 3) return false;
+      if (new Set(selections).size !== 3) return false;
       const top3 = finishers.slice(0, 3).map((f) => f.horseNumber);
       return selections.every((s) => top3.includes(s));
     }
 
     case BET_TYPES.TRIFECTA:
-      if (!f3) return false;
-      return selections[0] === f1.horseNumber && selections[1] === f2.horseNumber && selections[2] === f3.horseNumber;
+      if (!thirdFinisher || !secondFinisher) return false;
+      return (
+        selections[0] === firstFinisher.horseNumber &&
+        selections[1] === secondFinisher.horseNumber &&
+        selections[2] === thirdFinisher.horseNumber
+      );
 
     default:
       return false;
@@ -97,29 +105,29 @@ export function calculatePayoutRate(
 }
 
 export function getWinningCombinations(type: BetType, finishers: Finisher[]): number[][] {
-  const f1 = finishers[0];
-  const f2 = finishers[1];
-  const f3 = finishers[2];
+  const firstFinisher = finishers[0];
+  const secondFinisher = finishers[1];
+  const thirdFinisher = finishers[2];
 
-  if (!f1) return [];
+  if (!firstFinisher) return [];
 
   switch (type) {
     case BET_TYPES.WIN:
-      return [[f1.horseNumber]];
+      return [[firstFinisher.horseNumber]];
 
     case BET_TYPES.PLACE:
       return finishers.slice(0, 3).map((f) => [f.horseNumber]);
 
     case BET_TYPES.QUINELLA:
-      if (!f2) return [];
-      return [[f1.horseNumber, f2.horseNumber].sort((a, b) => a - b)];
+      if (!secondFinisher) return [];
+      return [[firstFinisher.horseNumber, secondFinisher.horseNumber].sort((a, b) => a - b)];
 
     case BET_TYPES.EXACTA:
-      if (!f2) return [];
-      return [[f1.horseNumber, f2.horseNumber]];
+      if (!secondFinisher) return [];
+      return [[firstFinisher.horseNumber, secondFinisher.horseNumber]];
 
     case BET_TYPES.WIDE: {
-      if (!f2) return [];
+      if (!secondFinisher) return [];
       const top3 = finishers.slice(0, 3).map((f) => f.horseNumber);
       const combos: number[][] = [];
       if (top3.length >= 2) {
@@ -133,17 +141,17 @@ export function getWinningCombinations(type: BetType, finishers: Finisher[]): nu
     }
 
     case BET_TYPES.BRACKET_QUINELLA:
-      if (!f2) return [];
-      return [[f1.bracketNumber, f2.bracketNumber].sort((a, b) => a - b)];
+      if (!secondFinisher) return [];
+      return [[firstFinisher.bracketNumber, secondFinisher.bracketNumber].sort((a, b) => a - b)];
 
     case BET_TYPES.TRIO: {
-      if (!f1 || !f2 || !f3) return [];
-      return [[f1.horseNumber, f2.horseNumber, f3.horseNumber].sort((a, b) => a - b)];
+      if (!firstFinisher || !secondFinisher || !thirdFinisher) return [];
+      return [[firstFinisher.horseNumber, secondFinisher.horseNumber, thirdFinisher.horseNumber].sort((a, b) => a - b)];
     }
 
     case BET_TYPES.TRIFECTA:
-      if (!f1 || !f2 || !f3) return [];
-      return [[f1.horseNumber, f2.horseNumber, f3.horseNumber]];
+      if (!firstFinisher || !secondFinisher || !thirdFinisher) return [];
+      return [[firstFinisher.horseNumber, secondFinisher.horseNumber, thirdFinisher.horseNumber]];
 
     default:
       return [];

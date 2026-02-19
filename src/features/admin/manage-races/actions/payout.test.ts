@@ -1,6 +1,15 @@
 import { db } from '@/shared/db';
-import { betGroups, bets, events, payoutResults, raceInstances, transactions, wallets } from '@/shared/db/schema';
-import { eq } from 'drizzle-orm';
+import {
+  betGroups,
+  bets,
+  events,
+  payoutResults,
+  raceEntries,
+  raceInstances,
+  transactions,
+  wallets,
+} from '@/shared/db/schema';
+import { eq, inArray } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { finalizePayout } from './payout';
 
@@ -27,6 +36,7 @@ describe('finalizePayout', () => {
   let venueId: string;
   let raceId: string;
   let walletId: string;
+  let horseId: string;
 
   const createdBetGroupIds: string[] = [];
   const createdBetIds: string[] = [];
@@ -39,6 +49,10 @@ describe('finalizePayout', () => {
     const venue = await db.query.venues.findFirst();
     if (!venue) throw new Error('No venue found');
     venueId = venue.id;
+
+    const horse = await db.query.horses.findFirst();
+    if (!horse) throw new Error('No horse found');
+    horseId = horse.id;
 
     const [event] = await db
       .insert(events)
@@ -138,6 +152,44 @@ describe('finalizePayout', () => {
     createdBetIds.push(bet.id);
 
     return { betGroup, bet };
+  }
+
+  async function createBulkBets(params: {
+    type: string;
+    selections: number[];
+    amount: number;
+    count: number;
+    userId?: string;
+    walletIdOverride?: string;
+  }) {
+    const uid = params.userId ?? testUserId;
+    const wid = params.walletIdOverride ?? walletId;
+
+    const groupValues = Array.from({ length: params.count }, () => ({
+      userId: uid,
+      raceId: raceId,
+      walletId: wid,
+      type: params.type,
+      totalAmount: params.amount,
+    }));
+
+    const insertedGroups = await db.insert(betGroups).values(groupValues).returning({ id: betGroups.id });
+    createdBetGroupIds.push(...insertedGroups.map((group) => group.id));
+
+    const betValues = insertedGroups.map((group) => ({
+      userId: uid,
+      raceId: raceId,
+      walletId: wid,
+      betGroupId: group.id,
+      details: { type: params.type, selections: params.selections },
+      amount: params.amount,
+      status: 'PENDING' as const,
+    }));
+
+    const insertedBets = await db.insert(bets).values(betValues).returning({ id: bets.id });
+    createdBetIds.push(...insertedBets.map((bet) => bet.id));
+
+    return insertedBets;
   }
 
   it('単勝: 的中・不的中の判定、オッズ計算、ウォレット更新が正しく行われる', async () => {
@@ -245,6 +297,12 @@ describe('finalizePayout', () => {
   });
 
   it('賭けがないレース: ベット処理なしでFINALIZEDに更新される', async () => {
+    await db.insert(payoutResults).values({
+      raceId: raceId,
+      type: 'win',
+      combinations: [{ numbers: [1], payout: 350 }],
+    });
+
     await finalizePayout(raceId);
 
     const updatedRace = await db.query.raceInstances.findFirst({ where: eq(raceInstances.id, raceId) });
@@ -277,11 +335,25 @@ describe('finalizePayout', () => {
 
   it('既にFINALIZED済みのレースはエラーになる', async () => {
     await db.update(raceInstances).set({ status: 'FINALIZED' }).where(eq(raceInstances.id, raceId));
-    await expect(finalizePayout(raceId)).rejects.toThrow('NOT_FOUND');
+    await expect(finalizePayout(raceId)).rejects.toThrow('すでに払戻確定済みです');
+  });
+
+  it('SCHEDULED状態のレースは払戻確定できない', async () => {
+    await db.update(raceInstances).set({ status: 'SCHEDULED' }).where(eq(raceInstances.id, raceId));
+    await expect(finalizePayout(raceId)).rejects.toThrow('レースが締切状態ではありません');
+  });
+
+  it('CANCELLED状態のレースは払戻確定できない', async () => {
+    await db.update(raceInstances).set({ status: 'CANCELLED' }).where(eq(raceInstances.id, raceId));
+    await expect(finalizePayout(raceId)).rejects.toThrow('レースが締切状態ではありません');
   });
 
   it('存在しないレースIDではエラーになる', async () => {
     await expect(finalizePayout('00000000-0000-0000-0000-000000000000')).rejects.toThrow();
+  });
+
+  it('払戻計算結果がない場合はエラーになる', async () => {
+    await expect(finalizePayout(raceId)).rejects.toThrow('払戻計算結果が存在しません');
   });
 
   it('ワイド: 複数の的中組み合わせが正しく処理される', async () => {
@@ -317,5 +389,251 @@ describe('finalizePayout', () => {
     expect(updated14?.status).toBe('LOST');
 
     expect(Number(updatedWallet?.balance)).toBe(11100);
+  });
+
+  it('取消馬への投票はREFUNDEDとして返還される', async () => {
+    await db.insert(raceEntries).values([
+      {
+        raceId,
+        horseId,
+        horseNumber: 1,
+        bracketNumber: 1,
+        finishPosition: 1,
+        status: 'ENTRANT',
+      },
+      {
+        raceId,
+        horseId,
+        horseNumber: 4,
+        bracketNumber: 4,
+        status: 'SCRATCHED',
+      },
+    ]);
+
+    const { bet: hitBet } = await createBet({ type: 'place', selections: [1], amount: 100 });
+    const { bet: refundedBet } = await createBet({ type: 'place', selections: [4], amount: 100 });
+
+    await db.insert(payoutResults).values({
+      raceId,
+      type: 'place',
+      combinations: [{ numbers: [1], payout: 100 }],
+    });
+
+    await finalizePayout(raceId);
+
+    const updatedHit = await db.query.bets.findFirst({ where: eq(bets.id, hitBet.id) });
+    const updatedRefunded = await db.query.bets.findFirst({ where: eq(bets.id, refundedBet.id) });
+    const wallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+    const refundTx = await db.query.transactions.findFirst({ where: eq(transactions.referenceId, refundedBet.id) });
+
+    expect(updatedHit?.status).toBe('HIT');
+    expect(updatedRefunded?.status).toBe('REFUNDED');
+    expect(Number(updatedRefunded?.payout)).toBe(100);
+    expect(updatedRefunded?.odds).toBe('1.0');
+    expect(Number(wallet?.balance)).toBe(10200);
+    expect(refundTx?.type).toBe('REFUND');
+  });
+
+  it('的中なし券種の売上のみキャリーオーバーに加算される', async () => {
+    const { bet: winHitBet } = await createBet({ type: 'WIN', selections: [1], amount: 100 });
+    await createBet({ type: 'wide', selections: [1, 4], amount: 300 });
+
+    await db.insert(payoutResults).values([
+      {
+        raceId,
+        type: 'WIN',
+        combinations: [{ numbers: [1], payout: 200 }],
+      },
+      {
+        raceId,
+        type: 'wide',
+        combinations: [{ numbers: [1, 2], payout: 300 }],
+      },
+    ]);
+
+    await finalizePayout(raceId);
+
+    const event = await db.query.events.findFirst({ where: eq(events.id, eventId) });
+    const wallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+    const winTx = await db.query.transactions.findFirst({ where: eq(transactions.referenceId, winHitBet.id) });
+
+    expect(Number(event?.carryoverAmount)).toBe(300);
+    expect(Number(wallet?.balance)).toBe(10200);
+    expect(winTx?.type).toBe('PAYOUT');
+    expect(Number(winTx?.amount)).toBe(200);
+  });
+
+  it('返還馬券はキャリーオーバー計算の売上に含まれない', async () => {
+    await db.insert(raceEntries).values([
+      {
+        raceId,
+        horseId,
+        horseNumber: 1,
+        bracketNumber: 1,
+        status: 'ENTRANT',
+      },
+      {
+        raceId,
+        horseId,
+        horseNumber: 4,
+        bracketNumber: 4,
+        status: 'SCRATCHED',
+      },
+    ]);
+
+    const { bet: refundedBet } = await createBet({ type: 'place', selections: [4], amount: 500 });
+    await createBet({ type: 'place', selections: [5], amount: 200 });
+
+    await db.insert(payoutResults).values({
+      raceId,
+      type: 'place',
+      combinations: [{ numbers: [1], payout: 100 }],
+    });
+
+    await finalizePayout(raceId);
+
+    const event = await db.query.events.findFirst({ where: eq(events.id, eventId) });
+    const wallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+    const refundTx = await db.query.transactions.findFirst({ where: eq(transactions.referenceId, refundedBet.id) });
+
+    expect(Number(event?.carryoverAmount)).toBe(200);
+    expect(Number(wallet?.balance)).toBe(10500);
+    expect(refundTx?.type).toBe('REFUND');
+    expect(Number(refundTx?.amount)).toBe(500);
+  });
+
+  it('枠連の無効枠はREFUNDEDとなり、有効枠の的中はPAYOUTとなる', async () => {
+    await db.insert(raceEntries).values([
+      {
+        raceId,
+        horseId,
+        horseNumber: 11,
+        bracketNumber: 1,
+        status: 'ENTRANT',
+      },
+      {
+        raceId,
+        horseId,
+        horseNumber: 22,
+        bracketNumber: 2,
+        status: 'ENTRANT',
+      },
+      {
+        raceId,
+        horseId,
+        horseNumber: 44,
+        bracketNumber: 4,
+        status: 'SCRATCHED',
+      },
+    ]);
+
+    const { bet: hitBet } = await createBet({ type: 'bracket_quinella', selections: [1, 2], amount: 100 });
+    const { bet: refundedBet } = await createBet({ type: 'bracket_quinella', selections: [1, 4], amount: 300 });
+
+    await db.insert(payoutResults).values({
+      raceId,
+      type: 'bracket_quinella',
+      combinations: [{ numbers: [1, 2], payout: 250 }],
+    });
+
+    await finalizePayout(raceId);
+
+    const updatedHit = await db.query.bets.findFirst({ where: eq(bets.id, hitBet.id) });
+    const updatedRefunded = await db.query.bets.findFirst({ where: eq(bets.id, refundedBet.id) });
+    const wallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+    const event = await db.query.events.findFirst({ where: eq(events.id, eventId) });
+    const hitTx = await db.query.transactions.findFirst({ where: eq(transactions.referenceId, hitBet.id) });
+    const refundTx = await db.query.transactions.findFirst({ where: eq(transactions.referenceId, refundedBet.id) });
+
+    expect(updatedHit?.status).toBe('HIT');
+    expect(Number(updatedHit?.payout)).toBe(250);
+    expect(updatedHit?.odds).toBe('2.5');
+
+    expect(updatedRefunded?.status).toBe('REFUNDED');
+    expect(Number(updatedRefunded?.payout)).toBe(300);
+    expect(updatedRefunded?.odds).toBe('1.0');
+
+    expect(Number(wallet?.balance)).toBe(10550);
+    expect(Number(event?.carryoverAmount)).toBe(0);
+    expect(hitTx?.type).toBe('PAYOUT');
+    expect(refundTx?.type).toBe('REFUND');
+  });
+
+  it('1000件超の大量購入でもバッチ更新とPAYOUT記録が整合する', async () => {
+    const hitCount = 1005;
+    const loseCount = 205;
+
+    await createBulkBets({ type: 'WIN', selections: [1], amount: 100, count: hitCount });
+    await createBulkBets({ type: 'WIN', selections: [2], amount: 100, count: loseCount });
+
+    await db.insert(payoutResults).values({
+      raceId,
+      type: 'WIN',
+      combinations: [{ numbers: [1], payout: 200 }],
+    });
+
+    await finalizePayout(raceId);
+
+    const allRaceBets = await db.query.bets.findMany({ where: eq(bets.raceId, raceId) });
+    const allTx = await db.query.transactions.findMany({
+      where: inArray(transactions.referenceId, createdBetIds),
+    });
+    const wallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+    const race = await db.query.raceInstances.findFirst({ where: eq(raceInstances.id, raceId) });
+    const event = await db.query.events.findFirst({ where: eq(events.id, eventId) });
+
+    const hitBets = allRaceBets.filter((bet) => bet.status === 'HIT');
+    const lostBets = allRaceBets.filter((bet) => bet.status === 'LOST');
+
+    expect(hitBets.length).toBe(hitCount);
+    expect(lostBets.length).toBe(loseCount);
+    expect(allTx.length).toBe(hitCount);
+    expect(allTx.every((txRecord) => txRecord.type === 'PAYOUT')).toBe(true);
+
+    expect(Number(wallet?.balance)).toBe(10000 + hitCount * 200);
+    expect(race?.status).toBe('FINALIZED');
+    expect(Number(event?.carryoverAmount)).toBe(0);
+  });
+
+  it('大量かつ複数券種でも的中集計・キャリーオーバー集計が正しい', async () => {
+    const perTypeCount = 260;
+
+    await createBulkBets({ type: 'WIN', selections: [1], amount: 100, count: perTypeCount });
+    await createBulkBets({ type: 'PLACE', selections: [9], amount: 100, count: perTypeCount });
+    await createBulkBets({ type: 'QUINELLA', selections: [1, 2], amount: 100, count: perTypeCount });
+    await createBulkBets({ type: 'WIDE', selections: [1, 3], amount: 100, count: perTypeCount });
+    await createBulkBets({ type: 'TRIFECTA', selections: [1, 2, 3], amount: 100, count: perTypeCount });
+
+    await db.insert(payoutResults).values([
+      { raceId, type: 'WIN', combinations: [{ numbers: [1], payout: 200 }] },
+      { raceId, type: 'PLACE', combinations: [{ numbers: [1], payout: 140 }] },
+      { raceId, type: 'QUINELLA', combinations: [{ numbers: [1, 2], payout: 300 }] },
+      { raceId, type: 'WIDE', combinations: [{ numbers: [1, 2], payout: 220 }] },
+      { raceId, type: 'TRIFECTA', combinations: [{ numbers: [1, 2, 3], payout: 1200 }] },
+    ]);
+
+    await finalizePayout(raceId);
+
+    const allRaceBets = await db.query.bets.findMany({ where: eq(bets.raceId, raceId) });
+    const allTx = await db.query.transactions.findMany({
+      where: inArray(transactions.referenceId, createdBetIds),
+    });
+    const wallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+    const event = await db.query.events.findFirst({ where: eq(events.id, eventId) });
+
+    const hitCount = perTypeCount * 3;
+    const lostCount = perTypeCount * 2;
+    const expectedPayoutTotal = perTypeCount * 200 + perTypeCount * 300 + perTypeCount * 1200;
+    const expectedCarryover = perTypeCount * 100 + perTypeCount * 100;
+
+    expect(allRaceBets.filter((bet) => bet.status === 'HIT').length).toBe(hitCount);
+    expect(allRaceBets.filter((bet) => bet.status === 'LOST').length).toBe(lostCount);
+    expect(allRaceBets.filter((bet) => bet.status === 'REFUNDED').length).toBe(0);
+
+    expect(allTx.length).toBe(hitCount);
+    expect(allTx.every((txRecord) => txRecord.type === 'PAYOUT')).toBe(true);
+
+    expect(Number(wallet?.balance)).toBe(10000 + expectedPayoutTotal);
+    expect(Number(event?.carryoverAmount)).toBe(expectedCarryover);
   });
 });

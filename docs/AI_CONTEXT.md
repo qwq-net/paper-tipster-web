@@ -1,10 +1,11 @@
 # AI Development Context
 
-このドキュメントは、本プロジェクト（Paper Tipster）に参加するAIエージェント、および新規開発者がプロジェクトの文脈、アーキテクチャ、ルールを素早く理解するためのものです。
+このドキュメントは、Paper Tipster に参加するAIエージェントと新規開発者向けの案内です。
+プロジェクトの背景、設計、開発ルールを短時間で把握できるようにまとめています。
 
 ## プロジェクトの目的
 
-Winning Post等のプレイデータを元に、Discordコミュニティ内で仮想的な競馬・馬券遊びを行うためのWebアプリケーションです。
+Winning Post などのプレイデータをもとに、Discordコミュニティで仮想の競馬・馬券遊びを行うWebアプリです。
 「手軽に」「リアルタイムに」「没入感のある」体験を提供することを目指しています。
 
 ## 基本ルール (Must Read)
@@ -14,43 +15,43 @@ Winning Post等のプレイデータを元に、Discordコミュニティ内で�
 > ドキュメントは全て日本語で作成してください。計画時・タスク整理時も同様です。
 > コマンドはDockerコンテナ内で実行してください。
 
-- パッケージマネージャ: プロジェクトは `pnpm` で管理されています。`npm` や `yarn` ではなく、必ず `pnpm` を使用してください。
-- Docker環境: 開発・テスト・DB操作は `docker` および `docker-compose` を前提としています。
+- パッケージマネージャ: 依存管理は `pnpm` です。`npm` や `yarn` は使わず、必ず `pnpm` を使ってください。
+- Docker環境: 開発・テスト・DB操作は `docker` / `docker-compose` 前提です。
 
 > [!IMPORTANT]
 > すべてのコマンドは `task <command>` これで実行してください。
 > 各コマンドは内部で `docker compose exec app ...` を実行するように構成されています。
 > 権限エラーが発生し、生成が進まなくなるため _絶対に_ 忘れないようにしてください。
 
-- 権限エラー時: コマンドが権限エラー(Permission deniedなど)で失敗する場合、Dockerコンテナのユーザー権限やボリュームのマウント設定が影響している可能性があります。`sudo` を安易に使わず、まずはDocker環境の設定やコンテナの状態を調査してください。
-- 困ったときは: まず `docs/` ディレクトリ内のドキュメント、または `README.md` を参照してください。仕様、設計、トラブルシューティングの多くはそこに記録されています。
+- 権限エラー時: `Permission denied` などが出る場合は、Dockerコンテナのユーザー権限やボリューム設定を確認してください。`sudo` は安易に使わないでください。
+- 困ったときは: まず `docs/` と `README.md` を確認してください。仕様や設計、トラブル対応をまとめています。
 
 ## アーキテクチャと設計思想
 
 ### Feature-Sliced Design (FSD)
 
 本プロジェクトは Feature-Sliced Design を採用しています。
-ディレクトリ構造は `src/` 以下に階層化されています。
+コードは `src/` 配下でレイヤーごとに整理しています。
 
 1.  `app`: Next.js App Routerのエントリーポイント。
-2.  `features`: 機能単位のモジュール (例: `betting`, `admin`, `auth`)。ビジネスロジックはここに集約します。
-    - API通信、UIコンポーネント、状態管理などが含まれます。
+2.  `features`: 機能単位のモジュール（例: `betting`, `admin`, `auth`）。ビジネスロジックをここに集約します。
+    - API通信、UIコンポーネント、状態管理などを含みます。
 3.  `entities`: ドメインモデル (例: `User`, `Race`, `Bet`)。ドメイン固有のロジック、型定義、定数が含まれます。
 4.  `shared`: プロジェクト全体で共有される汎用的なコード (例: `ui` (Shadcn/UI), `utils`, `db`, `config`)。
 
 重要なルール:
 
-- 上位レイヤー (`app`) は下位レイヤー (`features`, `entities`, `shared`) をインポートできる。
-- 下位レイヤーは上位レイヤーをインポートしてはいけない。
-- 同一レイヤー内のモジュール間結合は避ける（必要なら `shared` に移動するか、上位で統合する）。
+- 上位レイヤー（`app`）は下位レイヤー（`features`, `entities`, `shared`）をインポートできます。
+- 下位レイヤーから上位レイヤーはインポートしません。
+- 同一レイヤー内での密結合は避けます。必要なら `shared` へ移すか、上位で統合します。
 
 ### 技術スタックのポイント
 
-- Next.js 16+ (App Router): Server Actions を積極的に利用し、API Routes は最小限にします。
-- Drizzle ORM: Type Safe なデータベース操作。スキーマ定義は `src/shared/db/schema.ts` にあります。
-- データベースに関するドキュメントは `docs/DATABASE_DESIGN.md` です。
-- Tailwind CSS v4: スタイリングに使用。`shared/ui` 配下のコンポーネントは Shadcn/UI ベースです。
-- Docker: 開発環境の統一。テストやDB操作は基本的に `task` コマンドを通じて行います。
+- Next.js 16+（App Router）: Server Actions を中心に使い、API Routes は最小限にします。
+- Drizzle ORM: 型安全なDB操作を行います。スキーマは `src/shared/db/schema.ts` です。
+- DB関連ドキュメント: `docs/DATABASE_DESIGN.md`
+- Tailwind CSS v4: スタイリングに使用します。`shared/ui` は Shadcn/UI ベースです。
+- Docker: 開発環境を統一します。テストやDB操作は基本的に `task` 経由で実行します。
 
 ## 開発フローとコマンド
 
@@ -91,7 +92,7 @@ task test
 
 ### 4. コード品質
 
-コミット前に必ずLintと型チェックを通してください。
+コミット前に、必ずLintと型チェックを通してください。
 
 ```bash
 task check
@@ -109,6 +110,6 @@ task check
 
 ## 注意事項 (Gotchas)
 
-- Server Actions と Auth: `requireAdmin` などのヘルパーを使って権限チェックを行ってください。
-- SSE (Server-Sent Events): リアルタイム更新（オッズ、レース結果）に使用しています。実績のある実装パターン（`src/shared/lib/sse` 周辺）を参照してください。
-- Lint/Formatter: プロジェクトには厳格なLintルール（コメント禁止など）があります。`pnpm lint:fix` や `sed` 等で対応してください。
+- Server Actions と Auth: `requireAdmin` などのヘルパーで権限チェックを行ってください。
+- SSE（Server-Sent Events）: オッズやレース結果のリアルタイム更新に使います。`src/shared/lib/sse` 周辺の実装を参考にしてください。
+- Lint/Formatter: コメント禁止など、厳格なルールがあります。`task check` を実行して確認してください。

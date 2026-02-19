@@ -2,40 +2,40 @@
 
 ## 1. 概要
 
-本システムにおけるオッズの計算、配信、表示の仕組みについて記述します。
-Server-Sent Events (SSE) を利用したリアルタイム更新と、Redisを用いた高度な負荷対策（Leading & Trailing Edge Throttling）が特徴です。
+このドキュメントは、オッズの計算・配信・表示の仕組みを説明します。
+Server-Sent Events (SSE) によるリアルタイム更新と、Redisを使った負荷対策（Leading / Trailing Edge Throttling）が主なポイントです。
 
 ## 2. オッズ計算ロジック
 
 **ファイル**: `src/features/betting/logic/odds.ts`
 
-- **トリガー**: `calculateOdds(raceId)` 関数が呼び出された時（主に投票確定時など）。
+- **トリガー**: `calculateOdds(raceId)` が呼ばれた時（主に投票確定時）
 - **計算対象**:
   - 現在は `単勝 (WIN)` のみが計算対象です。
 - **計算式**:
-  1.  **総投票数 (Pool)**: そのレースの単勝投票総額を集計。
-  2.  **個別オッズ**: 総投票数を各馬への投票額で割る（控除なし）。
+  1.  **総投票数 (Pool)**: そのレースの単勝投票総額を集計します。
+  2.  **個別オッズ**: 総投票数を各馬への投票額で割ります（控除なし）。
       - `Odds = Pool / Vote Amount`
-  3.  **端数処理**: 小数点第2位以下を切り捨て（例: 2.46 -> 2.4）。
-  4.  **最低保証**: 1.1倍未満にはなりません（JRA準拠）。
-  5.  **ゼロ除算対策**: 投票数が0の場合はオッズを `0.0` とします。
+  3.  **端数処理**: 小数点第2位以下を切り捨てます（例: 2.46 -> 2.4）。
+  4.  **最低保証**: 1.1倍未満にはしません（JRA準拠）。
+  5.  **ゼロ除算対策**: 投票数が0の場合はオッズを `0.0` にします。
 
 ### 2.2 BET5 (5重勝単勝式)
 
 **ファイル**: `src/features/betting/logic/bet5.ts`
 
 - **計算方式**: キャリーオーバー方式（プール制）
-- **オッズ**: 固定オッズではなく、的中者数による山分けとなります。
+- **オッズ**: 固定オッズではなく、的中者数で山分けします。
 - **計算式**:
   1. **総ポット (Total Pot)**: `Initial Pot` + `Total Sales` (当回の売上) + `Event Carryover` (的中者なしレースの累計売上)
   2. **配当 (Dividend)**: `Total Pot / Winner Count` (小数点以下切り捨て)
-  3. **特記事項**: 控除率は適用されず（0%）、総取り方式となります。的中者なしの場合はイベントの `carryoverAmount` に蓄積され、次回の払い戻しポットに加算されます。
+  3. **特記事項**: 控除率は0%で、総取り方式です。的中者がいない場合は `carryoverAmount` に加算し、次回の払い戻しポットへ繰り越します。
 
 ### 2.3 最低保証オッズ (Guaranteed Odds)
 
 各券種には、夢と堅実さのバランスを考慮した「最低保証オッズ（デフォルト値）」が設定されています。
-これらは**システム全体のマスターデータ**として管理され、新規レース作成時の初期値として適用されます。
-※ 作成済みのレースの保証オッズは、各レースの編集画面で個別に変更することが可能です。
+これらは**システム全体のマスターデータ**として管理し、新規レース作成時の初期値に使います。
+※ 作成済みレースの保証オッズは、レース編集画面で個別に変更できます。
 
 **デフォルト保証オッズ設定値**
 
@@ -55,13 +55,13 @@ Server-Sent Events (SSE) を利用したリアルタイム更新と、Redisを�
 ### データベース (PostgreSQL)
 
 - **テーブル**: `race_odds`
-- **保存内容**: 計算された `winOdds` (JSONB) と `placeOdds` (JSONB)、および `updatedAt` を保存。
-- **更新**: `raceId` をキーに UPSERT (On Conflict Do Update) を行います。
-- **計算頻度**: スロットリングに関わらず、**計算とDB保存はリクエスト毎に必ず実行**されます。
+- **保存内容**: 計算した `winOdds` (JSONB)、`placeOdds` (JSONB)、`updatedAt` を保存します。
+- **更新**: `raceId` をキーに UPSERT（On Conflict Do Update）します。
+- **計算頻度**: スロットリングの有無に関係なく、**計算とDB保存は毎リクエストで実行**します。
 
 ### Redis (Throttling)
 
-- **目的**: 短期間に連続してイベント配信が行われるのを防ぎつつ、最終的な状態を確実に届けるため。
+- **目的**: 短時間の連続配信を抑えつつ、最終状態を確実に届けるためです。
 - **キー**:
   - `race:{raceId}:last_odds_notification`: 通知ロック（TTL 10秒）
   - `race:{raceId}:update_scheduled`: 遅延実行予約ロック
@@ -77,8 +77,8 @@ Server-Sent Events (SSE) を利用したリアルタイム更新と、Redisを�
 
 ### SSE (Server-Sent Events)
 
-- **ファイル**: `src/app/api/events/race-status/route.ts`, `src/lib/sse/event-emitter.ts`
-- **仕組み**: Node.js の `EventEmitter` (`raceEventEmitter`) をシングルトンとして利用。
+- **ファイル**: `src/app/api/events/race-status/route.ts`, `src/shared/lib/sse/event-emitter.ts`
+- **仕組み**: Node.js の `EventEmitter`（`raceEventEmitter`）をシングルトンで利用します。
 - **ペイロード**: 計算済みのオッズデータを含みます。
   ```json
   {
@@ -94,12 +94,12 @@ Server-Sent Events (SSE) を利用したリアルタイム更新と、Redisを�
 
 ## 4. クライアント側の挙動
 
-**ファイル**: `src/features/race/hooks/use-race-odds.ts`, `src/features/betting/ui/bet-table.tsx`
+**ファイル**: `src/features/betting/lib/hooks/use-race-odds.ts`, `src/features/betting/ui/bet-table.tsx`
 
-- **接続**: `useRaceEvents` フックを通じて SSE エンドポイントに接続。
-- **イベント受信**: `RACE_ODDS_UPDATED` イベントを受け取ると、`handleOddsUpdated` が発火。
-- **データ更新**: イベントペイロード内の `data` を直接使用してステートを更新（**Fetchレス**）。
-  - これにより "Thundering Herd" 問題（一斉アクセスによるサーバー負荷）を回避しています。
+- **接続**: `useRaceEvents` フックで SSE エンドポイントに接続します。
+- **イベント受信**: `RACE_ODDS_UPDATED` を受け取ると、`handleOddsUpdated` が実行されます。
+- **データ更新**: ペイロード内の `data` を直接使って状態を更新します（**Fetch不要**）。
+  - これにより、"Thundering Herd"（一斉アクセスによる負荷増大）を回避します。
 - **表示**:
   - オッズ値をテーブルに反映。
   - 「オッズ最終更新: HH:mm:ss」をテーブル上部に表示。

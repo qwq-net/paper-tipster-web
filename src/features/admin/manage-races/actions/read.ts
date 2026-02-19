@@ -7,9 +7,9 @@ import { desc } from 'drizzle-orm';
 export async function getRaces() {
   return db.query.raceInstances.findMany({
     orderBy: (raceInstances, { asc, desc }) => [
-      asc(raceInstances.raceNumber),
       desc(raceInstances.date),
-      raceInstances.name,
+      asc(raceInstances.raceNumber),
+      asc(raceInstances.name),
     ],
     with: {
       event: true,
@@ -20,7 +20,7 @@ export async function getRaces() {
 }
 
 export async function getEvents() {
-  return db.select().from(events).orderBy(desc(events.date), events.name);
+  return db.select().from(events).orderBy(desc(events.date), desc(events.createdAt), events.name);
 }
 
 export async function getRaceById(id: string) {
@@ -35,6 +35,7 @@ export async function getRaceById(id: string) {
 export async function getRacesByEventId(eventId: string) {
   return db.query.raceInstances.findMany({
     where: (raceInstances, { eq }) => eq(raceInstances.eventId, eventId),
+    orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber), asc(raceInstances.name)],
     with: {
       venue: true,
       entries: true,

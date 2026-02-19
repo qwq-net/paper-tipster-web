@@ -2,14 +2,14 @@ import { db } from '@/shared/db';
 
 export async function getAdminRaceGroups() {
   const eventsData = await db.query.events.findMany({
-    orderBy: (events, { desc }) => [desc(events.date)],
+    orderBy: (events, { desc }) => [desc(events.date), desc(events.createdAt)],
     with: {
       races: {
         with: {
           venue: true,
           entries: true,
         },
-        orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber), raceInstances.name],
+        orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber), asc(raceInstances.name)],
       },
     },
   });

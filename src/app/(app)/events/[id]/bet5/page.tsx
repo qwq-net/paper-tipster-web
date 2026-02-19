@@ -66,7 +66,7 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
         orderBy: (entries, { asc }) => [asc(entries.horseNumber)],
       },
     },
-    orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber)],
+    orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber), asc(raceInstances.name)],
   });
 
   const orderedRaces = races;

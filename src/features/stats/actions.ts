@@ -74,10 +74,21 @@ export async function getGlobalStats() {
     where: inArray(transactions.walletId, walletIds),
     orderBy: asc(transactions.createdAt),
     with: {
-      wallet: true,
+      wallet: {
+        columns: {
+          eventId: true,
+        },
+      },
       bet: {
+        columns: {
+          id: true,
+        },
         with: {
-          race: true,
+          race: {
+            columns: {
+              name: true,
+            },
+          },
         },
       },
     },

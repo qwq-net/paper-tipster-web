@@ -6,10 +6,10 @@ import { eq } from 'drizzle-orm';
 
 export async function getEventsWithRaces() {
   return db.query.events.findMany({
-    orderBy: (events, { desc }) => [desc(events.date)],
+    orderBy: (events, { desc }) => [desc(events.date), desc(events.createdAt)],
     with: {
       races: {
-        orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber)],
+        orderBy: (raceInstances, { asc }) => [asc(raceInstances.raceNumber), asc(raceInstances.name)],
         with: {
           entries: true,
           venue: true,

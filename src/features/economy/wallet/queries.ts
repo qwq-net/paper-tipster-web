@@ -7,6 +7,7 @@ import { desc, eq } from 'drizzle-orm';
 export async function getEventWallets(userId: string) {
   return db.query.wallets.findMany({
     where: eq(wallets.userId, userId),
+    orderBy: [desc(wallets.createdAt)],
     with: {
       event: true,
     },

@@ -1,16 +1,12 @@
 import { db } from '@/shared/db';
 import { bet5Events, raceInstances, wallets } from '@/shared/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 
 export async function getSokubetDashboardData(userId: string) {
-  const [allRaces, userWallets, bet5EventsList] = await Promise.all([
-    db.query.raceInstances.findMany({
-      orderBy: [desc(raceInstances.date)],
-      with: {
-        event: true,
-        venue: true,
-        entries: true,
-      },
+  const [activeEvents, userWallets, bet5EventsList] = await Promise.all([
+    db.query.events.findMany({
+      where: (events, { eq }) => eq(events.status, 'ACTIVE'),
+      columns: { id: true },
     }),
     db.query.wallets.findMany({
       where: eq(wallets.userId, userId),
@@ -20,14 +16,30 @@ export async function getSokubetDashboardData(userId: string) {
     }),
   ]);
 
-  const activeRaces = allRaces.filter((race) => race.event.status === 'ACTIVE');
+  if (activeEvents.length === 0) {
+    return [];
+  }
+
+  const activeEventIds = activeEvents.map((event) => event.id);
+  const activeRaces = await db.query.raceInstances.findMany({
+    where: inArray(raceInstances.eventId, activeEventIds),
+    orderBy: [desc(raceInstances.date)],
+    with: {
+      event: true,
+      venue: true,
+      entries: true,
+    },
+  });
+
+  const walletByEventId = new Map(userWallets.map((wallet) => [wallet.eventId, wallet]));
+  const bet5ByEventId = new Map(bet5EventsList.map((bet5Event) => [bet5Event.eventId, bet5Event]));
 
   const eventGroups = activeRaces.reduce(
     (acc, race) => {
       const eventId = race.event.id;
       if (!acc[eventId]) {
-        const wallet = userWallets.find((w) => w.eventId === eventId);
-        const bet5 = bet5EventsList.find((b) => b.eventId === eventId);
+        const wallet = walletByEventId.get(eventId);
+        const bet5 = bet5ByEventId.get(eventId);
         acc[eventId] = {
           event: race.event,
           races: [],

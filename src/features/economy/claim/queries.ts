@@ -5,7 +5,7 @@ import { desc, eq } from 'drizzle-orm';
 export async function getEventsWithJoinStatus(userId: string) {
   const availableEvents = await db.query.events.findMany({
     where: eq(events.status, 'ACTIVE'),
-    orderBy: [desc(events.date)],
+    orderBy: [desc(events.date), desc(events.createdAt)],
   });
 
   const userWallets = await db.query.wallets.findMany({

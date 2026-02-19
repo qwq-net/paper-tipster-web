@@ -20,7 +20,7 @@ export default async function AdminEventsPage() {
   }
 
   const allEvents = await db.query.events.findMany({
-    orderBy: [desc(events.date)],
+    orderBy: [desc(events.date), desc(events.createdAt)],
   });
 
   return (

@@ -5,7 +5,7 @@ import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events, wallets } from '@/shared/db/schema';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
-import { desc, eq, sql } from 'drizzle-orm';
+import { asc, desc, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 import { type RankingData } from '@/entities/ranking';
@@ -42,7 +42,9 @@ export async function getEventRanking(eventId: string): Promise<{
         },
       },
     },
-    orderBy: isFullWithLoan ? [desc(sql`${wallets.balance} - ${wallets.totalLoaned}`)] : [desc(wallets.balance)],
+    orderBy: isFullWithLoan
+      ? [desc(sql`${wallets.balance} - ${wallets.totalLoaned}`), asc(wallets.createdAt), asc(wallets.userId)]
+      : [desc(wallets.balance), asc(wallets.createdAt), asc(wallets.userId)],
   });
 
   const ranking: RankingData[] = eventWallets.map((wallet, index) => {
@@ -118,7 +120,7 @@ export async function getAdminEventRanking(eventId: string): Promise<{
         },
       },
     },
-    orderBy: [desc(sql`${wallets.balance} - ${wallets.totalLoaned}`)],
+    orderBy: [desc(sql`${wallets.balance} - ${wallets.totalLoaned}`), asc(wallets.createdAt), asc(wallets.userId)],
   });
 
   const ranking: RankingData[] = eventWallets.map((wallet, index) => {

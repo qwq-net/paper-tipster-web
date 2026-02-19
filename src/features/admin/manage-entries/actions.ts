@@ -4,7 +4,7 @@ import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { horses, raceEntries, raceInstances, venues } from '@/shared/db/schema';
 import { calculateBracketNumber } from '@/shared/utils/bracket';
-import { eq, notInArray } from 'drizzle-orm';
+import { asc, desc, eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function getEntries() {
@@ -27,7 +27,7 @@ export async function getEntries() {
     .innerJoin(raceInstances, eq(raceEntries.raceId, raceInstances.id))
     .innerJoin(horses, eq(raceEntries.horseId, horses.id))
     .leftJoin(venues, eq(raceInstances.venueId, venues.id))
-    .orderBy(raceInstances.date, raceInstances.name, raceEntries.horseNumber);
+    .orderBy(desc(raceInstances.date), asc(raceInstances.name), asc(raceEntries.horseNumber));
 
   return entries;
 }
@@ -53,7 +53,11 @@ export async function getRacesForSelect() {
         },
       },
     },
-    orderBy: (raceInstances, { asc, desc }) => [desc(raceInstances.date), asc(raceInstances.name)],
+    orderBy: (raceInstances, { asc, desc }) => [
+      desc(raceInstances.date),
+      asc(raceInstances.raceNumber),
+      asc(raceInstances.name),
+    ],
   });
 
   const races = allRaces.map((race) => ({

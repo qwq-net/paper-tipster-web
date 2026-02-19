@@ -1,9 +1,9 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { VENUE_AREAS, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { db } from '@/shared/db';
 import { venues } from '@/shared/db/schema';
+import { requireAdmin } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -17,10 +17,7 @@ const venueSchema = z.object({
 });
 
 export async function createVenue(formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const parse = venueSchema.safeParse({
     name: formData.get('name'),
@@ -46,10 +43,7 @@ export async function createVenue(formData: FormData) {
 }
 
 export async function updateVenue(id: string, formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const parse = venueSchema.safeParse({
     name: formData.get('name'),
@@ -78,10 +72,7 @@ export async function updateVenue(id: string, formData: FormData) {
 }
 
 export async function deleteVenue(id: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   await db.delete(venues).where(eq(venues.id, id));
 
@@ -89,10 +80,14 @@ export async function deleteVenue(id: string) {
 }
 
 export async function getVenues() {
+  await requireAdmin();
+
   return db.select().from(venues).orderBy(venues.code, venues.name);
 }
 
 export async function getVenue(id: string) {
+  await requireAdmin();
+
   const result = await db.select().from(venues).where(eq(venues.id, id)).limit(1);
   return result[0] || null;
 }

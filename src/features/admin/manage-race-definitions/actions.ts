@@ -1,9 +1,9 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { RACE_GRADES, RACE_TYPES, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { db } from '@/shared/db';
 import { raceDefinitions } from '@/shared/db/schema';
+import { requireAdmin } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -20,10 +20,7 @@ const raceDefinitionSchema = z.object({
 });
 
 export async function createRaceDefinition(formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const parse = raceDefinitionSchema.safeParse({
     name: formData.get('name'),
@@ -55,10 +52,7 @@ export async function createRaceDefinition(formData: FormData) {
 }
 
 export async function updateRaceDefinition(id: string, formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const parse = raceDefinitionSchema.safeParse({
     name: formData.get('name'),
@@ -94,10 +88,7 @@ export async function updateRaceDefinition(id: string, formData: FormData) {
 }
 
 export async function deleteRaceDefinition(id: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   await db.delete(raceDefinitions).where(eq(raceDefinitions.id, id));
 
@@ -105,6 +96,8 @@ export async function deleteRaceDefinition(id: string) {
 }
 
 export async function getRaceDefinition(id: string) {
+  await requireAdmin();
+
   const definition = await db.query.raceDefinitions.findFirst({
     where: eq(raceDefinitions.id, id),
     with: {
@@ -120,6 +113,8 @@ export async function getRaceDefinition(id: string) {
 }
 
 export async function getRaceDefinitions() {
+  await requireAdmin();
+
   return db.query.raceDefinitions.findMany({
     orderBy: (raceDefinitions, { asc }) => [asc(raceDefinitions.code), asc(raceDefinitions.name)],
     with: {

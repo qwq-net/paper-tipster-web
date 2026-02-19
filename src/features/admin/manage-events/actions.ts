@@ -1,8 +1,8 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { events } from '@/shared/db/schema';
+import { requireAdmin } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -17,10 +17,7 @@ const eventSchema = z.object({
 });
 
 export async function createEvent(formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const parse = eventSchema.safeParse({
     name: formData.get('name'),
@@ -54,10 +51,7 @@ export async function createEvent(formData: FormData) {
 }
 
 export async function updateEvent(id: string, formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const parse = eventSchema.safeParse({
     name: formData.get('name'),
@@ -86,10 +80,7 @@ export async function updateEvent(id: string, formData: FormData) {
 }
 
 export async function updateEventStatus(eventId: string, newStatus: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED') {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   await db.update(events).set({ status: newStatus }).where(eq(events.id, eventId));
 
@@ -97,10 +88,7 @@ export async function updateEventStatus(eventId: string, newStatus: 'SCHEDULED' 
 }
 
 export async function deleteEvent(id: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   await db.delete(events).where(eq(events.id, id));
 
@@ -108,10 +96,7 @@ export async function deleteEvent(id: string) {
 }
 
 export async function getEvent(id: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    return null;
-  }
+  await requireAdmin();
 
   return db.query.events.findFirst({
     where: eq(events.id, id),
@@ -119,10 +104,7 @@ export async function getEvent(id: string) {
 }
 
 export async function getEvents() {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    return [];
-  }
+  await requireAdmin();
 
   return db.query.events.findMany({
     orderBy: (events, { desc }) => [desc(events.date), desc(events.createdAt)],

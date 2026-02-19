@@ -1,14 +1,13 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { payoutResults, raceEntries, raceInstances } from '@/shared/db/schema';
+import { requireAdmin } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function resetRaceResults(raceId: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') throw new Error('認証されていません');
+  await requireAdmin();
 
   const race = await db.query.raceInstances.findFirst({
     where: eq(raceInstances.id, raceId),

@@ -1,13 +1,15 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { horses, raceEntries, raceInstances, venues } from '@/shared/db/schema';
+import { requireAdmin } from '@/shared/utils/admin';
 import { calculateBracketNumber } from '@/shared/utils/bracket';
 import { asc, desc, eq, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function getEntries() {
+  await requireAdmin();
+
   const entries = await db
     .select({
       id: raceEntries.id,
@@ -33,6 +35,8 @@ export async function getEntries() {
 }
 
 export async function getRacesForSelect() {
+  await requireAdmin();
+
   const allRaces = await db.query.raceInstances.findMany({
     where: eq(raceInstances.status, 'SCHEDULED'),
     columns: {
@@ -107,6 +111,8 @@ export async function getRacesForSelect() {
 }
 
 export async function getHorsesForSelect() {
+  await requireAdmin();
+
   return db.select({ id: horses.id, name: horses.name }).from(horses).orderBy(horses.name);
 }
 
@@ -161,10 +167,7 @@ export async function getAvailableHorses(raceId: string) {
 }
 
 export async function saveEntries(raceId: string, horseIds: string[]) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
-  }
+  await requireAdmin();
 
   await db.delete(raceEntries).where(eq(raceEntries.raceId, raceId));
 
@@ -185,10 +188,7 @@ export async function saveEntries(raceId: string, horseIds: string[]) {
 }
 
 export async function deleteEntry(entryId: string, raceId: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('Unauthorized');
-  }
+  await requireAdmin();
 
   await db.delete(raceEntries).where(eq(raceEntries.id, entryId));
 

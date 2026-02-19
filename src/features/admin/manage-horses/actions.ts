@@ -1,9 +1,9 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { HORSE_TAG_TYPES, HORSE_TYPES } from '@/shared/constants/horse';
 import { db } from '@/shared/db';
 import { horseTags, horses } from '@/shared/db/schema';
+import { requireAdmin } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -35,10 +35,7 @@ const GENDER_MAP: Record<string, 'MARE' | 'FILLY' | 'HORSE' | 'COLT' | 'GELDING'
 };
 
 export async function createHorse(formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const ageValue = formData.get('age');
   const notesValue = formData.get('notes');
@@ -86,10 +83,7 @@ export async function createHorse(formData: FormData) {
 }
 
 export async function updateHorse(id: string, formData: FormData) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const ageValue = formData.get('age');
   const notesValue = formData.get('notes');
@@ -141,6 +135,8 @@ export async function updateHorse(id: string, formData: FormData) {
 }
 
 export async function getHorses() {
+  await requireAdmin();
+
   return db.query.horses.findMany({
     with: {
       tags: true,
@@ -150,10 +146,7 @@ export async function getHorses() {
 }
 
 export async function deleteHorse(id: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   await db.delete(horses).where(eq(horses.id, id));
 
@@ -161,6 +154,8 @@ export async function deleteHorse(id: string) {
 }
 
 export async function getHorse(id: string) {
+  await requireAdmin();
+
   const horse = await db.query.horses.findFirst({
     where: eq(horses.id, id),
     with: {
@@ -176,6 +171,8 @@ export async function getHorse(id: string) {
 }
 
 export async function getHorseWins(horseId: string) {
+  await requireAdmin();
+
   const [entries, manualWins] = await Promise.all([
     db.query.raceEntries.findMany({
       where: (entries, { and, eq }) => and(eq(entries.horseId, horseId), eq(entries.finishPosition, 1)),

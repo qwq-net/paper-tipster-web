@@ -1,21 +1,21 @@
 'use server';
 
 import { ROLES, type Role } from '@/entities/user';
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { users } from '@/shared/db/schema';
+import { requireAdmin } from '@/shared/utils/admin';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function updateUserRole(userId: string, newRole: Role) {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== 'ADMIN') {
-    throw new Error('Unauthorized: Admin access required.');
+  const session = await requireAdmin();
+  const adminUserId = session.user?.id;
+  if (!adminUserId) {
+    throw new Error('認証されていません');
   }
 
-  if (userId === session.user.id && newRole !== ROLES.ADMIN) {
-    throw new Error('You cannot change your own role as an admin.');
+  if (userId === adminUserId && newRole !== ROLES.ADMIN) {
+    throw new Error('自身の管理者権限は変更できません');
   }
 
   await db.update(users).set({ role: newRole }).where(eq(users.id, userId));
@@ -24,14 +24,14 @@ export async function updateUserRole(userId: string, newRole: Role) {
 }
 
 export async function toggleUserStatus(userId: string) {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== 'ADMIN') {
-    throw new Error('Unauthorized: Admin access required.');
+  const session = await requireAdmin();
+  const adminUserId = session.user?.id;
+  if (!adminUserId) {
+    throw new Error('認証されていません');
   }
 
-  if (userId === session.user.id) {
-    throw new Error('You cannot disable your own account.');
+  if (userId === adminUserId) {
+    throw new Error('自身のアカウントは無効化できません');
   }
 
   const user = await db.query.users.findFirst({
@@ -39,7 +39,7 @@ export async function toggleUserStatus(userId: string) {
   });
 
   if (!user) {
-    throw new Error('User not found.');
+    throw new Error('ユーザーが見つかりません');
   }
 
   const newDisabledAt = user.disabledAt ? null : new Date();
@@ -50,14 +50,14 @@ export async function toggleUserStatus(userId: string) {
 }
 
 export async function deleteUser(userId: string) {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== 'ADMIN') {
-    throw new Error('Unauthorized: Admin access required.');
+  const session = await requireAdmin();
+  const adminUserId = session.user?.id;
+  if (!adminUserId) {
+    throw new Error('認証されていません');
   }
 
-  if (userId === session.user.id) {
-    throw new Error('You cannot delete your own account.');
+  if (userId === adminUserId) {
+    throw new Error('自身のアカウントは削除できません');
   }
 
   await db.delete(users).where(eq(users.id, userId));

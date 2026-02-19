@@ -1,15 +1,16 @@
 'use server';
 
-import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
 import { guestCodes, users } from '@/shared/db/schema';
+import { requireAdmin } from '@/shared/utils/admin';
 import crypto from 'crypto';
 import { desc, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function generateGuestCode(title: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
+  const session = await requireAdmin();
+  const adminUserId = session.user?.id;
+  if (!adminUserId) {
     throw new Error('認証されていません');
   }
 
@@ -18,7 +19,7 @@ export async function generateGuestCode(title: string) {
   await db.insert(guestCodes).values({
     code,
     title,
-    createdBy: session.user.id,
+    createdBy: adminUserId,
   });
 
   revalidatePath('/admin/users');
@@ -26,10 +27,7 @@ export async function generateGuestCode(title: string) {
 }
 
 export async function getGuestCodes() {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   const codes = await db.query.guestCodes.findMany({
     orderBy: [desc(guestCodes.createdAt)],
@@ -42,10 +40,7 @@ export async function getGuestCodes() {
 }
 
 export async function invalidateGuestCode(code: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   await db.update(guestCodes).set({ disabledAt: new Date() }).where(eq(guestCodes.code, code));
 
@@ -53,10 +48,7 @@ export async function invalidateGuestCode(code: string) {
 }
 
 export async function invalidateUsersByCode(code: string) {
-  const session = await auth();
-  if (session?.user?.role !== 'ADMIN') {
-    throw new Error('認証されていません');
-  }
+  await requireAdmin();
 
   await db.update(users).set({ disabledAt: new Date() }).where(eq(users.guestCodeId, code));
 

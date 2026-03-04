@@ -2,7 +2,7 @@ import { BET_TYPE_LABELS, BetType } from '@/entities/bet';
 import { getBetsByRace, getRaceWithBets } from '@/features/admin/manage-bets/actions/read';
 import { Badge } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
-import { ArrowLeft } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -30,9 +30,9 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
       <div>
         <Link
           href="/admin/bets"
-          className="mb-4 inline-flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-700"
+          className="mb-4 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ChevronLeft size={16} />
           馬券管理に戻る
         </Link>
         <h1 className="text-2xl font-semibold text-gray-900">{race.name}</h1>
@@ -75,7 +75,7 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+              <tbody className="divide-y divide-gray-100 bg-white">
                 {bets.map((bet) => (
                   <tr key={bet.id} className="transition-colors hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
@@ -101,15 +101,20 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
                       <FormattedDate date={bet.createdAt} />
                     </td>
                     <td className="px-6 py-4 text-sm whitespace-nowrap">
-                      {bet.status === 'PENDING' ? (
-                        <span className="text-gray-400">未確定</span>
-                      ) : bet.status === 'HIT' ? (
-                        <span className="font-semibold text-green-600">的中</span>
-                      ) : bet.status === 'LOST' ? (
-                        <span className="text-gray-400">不的中</span>
-                      ) : (
-                        <span className="text-gray-400">{bet.status}</span>
-                      )}
+                      <Badge
+                        variant="status"
+                        label={
+                          bet.status === 'PENDING' ? '未確定' :
+                          bet.status === 'HIT' ? '的中' :
+                          bet.status === 'LOST' ? '不的中' :
+                          bet.status
+                        }
+                        className={
+                          bet.status === 'HIT' ? 'bg-green-100 text-green-800' :
+                          bet.status === 'LOST' || bet.status === 'PENDING' ? 'bg-gray-100 text-gray-600' :
+                          undefined
+                        }
+                      />
                     </td>
                   </tr>
                 ))}

@@ -57,7 +57,7 @@ export function EventList({ events }: { events: Event[] }) {
                 <Link
                   prefetch={false}
                   href={`/admin/events/${event.id}`}
-                  className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                  className="font-medium text-primary hover:text-primary/80 hover:underline"
                 >
                   {event.name}
                 </Link>

@@ -142,8 +142,8 @@ export function HorseDetail({ horse, wins }: HorseDetailProps) {
         </CardHeader>
         <CardContent>
           {wins.length > 0 ? (
-            <div className="overflow-hidden rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
+            <div className="overflow-hidden rounded-xl border border-gray-100">
+              <table className="min-w-full divide-y divide-gray-100">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider text-gray-500 uppercase">
@@ -160,7 +160,7 @@ export function HorseDetail({ horse, wins }: HorseDetailProps) {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
+                <tbody className="divide-y divide-gray-100 bg-white">
                   {wins.map((win) => (
                     <tr key={win.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
@@ -202,7 +202,7 @@ export function HorseDetail({ horse, wins }: HorseDetailProps) {
                           <span className="text-gray-400 italic">特別表彰</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm whitespace-nowrap text-blue-600 hover:text-blue-800">
+                      <td className="text-primary hover:text-primary/80 px-6 py-4 text-sm whitespace-nowrap">
                         {win.type === 'RESULT' ? (
                           <Link href={`/admin/events/${win.eventId}`}>{win.eventName}</Link>
                         ) : (

@@ -1,8 +1,9 @@
 'use client';
 
 import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/constants/status';
-import { Button, Card, CardContent, CardHeader } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import { useTransition } from 'react';
+import { toast } from 'sonner';
 import { claimEvent } from '../actions';
 
 type AvailableEvent = {
@@ -20,7 +21,12 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
 
   const handleClaim = (eventId: string) => {
     startTransition(async () => {
-      await claimEvent(eventId);
+      try {
+        await claimEvent(eventId);
+        toast.success('イベントに参加しました');
+      } catch {
+        toast.error('参加処理に失敗しました');
+      }
     });
   };
 
@@ -35,17 +41,11 @@ export function EventClaimList({ events }: { events: AvailableEvent[] }) {
           <CardHeader>
             <div className="flex items-start justify-between">
               <h3 className="text-lg font-semibold">{event.name}</h3>
-              <span
-                className={`inline-flex rounded-full px-2 py-0.5 text-sm font-semibold ${
-                  event.isJoined
-                    ? 'bg-blue-100 text-blue-700'
-                    : event.status === 'ACTIVE'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-amber-100 text-amber-700'
-                }`}
-              >
-                {event.isJoined ? '参加済み' : EVENT_STATUS_LABELS[event.status]}
-              </span>
+              <Badge
+                label={event.isJoined ? '参加済み' : event.status}
+                variant={event.isJoined ? 'role' : 'status'}
+                className={event.isJoined ? 'bg-blue-100 text-blue-700' : undefined}
+              />
             </div>
             <p className="mt-1 text-sm text-gray-600">開催日: {event.date}</p>
           </CardHeader>

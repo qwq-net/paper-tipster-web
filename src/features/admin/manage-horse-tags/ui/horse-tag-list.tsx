@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   CardContent,
+  CardHeader,
   Dialog,
   DialogContent,
   DialogHeader,
@@ -55,7 +56,7 @@ export function HorseTagList({ tags }: HorseTagListProps) {
       <div className="flex justify-end">
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
-            <Button className="from-primary to-primary/80 bg-linear-to-r">
+            <Button>
               <Plus className="mr-2 h-4 w-4" />
               タグを追加
             </Button>
@@ -122,8 +123,4 @@ export function HorseTagList({ tags }: HorseTagListProps) {
       </Dialog>
     </div>
   );
-}
-
-function CardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={`px-6 py-4 ${className}`}>{children}</div>;
 }

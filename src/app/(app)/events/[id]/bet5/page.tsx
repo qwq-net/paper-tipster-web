@@ -31,13 +31,15 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
 
   if (!bet5Event) {
     return (
-      <div className="container mx-auto max-w-4xl space-y-4 py-6">
-        <h1 className="text-2xl font-semibold">BET5</h1>
-        <p className="text-gray-500">このイベントではBET5は開催されていません。</p>
-        <Link href="/mypage/sokubet" className="inline-flex items-center gap-1 text-blue-500 hover:underline">
-          <ChevronLeft className="h-4 w-4" />
-          即BETトップへ戻る
-        </Link>
+      <div className="flex flex-col items-center p-4 lg:p-8">
+        <div className="w-full max-w-4xl space-y-4">
+          <h1 className="text-2xl font-semibold text-gray-900">BET5</h1>
+          <p className="text-gray-500">このイベントではBET5は開催されていません。</p>
+          <Link href="/mypage/sokubet" className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900">
+            <ChevronLeft className="h-4 w-4" />
+            即BETトップへ戻る
+          </Link>
+        </div>
       </div>
     );
   }
@@ -72,12 +74,13 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
   const orderedRaces = races;
 
   return (
-    <div className="container mx-auto max-w-4xl space-y-6 py-6">
+    <div className="flex flex-col items-center p-4 lg:p-8">
+      <div className="w-full max-w-4xl space-y-6">
       <div className="flex items-center gap-2">
         <Link href="/mypage/sokubet" className="text-sm font-medium text-gray-500 hover:text-gray-900">
           <ChevronLeft className="h-4 w-4" />
         </Link>
-        <h1 className="text-xl font-semibold">BET5 投票</h1>
+        <h1 className="text-xl font-semibold text-gray-900">BET5 投票</h1>
       </div>
 
       <Card>
@@ -107,6 +110,7 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
           <p className="text-lg font-semibold text-gray-500">投票受付は終了しました</p>
         </div>
       )}
+      </div>
     </div>
   );
 }

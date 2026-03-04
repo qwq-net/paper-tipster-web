@@ -35,7 +35,7 @@ export default async function ClaimPage() {
 
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">お小遣いを貰う</h1>
-          <p className="font-semibold text-gray-500">開催中のイベントに参加して、軍資金を受け取りましょう。</p>
+          <p className="text-sm text-gray-500">開催中のイベントに参加して、軍資金を受け取りましょう。</p>
         </div>
 
         <section>

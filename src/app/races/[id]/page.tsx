@@ -80,12 +80,10 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
             <div className="flex items-center justify-between gap-4">
               <h1 className="text-3xl font-semibold text-gray-900">{race.name}</h1>
               <div className="flex items-center gap-2">
-                <RankingButton eventId={race.eventId} />
-                <Link href={`/races/${id}/standby`}>
-                  <Button variant="outline" className="font-semibold">
-                    購入馬券確認・結果待機
-                  </Button>
-                </Link>
+                <RankingButton eventId={race.eventId} size="md" />
+                <Button variant="outline" asChild>
+                  <Link href={`/races/${id}/standby`}>購入馬券確認・結果待機</Link>
+                </Button>
               </div>
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-500">

@@ -30,14 +30,14 @@ export function EmojiKeypad({ onEmojiClick, onBackspace, onClear }: EmojiKeypadP
           onClick={onClear}
           className="rounded-lg py-3 font-medium text-red-600 transition-colors hover:bg-red-50"
         >
-          Clear
+          クリア
         </button>
         <button
           type="button"
           onClick={onBackspace}
           className="rounded-lg border border-gray-200 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-100"
         >
-          ⌫ Backspace
+          ⌫ 削除
         </button>
       </div>
     </div>

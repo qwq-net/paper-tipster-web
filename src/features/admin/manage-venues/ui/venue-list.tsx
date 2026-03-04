@@ -40,13 +40,13 @@ export async function VenueList() {
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
+        <tbody className="divide-y divide-gray-100 bg-white">
           {venues.map((venue) => (
             <tr key={venue.id} className="transition-colors hover:bg-gray-50">
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900">
                 <Link
                   href={`/admin/venues/${venue.id}`}
-                  className="text-blue-600 transition-colors hover:text-blue-800 hover:underline"
+                  className="text-primary transition-colors hover:text-primary/80 hover:underline"
                 >
                   {venue.name}
                 </Link>

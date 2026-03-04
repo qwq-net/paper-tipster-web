@@ -4,6 +4,7 @@ import { checkIpLockStatus } from '@/features/auth/actions/auth-actions';
 import { EmojiKeypad } from '@/features/auth/ui/emoji-keypad';
 import { GuestAuthTabs } from '@/features/auth/ui/guest-auth-tabs';
 import { TermsAgreement } from '@/features/auth/ui/terms-agreement';
+import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/forms';
 import { Loader2 } from 'lucide-react';
 import { signIn } from 'next-auth/react';
@@ -181,14 +182,10 @@ export function GuestLoginClient() {
 
             <div>
               <TermsAgreement className="mb-4" />
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
-              >
+              <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading && <Loader2 className="mr-2 -ml-1 h-4 w-4 animate-spin" />}
                 {isLoading ? 'ログイン中...' : 'ログイン'}
-              </button>
+              </Button>
             </div>
           </form>
         </div>

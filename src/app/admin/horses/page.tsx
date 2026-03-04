@@ -31,7 +31,7 @@ export default async function HorsesPage() {
           </Button>
         </div>
 
-        <Suspense fallback={<Card className="py-12 text-center font-semibold text-gray-500">読み込み中...</Card>}>
+        <Suspense fallback={<Card className="py-12 text-center text-gray-500">読み込み中...</Card>}>
           <HorseList />
         </Suspense>
       </div>

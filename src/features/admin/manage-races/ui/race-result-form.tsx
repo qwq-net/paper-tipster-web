@@ -136,6 +136,7 @@ export function RaceResultForm({
   const [sortedEntries, setSortedEntries] = useState(initialEntries);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isPayoutMoving, setIsPayoutMoving] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -205,7 +206,6 @@ export function RaceResultForm({
   };
 
   const handleServerReset = () => {
-    if (!confirm('着順設定をリセットしてもよろしいですか？')) return;
     startTransition(async () => {
       try {
         await resetRaceResults(raceId);
@@ -501,14 +501,48 @@ export function RaceResultForm({
                 >
                   {isPayoutMoving ? '払い戻し処理中...' : '払い戻しを確定する'}
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full text-sm font-semibold text-gray-400 hover:text-red-500"
-                  onClick={handleServerReset}
-                  disabled={isPayoutMoving || isPending}
-                >
-                  着順設定をやり直す（リセット）
-                </Button>
+                <AlertDialog.Root open={showResetConfirm} onOpenChange={setShowResetConfirm}>
+                  <AlertDialog.Trigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full text-sm font-semibold text-gray-400 hover:text-red-500"
+                      disabled={isPayoutMoving || isPending}
+                    >
+                      着順設定をやり直す（リセット）
+                    </Button>
+                  </AlertDialog.Trigger>
+                  <AlertDialog.Portal>
+                    <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
+                    <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl">
+                      <div className="flex flex-col items-center text-center">
+                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
+                          <AlertCircle className="h-8 w-8" />
+                        </div>
+                        <AlertDialog.Title className="mb-2 text-xl font-semibold text-gray-900">
+                          着順設定をリセットしますか？
+                        </AlertDialog.Title>
+                        <AlertDialog.Description className="text-sm text-gray-500">
+                          確定済みの着順・払い戻しがリセットされます。この操作は元に戻せません。
+                        </AlertDialog.Description>
+                      </div>
+                      <div className="mt-6 flex flex-col gap-3">
+                        <AlertDialog.Action asChild>
+                          <Button
+                            onClick={handleServerReset}
+                            className="w-full bg-red-600 font-semibold hover:bg-red-700"
+                          >
+                            リセットする
+                          </Button>
+                        </AlertDialog.Action>
+                        <AlertDialog.Cancel asChild>
+                          <Button variant="outline" className="w-full font-semibold">
+                            キャンセル
+                          </Button>
+                        </AlertDialog.Cancel>
+                      </div>
+                    </AlertDialog.Content>
+                  </AlertDialog.Portal>
+                </AlertDialog.Root>
               </div>
             )}
           </div>

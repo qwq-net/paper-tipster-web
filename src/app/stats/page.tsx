@@ -14,9 +14,10 @@ export default async function StatsPage() {
   const stats = await getGlobalStats();
 
   return (
-    <div className="container mx-auto max-w-5xl space-y-8 p-4 md:py-8">
+    <div className="flex flex-col items-center p-4 lg:p-8">
+      <div className="w-full max-w-5xl space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold">戦績ダッシュボード</h1>
+        <h1 className="text-3xl font-semibold text-gray-900">戦績ダッシュボード</h1>
         <Button variant="outline" asChild>
           <Link href="/mypage">マイページへ戻る</Link>
         </Button>
@@ -42,13 +43,14 @@ export default async function StatsPage() {
         <h2 className="text-xl font-semibold">イベント別詳細</h2>
         {stats.events.length === 0 ? (
           <Card>
-            <CardContent className="text-muted-foreground flex h-32 items-center justify-center">
+            <CardContent className="flex h-32 items-center justify-center text-gray-500">
               参加したイベントはまだありません
             </CardContent>
           </Card>
         ) : (
           stats.events.map((event) => <EventStatsCard key={event.id} event={event} />)
         )}
+      </div>
       </div>
     </div>
   );

@@ -10,13 +10,14 @@ import { getBetTypeColumnLabels } from '@/features/betting/model/bet-types';
 import { BetSummaryFooter } from '@/features/betting/ui/bet-summary-footer';
 import { BetTypeSelector } from '@/features/betting/ui/bet-type-selector';
 import { useSSE } from '@/shared/hooks/use-sse';
-import { Badge, Checkbox, LiveConnectionStatus } from '@/shared/ui';
+import { Badge, Button, Checkbox, LiveConnectionStatus } from '@/shared/ui';
 import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getGenderAge } from '@/shared/utils/gender';
+import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
 interface Entry {
@@ -41,6 +42,7 @@ interface BetTableProps {
 export function BetTable({ raceId, walletId, balance, entries, initialStatus, closingAt, initialOdds }: BetTableProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [showBetConfirm, setShowBetConfirm] = useState(false);
 
   const { isClosed, handleSSEMessage } = useRaceTimer({
     raceId,
@@ -72,13 +74,17 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
 
   const columnLabels = getBetTypeColumnLabels(betType);
 
-  const handleSubmit = async () => {
+  const handleSubmitRequest = () => {
     const error = validateBetSubmission(betCount, amount, totalAmount, balance);
     if (error) {
       toast.error(error);
       return;
     }
+    setShowBetConfirm(true);
+  };
 
+  const handleSubmit = () => {
+    setShowBetConfirm(false);
     const validCombinations = getValidBetCombinations(selectionsArray, betType, bracketHorseCount);
 
     startTransition(async () => {
@@ -204,6 +210,7 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
                               checked={selections[colIdx].has(Number(bracket))}
                               onCheckedChange={() => handleCheckboxChange(colIdx, Number(bracket))}
                               disabled={isClosed || isPending}
+                              aria-label={`${columnLabels[colIdx]} に枠${bracket}を選択`}
                               className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
                             />
                           </td>
@@ -234,6 +241,7 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
                           checked={selections[colIdx].has(entry.horseNumber!)}
                           onCheckedChange={() => handleCheckboxChange(colIdx, entry.horseNumber!)}
                           disabled={isClosed || isPending}
+                          aria-label={`${columnLabels[colIdx]} に${entry.horseName}(${entry.horseNumber}番)を選択`}
                           className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
                         />
                       </td>
@@ -251,8 +259,38 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
         isClosed={isClosed}
         isPending={isPending}
         onAmountChange={setAmount}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmitRequest}
       />
+
+      <AlertDialog.Root open={showBetConfirm} onOpenChange={setShowBetConfirm}>
+        <AlertDialog.Portal>
+          <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
+          <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex flex-col items-center text-center">
+              <AlertDialog.Title className="mb-1 text-xl font-semibold text-gray-900">
+                馬券を購入しますか？
+              </AlertDialog.Title>
+              <AlertDialog.Description className="text-sm text-gray-500">
+                {betCount}点・合計{' '}
+                <span className="font-semibold text-gray-900">{totalAmount.toLocaleString('ja-JP')}円</span>{' '}
+                を購入します。
+              </AlertDialog.Description>
+            </div>
+            <div className="mt-6 flex flex-col gap-3">
+              <AlertDialog.Action asChild>
+                <Button onClick={handleSubmit} className="w-full font-semibold">
+                  購入する
+                </Button>
+              </AlertDialog.Action>
+              <AlertDialog.Cancel asChild>
+                <Button variant="outline" className="w-full font-semibold">
+                  キャンセル
+                </Button>
+              </AlertDialog.Cancel>
+            </div>
+          </AlertDialog.Content>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
     </div>
   );
 }

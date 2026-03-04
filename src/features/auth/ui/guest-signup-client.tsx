@@ -4,6 +4,8 @@ import { checkIpLockStatus, validateGuestRegistration } from '@/features/auth/ac
 import { EmojiKeypad } from '@/features/auth/ui/emoji-keypad';
 import { GuestAuthTabs } from '@/features/auth/ui/guest-auth-tabs';
 import { TermsAgreement } from '@/features/auth/ui/terms-agreement';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/forms';
 import { Loader2 } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
@@ -143,7 +145,7 @@ export function GuestSignupClient() {
                 招待コード
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="code"
                   name="code"
                   type="text"
@@ -151,8 +153,8 @@ export function GuestSignupClient() {
                   autoComplete="off"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
                   placeholder="管理者からコードを受け取ってください"
+                  ignorePasswordManager={false}
                 />
               </div>
             </div>
@@ -163,7 +165,7 @@ export function GuestSignupClient() {
                 <span className="ml-2 text-sm font-normal text-gray-500">（英数字、ひらがな、カタカナ、漢字）</span>
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="username"
                   name="username"
                   type="text"
@@ -171,8 +173,8 @@ export function GuestSignupClient() {
                   autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
                   placeholder="表示名を入力"
+                  ignorePasswordManager={false}
                 />
               </div>
             </div>
@@ -183,7 +185,7 @@ export function GuestSignupClient() {
                 <span className="ml-2 text-sm font-normal text-gray-500">（3〜6文字）</span>
               </label>
 
-              <input
+              <Input
                 type="password"
                 name="password"
                 autoComplete="new-password"
@@ -192,6 +194,7 @@ export function GuestSignupClient() {
                 className="sr-only"
                 tabIndex={-1}
                 aria-hidden="true"
+                ignorePasswordManager={false}
               />
 
               <div className="mb-4 flex min-h-[50px] items-center justify-center rounded-lg border border-gray-200 bg-gray-100 p-3 text-center text-xl tracking-widest">
@@ -216,14 +219,10 @@ export function GuestSignupClient() {
 
             <div>
               <TermsAgreement className="mb-4" />
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
-              >
+              <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading && <Loader2 className="mr-2 -ml-1 h-4 w-4 animate-spin" />}
                 {isLoading ? '登録処理中...' : '登録して参加'}
-              </button>
+              </Button>
             </div>
           </form>
         </div>

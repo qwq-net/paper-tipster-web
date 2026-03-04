@@ -25,7 +25,7 @@ export default async function WalletPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/mypage"
-            className="flex items-center gap-1 text-sm font-semibold text-gray-500 hover:text-gray-900"
+            className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
           >
             <ChevronLeft size={16} />
             マイページへ戻る

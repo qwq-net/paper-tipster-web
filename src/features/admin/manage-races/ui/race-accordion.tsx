@@ -165,27 +165,27 @@ export function RaceAccordion({ events }: RaceAccordionProps) {
                       <table className="w-full min-w-[800px] border-collapse">
                         <thead className="bg-gray-50">
                           <tr className="border-b border-gray-100">
-                            <th className="px-6 py-3 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
+                            <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
                               番号
                             </th>
-                            <th className="px-6 py-3 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
+                            <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
                               レース名
                             </th>
-                            <th className="px-6 py-3 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
+                            <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
                               場所
                             </th>
-                            <th className="px-6 py-3 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
+                            <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
                               距離
                             </th>
-                            <th className="px-6 py-3 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
+                            <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
                               馬場
                             </th>
-                            <th className="px-6 py-3 text-left text-sm font-medium tracking-wider whitespace-nowrap text-gray-400 uppercase">
+                            <th className="px-6 py-3 text-left text-sm font-semibold tracking-wider whitespace-nowrap text-gray-400 uppercase">
                               状態
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 bg-white">
+                        <tbody className="divide-y divide-gray-100 bg-white">
                           {event.races.map((race) => (
                             <tr key={race.id} className="transition-colors hover:bg-gray-50">
                               <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">

@@ -15,8 +15,8 @@ export default async function HorseTagsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">馬タグ管理</h1>
-        <p className="text-gray-500">馬の詳細情報に使用するタグ（脚質、特性、来歴など）を管理します。</p>
+        <h1 className="text-2xl font-semibold text-gray-900">馬タグ管理</h1>
+        <p className="mt-1 text-sm text-gray-500">馬の詳細情報に使用するタグ（脚質、特性、来歴など）を管理します。</p>
       </div>
 
       <HorseTagList tags={tags as { id: string; type: HorseTagType; content: string }[]} />

@@ -206,7 +206,7 @@ export default async function AdminGuidePage() {
   return (
     <div className="max-w-6xl space-y-12 pb-12">
       <div className="text-center md:text-left">
-        <h1 className="text-secondary text-3xl font-semibold">クイックガイド</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">クイックガイド</h1>
         <p className="mt-2 text-lg text-gray-500">
           システムの土台作りから、実際のイベント運営までの流れをマスターしましょう。
         </p>

@@ -163,7 +163,7 @@ export function StandbyClient({
       </div>
 
       {ranking.length > 0 && (
-        <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="mb-8 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
           <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-3">
             <div className="flex items-center gap-2">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
@@ -199,7 +199,7 @@ export function StandbyClient({
       )}
 
       {!initialIsFinalized && !hasTickets && (
-        <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="mb-8 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
           <div
             className={`border-b border-gray-100 px-6 py-4 ${
               isClosed ? 'bg-linear-to-r from-gray-50 to-white' : 'bg-linear-to-r from-blue-50 to-white'
@@ -232,7 +232,7 @@ export function StandbyClient({
       )}
 
       {initialIsFinalized && !hasTickets && (
-        <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="mb-8 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
           <div className="border-b border-gray-100 bg-linear-to-r from-gray-50 to-white px-6 py-4">
             <div className="flex items-center gap-2 text-gray-500">
               <Badge variant="status" label="情報" className="bg-gray-100 text-gray-600" />
@@ -265,7 +265,7 @@ export function StandbyClient({
               ? 'bg-blue-600 text-white hover:bg-blue-700'
               : 'bg-gray-800/80 text-gray-400 hover:text-white'
           }`}
-          title={isAudioEnabled ? '音声通知をOFFにする' : '音声通知をONにする'}
+          aria-label={isAudioEnabled ? '音声通知をOFFにする' : '音声通知をONにする'}
         >
           {isAudioEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
         </button>

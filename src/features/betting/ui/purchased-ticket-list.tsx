@@ -40,7 +40,7 @@ interface PurchasedTicketListProps {
 export function PurchasedTicketList({ ticketGroups }: PurchasedTicketListProps) {
   if (ticketGroups.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/30 py-12 text-center shadow-sm">
+      <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/30 py-12 text-center shadow-sm">
         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
           <span className="text-xl">🎫</span>
         </div>
@@ -57,7 +57,7 @@ export function PurchasedTicketList({ ticketGroups }: PurchasedTicketListProps) 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
         <div>
           <div className="mb-1 text-sm font-semibold text-gray-500">購入合計</div>
           <div className="text-xl font-semibold text-gray-900">{totalAmount.toLocaleString('ja-JP')}円</div>
@@ -148,7 +148,7 @@ function TicketGroupItem({ group }: { group: BetGroup }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md">
+    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all hover:shadow-md">
       <div
         className="flex cursor-pointer items-center justify-between bg-gray-50/50 p-4"
         onClick={() => setIsOpen(!isOpen)}

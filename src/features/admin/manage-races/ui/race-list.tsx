@@ -43,7 +43,7 @@ export async function RaceList() {
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
+        <tbody className="divide-y divide-gray-100 bg-white">
           {races.map((race) => (
             <tr key={race.id} className="transition-colors hover:bg-gray-50">
               <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">{race.event.name}</td>

@@ -241,7 +241,7 @@ export default async function AdminPage() {
   return (
     <div className="max-w-5xl space-y-8">
       <div>
-        <h1 className="text-secondary text-2xl font-semibold">ダッシュボード</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">ダッシュボード</h1>
       </div>
 
       <Card className="border-indigo-100 bg-indigo-50/50 shadow-sm transition-all hover:bg-indigo-50">

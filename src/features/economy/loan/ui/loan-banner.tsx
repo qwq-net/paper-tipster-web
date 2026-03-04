@@ -4,6 +4,7 @@ import { Button, Card } from '@/shared/ui';
 import { AlertTriangle, Banknote } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
 import { borrowLoan } from '../actions';
 
 interface LoanBannerProps {
@@ -34,6 +35,7 @@ export function LoanBanner({ eventId, balance, distributeAmount, loanAmount, has
         router.refresh();
       } catch {
         setShowConfirm(false);
+        toast.error('融資の処理に失敗しました');
       }
     });
   };

@@ -15,26 +15,18 @@ export async function upsertForecast(raceId: string, selections: ForecastSelecti
     throw new Error('Unauthorized');
   }
 
-  const existingForecast = await db.query.forecasts.findFirst({
-    where: and(eq(forecasts.raceId, raceId), eq(forecasts.userId, session.user.id)),
-  });
-
-  if (existingForecast) {
-    await db
-      .update(forecasts)
-      .set({
-        selections,
-        comment,
-      })
-      .where(eq(forecasts.id, existingForecast.id));
-  } else {
-    await db.insert(forecasts).values({
+  await db
+    .insert(forecasts)
+    .values({
       raceId,
       userId: session.user.id,
       selections,
       comment,
+    })
+    .onConflictDoUpdate({
+      target: [forecasts.raceId, forecasts.userId],
+      set: { selections, comment },
     });
-  }
 
   revalidatePath(`/admin/forecasts`);
   revalidatePath(`/races/${raceId}`);

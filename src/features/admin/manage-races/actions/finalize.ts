@@ -25,6 +25,8 @@ export async function finalizeRace(
   }[] = [];
 
   await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`payout:${raceId}`}))`);
+
     const raceInstance = await tx.query.raceInstances.findFirst({
       where: eq(raceInstances.id, raceId),
       columns: { status: true, guaranteedOdds: true },

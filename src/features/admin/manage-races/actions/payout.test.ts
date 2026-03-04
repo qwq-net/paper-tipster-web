@@ -1,3 +1,4 @@
+import { type BetType } from '@/entities/bet';
 import { db } from '@/shared/db';
 import {
   betGroups,
@@ -119,7 +120,7 @@ describe('finalizePayout', () => {
   });
 
   async function createBet(params: {
-    type: string;
+    type: BetType;
     selections: number[];
     amount: number;
     userId?: string;
@@ -158,7 +159,7 @@ describe('finalizePayout', () => {
   }
 
   async function createBulkBets(params: {
-    type: string;
+    type: BetType;
     selections: number[];
     amount: number;
     count: number;
@@ -196,12 +197,12 @@ describe('finalizePayout', () => {
   }
 
   it('単勝: 的中・不的中の判定、オッズ計算、ウォレット更新が正しく行われる', async () => {
-    const { bet: betWin } = await createBet({ type: 'WIN', selections: [1], amount: 100 });
-    const { bet: betLose } = await createBet({ type: 'WIN', selections: [2], amount: 100 });
+    const { bet: betWin } = await createBet({ type: 'win', selections: [1], amount: 100 });
+    const { bet: betLose } = await createBet({ type: 'win', selections: [2], amount: 100 });
 
     await db.insert(payoutResults).values({
       raceId: raceId,
-      type: 'WIN',
+      type: 'win',
       combinations: [{ numbers: [1], payout: 250 }],
     });
 
@@ -275,12 +276,12 @@ describe('finalizePayout', () => {
   });
 
   it('全員ハズレの場合: 全ベットが LOST、ウォレットは変化なし', async () => {
-    const { bet: bet1 } = await createBet({ type: 'WIN', selections: [4], amount: 300 });
-    const { bet: bet2 } = await createBet({ type: 'WIN', selections: [5], amount: 200 });
+    const { bet: bet1 } = await createBet({ type: 'win', selections: [4], amount: 300 });
+    const { bet: bet2 } = await createBet({ type: 'win', selections: [5], amount: 200 });
 
     await db.insert(payoutResults).values({
       raceId: raceId,
-      type: 'WIN',
+      type: 'win',
       combinations: [{ numbers: [1], payout: 350 }],
     });
 
@@ -316,11 +317,11 @@ describe('finalizePayout', () => {
   });
 
   it('的中した馬券にはPAYOUTトランザクションが記録される', async () => {
-    const { bet: betWin } = await createBet({ type: 'WIN', selections: [1], amount: 100 });
+    const { bet: betWin } = await createBet({ type: 'win', selections: [1], amount: 100 });
 
     await db.insert(payoutResults).values({
       raceId: raceId,
-      type: 'WIN',
+      type: 'win',
       combinations: [{ numbers: [1], payout: 500 }],
     });
 
@@ -438,13 +439,13 @@ describe('finalizePayout', () => {
   });
 
   it('的中なし券種の売上のみキャリーオーバーに加算される', async () => {
-    const { bet: winHitBet } = await createBet({ type: 'WIN', selections: [1], amount: 100 });
+    const { bet: winHitBet } = await createBet({ type: 'win', selections: [1], amount: 100 });
     await createBet({ type: 'wide', selections: [1, 4], amount: 300 });
 
     await db.insert(payoutResults).values([
       {
         raceId,
-        type: 'WIN',
+        type: 'win',
         combinations: [{ numbers: [1], payout: 200 }],
       },
       {
@@ -566,12 +567,12 @@ describe('finalizePayout', () => {
     const hitCount = 1005;
     const loseCount = 205;
 
-    await createBulkBets({ type: 'WIN', selections: [1], amount: 100, count: hitCount });
-    await createBulkBets({ type: 'WIN', selections: [2], amount: 100, count: loseCount });
+    await createBulkBets({ type: 'win', selections: [1], amount: 100, count: hitCount });
+    await createBulkBets({ type: 'win', selections: [2], amount: 100, count: loseCount });
 
     await db.insert(payoutResults).values({
       raceId,
-      type: 'WIN',
+      type: 'win',
       combinations: [{ numbers: [1], payout: 200 }],
     });
 
@@ -601,18 +602,18 @@ describe('finalizePayout', () => {
   itSlow('大量かつ複数券種でも的中集計・キャリーオーバー集計が正しい', async () => {
     const perTypeCount = 260;
 
-    await createBulkBets({ type: 'WIN', selections: [1], amount: 100, count: perTypeCount });
-    await createBulkBets({ type: 'PLACE', selections: [9], amount: 100, count: perTypeCount });
-    await createBulkBets({ type: 'QUINELLA', selections: [1, 2], amount: 100, count: perTypeCount });
-    await createBulkBets({ type: 'WIDE', selections: [1, 3], amount: 100, count: perTypeCount });
-    await createBulkBets({ type: 'TRIFECTA', selections: [1, 2, 3], amount: 100, count: perTypeCount });
+    await createBulkBets({ type: 'win', selections: [1], amount: 100, count: perTypeCount });
+    await createBulkBets({ type: 'place', selections: [9], amount: 100, count: perTypeCount });
+    await createBulkBets({ type: 'quinella', selections: [1, 2], amount: 100, count: perTypeCount });
+    await createBulkBets({ type: 'wide', selections: [1, 3], amount: 100, count: perTypeCount });
+    await createBulkBets({ type: 'trifecta', selections: [1, 2, 3], amount: 100, count: perTypeCount });
 
     await db.insert(payoutResults).values([
-      { raceId, type: 'WIN', combinations: [{ numbers: [1], payout: 200 }] },
-      { raceId, type: 'PLACE', combinations: [{ numbers: [1], payout: 140 }] },
-      { raceId, type: 'QUINELLA', combinations: [{ numbers: [1, 2], payout: 300 }] },
-      { raceId, type: 'WIDE', combinations: [{ numbers: [1, 2], payout: 220 }] },
-      { raceId, type: 'TRIFECTA', combinations: [{ numbers: [1, 2, 3], payout: 1200 }] },
+      { raceId, type: 'win', combinations: [{ numbers: [1], payout: 200 }] },
+      { raceId, type: 'place', combinations: [{ numbers: [1], payout: 140 }] },
+      { raceId, type: 'quinella', combinations: [{ numbers: [1, 2], payout: 300 }] },
+      { raceId, type: 'wide', combinations: [{ numbers: [1, 2], payout: 220 }] },
+      { raceId, type: 'trifecta', combinations: [{ numbers: [1, 2, 3], payout: 1200 }] },
     ]);
 
     await finalizePayout(raceId);

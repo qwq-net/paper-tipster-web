@@ -8,7 +8,8 @@ export async function middleware(request: NextRequest) {
     secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   });
 
-  if (!token || token.role !== 'ADMIN') {
+  const adminRoles = ['ADMIN', 'TIPSTER'];
+  if (!token || !adminRoles.includes(token.role as string)) {
     return new NextResponse('Not Found', { status: 404 });
   }
 

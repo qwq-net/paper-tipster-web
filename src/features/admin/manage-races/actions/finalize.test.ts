@@ -60,6 +60,7 @@ describe('finalizeRace', () => {
   const setCalls: Array<Record<string, unknown>> = [];
 
   const mockTx = {
+    execute: vi.fn().mockResolvedValue(undefined),
     update: vi.fn().mockReturnThis(),
     set: vi.fn((...args: unknown[]) => {
       setCalls.push(args[0] as Record<string, unknown>);
@@ -104,6 +105,39 @@ describe('finalizeRace', () => {
       cb(mockTx)
     );
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ status: 'CLOSED', guaranteedOdds: {} });
+  });
+
+  it('トランザクション内で advisory lock を取得する', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
+    mockTx.query.bets.findMany.mockResolvedValue([]);
+
+    await finalizeRace('race1', defaultResults);
+
+    expect(mockTx.execute).toHaveBeenCalledTimes(1);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    expect(lockArg).toContain('pg_advisory_xact_lock');
+    expect(lockArg).toContain('payout:race1');
+  });
+
+  it('advisory lock 取得後にレースステータスを読み取る（ロック順序の保証）', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
+    mockTx.query.bets.findMany.mockResolvedValue([]);
+
+    const callOrder: string[] = [];
+    mockTx.execute.mockImplementation(async () => {
+      callOrder.push('lock');
+    });
+    mockTx.query.raceInstances.findFirst.mockImplementation(async () => {
+      callOrder.push('readRace');
+      return { status: 'CLOSED', guaranteedOdds: {} };
+    });
+
+    await finalizeRace('race1', defaultResults);
+
+    expect(callOrder[0]).toBe('lock');
+    expect(callOrder[1]).toBe('readRace');
   });
 
   it('管理者でないユーザーはエラーになる', async () => {

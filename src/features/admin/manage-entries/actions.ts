@@ -169,19 +169,21 @@ export async function getAvailableHorses(raceId: string) {
 export async function saveEntries(raceId: string, horseIds: string[]) {
   await requireAdmin();
 
-  await db.delete(raceEntries).where(eq(raceEntries.raceId, raceId));
+  await db.transaction(async (tx) => {
+    await tx.delete(raceEntries).where(eq(raceEntries.raceId, raceId));
 
-  if (horseIds.length > 0) {
-    const totalHorses = horseIds.length;
-    const entries = horseIds.map((horseId, index) => ({
-      raceId,
-      horseId,
-      horseNumber: index + 1,
-      bracketNumber: calculateBracketNumber(index + 1, totalHorses),
-    }));
+    if (horseIds.length > 0) {
+      const totalHorses = horseIds.length;
+      const entries = horseIds.map((horseId, index) => ({
+        raceId,
+        horseId,
+        horseNumber: index + 1,
+        bracketNumber: calculateBracketNumber(index + 1, totalHorses),
+      }));
 
-    await db.insert(raceEntries).values(entries);
-  }
+      await tx.insert(raceEntries).values(entries);
+    }
+  });
 
   revalidatePath(`/admin/entries/${raceId}`);
   revalidatePath('/admin/entries');

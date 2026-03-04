@@ -131,6 +131,23 @@ describe('placeBets', () => {
     await expect(placeBets({ ...defaultArgs, amountPerBet: 0 })).rejects.toThrow(ADMIN_ERRORS.INVALID_AMOUNT);
   });
 
+  it('賭け金額が 100 の倍数でない場合は INVALID_AMOUNT エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(placeBets({ ...defaultArgs, amountPerBet: 150 })).rejects.toThrow(ADMIN_ERRORS.INVALID_AMOUNT);
+  });
+
+  it('組み合わせ数が上限（1000）を超える場合は INVALID_INPUT エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    const tooManyCombinations = Array.from({ length: 1001 }, (_, i) => [i + 1]);
+    await expect(placeBets({ ...defaultArgs, combinations: tooManyCombinations })).rejects.toThrow(
+      ADMIN_ERRORS.INVALID_INPUT
+    );
+  });
+
   it('レースが存在しない場合は NOT_FOUND エラーをスローする', async () => {
     const { requireUser } = await import('@/shared/utils/admin');
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
@@ -184,7 +201,9 @@ describe('placeBets', () => {
     (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
 
     const callOrder: string[] = [];
-    mockTx.execute.mockImplementation(async () => { callOrder.push('lock'); });
+    mockTx.execute.mockImplementation(async () => {
+      callOrder.push('lock');
+    });
     mockTx.query.raceInstances.findFirst.mockImplementation(async () => {
       callOrder.push('readRace');
       return mockRace;

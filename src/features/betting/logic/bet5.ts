@@ -1,7 +1,7 @@
 import { calculateBet5Count, calculateBet5Dividend, isBet5Winner } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { bet5Events, bet5Tickets, events, transactions, wallets } from '@/shared/db/schema';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 export const Bet5SelectionSchema = z.object({
@@ -67,6 +67,19 @@ export async function createBet5Event({
 }
 
 export async function closeBet5Event(bet5EventId: string) {
+  const current = await db.query.bet5Events.findFirst({
+    where: eq(bet5Events.id, bet5EventId),
+    columns: { id: true, status: true },
+  });
+
+  if (!current) {
+    throw new Error('BET5 event not found');
+  }
+
+  if (current.status !== 'SCHEDULED') {
+    throw new Error('SCHEDULED 状態の BET5 イベントのみ締切できます');
+  }
+
   const [updated] = await db
     .update(bet5Events)
     .set({ status: 'CLOSED' })
@@ -264,23 +277,45 @@ export async function calculateBet5Payout(bet5EventId: string) {
     const dividend = calculateBet5Dividend(totalPot, totalWinningUnits);
 
     if (winCount > 0) {
-      for (const { ticket, winningUnits } of winningTicketUnits) {
-        const payout = dividend * winningUnits;
+      const ticketUpdates = winningTicketUnits.map(({ ticket, winningUnits }) => ({
+        id: ticket.id,
+        walletId: ticket.walletId,
+        payout: dividend * winningUnits,
+      }));
 
-        await tx.update(bet5Tickets).set({ isWin: true, payout }).where(eq(bet5Tickets.id, ticket.id));
+      const ticketIds = ticketUpdates.map((t) => t.id);
+      const payoutCase = sql<number>`CASE ${sql.join(
+        ticketUpdates.map((t) => sql`WHEN ${bet5Tickets.id} = ${t.id} THEN ${t.payout}`),
+        sql` `
+      )} ELSE ${bet5Tickets.payout} END::bigint`;
 
-        await tx
-          .update(wallets)
-          .set({ balance: sql`${wallets.balance} + ${payout}` })
-          .where(eq(wallets.id, ticket.walletId));
+      await tx.update(bet5Tickets).set({ isWin: true, payout: payoutCase }).where(inArray(bet5Tickets.id, ticketIds));
 
-        await tx.insert(transactions).values({
-          walletId: ticket.walletId,
-          type: 'PAYOUT',
-          amount: payout,
-          referenceId: ticket.id,
-        });
+      const walletPayouts = new Map<string, number>();
+      for (const t of ticketUpdates) {
+        walletPayouts.set(t.walletId, (walletPayouts.get(t.walletId) || 0) + t.payout);
       }
+
+      const walletEntries = [...walletPayouts.entries()];
+      const walletIds = walletEntries.map(([id]) => id);
+      const walletPayoutCase = sql<number>`CASE ${sql.join(
+        walletEntries.map(([id, amount]) => sql`WHEN ${wallets.id} = ${id} THEN ${amount}`),
+        sql` `
+      )} ELSE 0 END::bigint`;
+
+      await tx
+        .update(wallets)
+        .set({ balance: sql`${wallets.balance} + ${walletPayoutCase}` })
+        .where(inArray(wallets.id, walletIds));
+
+      const transactionValues = ticketUpdates.map((t) => ({
+        walletId: t.walletId,
+        type: 'PAYOUT' as const,
+        amount: t.payout,
+        referenceId: t.id,
+      }));
+
+      await tx.insert(transactions).values(transactionValues);
 
       if (Number(event.carryoverAmount) > 0) {
         await tx.update(events).set({ carryoverAmount: 0 }).where(eq(events.id, event.id));

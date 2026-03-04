@@ -1,10 +1,14 @@
 import { db } from '@/shared/db';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
-import { calculateBet5Payout, resolveBet5Winners } from './bet5';
+import { calculateBet5Payout, closeBet5Event, resolveBet5Winners } from './bet5';
 
 vi.mock('@/shared/db', () => ({
   db: {
     transaction: vi.fn(),
+    query: {
+      bet5Events: { findFirst: vi.fn() },
+    },
+    update: vi.fn(),
   },
 }));
 
@@ -121,7 +125,9 @@ describe('calculateBet5Payout', () => {
 
   it('advisory lock 取得後に bet5Event を読み取る（ロック順序の保証）', async () => {
     const callOrder: string[] = [];
-    mockTx.execute.mockImplementation(async () => { callOrder.push('lock'); });
+    mockTx.execute.mockImplementation(async () => {
+      callOrder.push('lock');
+    });
     mockTx.query.bet5Events.findFirst.mockImplementation(async () => {
       callOrder.push('read');
       return { ...baseBet5Event, status: 'FINALIZED' };
@@ -196,9 +202,7 @@ describe('calculateBet5Payout', () => {
     const result = await calculateBet5Payout(bet5EventId);
 
     expect(result).toMatchObject({ success: true });
-    expect((result as { totalPot: number }).totalPot).toBe(
-      baseBet5Event.initialPot + losingTicket.amount + carryover
-    );
+    expect((result as { totalPot: number }).totalPot).toBe(baseBet5Event.initialPot + losingTicket.amount + carryover);
   });
 
   it('的中あり時にキャリーオーバーが存在する場合はゼロにリセットされる', async () => {
@@ -253,5 +257,51 @@ describe('resolveBet5Winners', () => {
     ];
 
     expect(resolveBet5Winners(races, rows)).toBeNull();
+  });
+});
+
+describe('closeBet5Event', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('SCHEDULED 状態の場合は CLOSED に更新できる', async () => {
+    (db.query.bet5Events.findFirst as unknown as Mock).mockResolvedValue({
+      id: 'bet5-1',
+      status: 'SCHEDULED',
+    });
+
+    const updateReturning = vi.fn().mockResolvedValue([{ id: 'bet5-1', status: 'CLOSED' }]);
+    const updateWhere = vi.fn().mockReturnValue({ returning: updateReturning });
+    const updateSet = vi.fn().mockReturnValue({ where: updateWhere });
+    (db.update as unknown as Mock).mockReturnValue({ set: updateSet });
+
+    const result = await closeBet5Event('bet5-1');
+
+    expect(result).toEqual({ id: 'bet5-1', status: 'CLOSED' });
+  });
+
+  it('CLOSED 状態の場合はエラーをスローする', async () => {
+    (db.query.bet5Events.findFirst as unknown as Mock).mockResolvedValue({
+      id: 'bet5-1',
+      status: 'CLOSED',
+    });
+
+    await expect(closeBet5Event('bet5-1')).rejects.toThrow('SCHEDULED 状態の BET5 イベントのみ締切できます');
+  });
+
+  it('FINALIZED 状態の場合はエラーをスローする', async () => {
+    (db.query.bet5Events.findFirst as unknown as Mock).mockResolvedValue({
+      id: 'bet5-1',
+      status: 'FINALIZED',
+    });
+
+    await expect(closeBet5Event('bet5-1')).rejects.toThrow('SCHEDULED 状態の BET5 イベントのみ締切できます');
+  });
+
+  it('存在しない場合はエラーをスローする', async () => {
+    (db.query.bet5Events.findFirst as unknown as Mock).mockResolvedValue(null);
+
+    await expect(closeBet5Event('nonexistent')).rejects.toThrow('BET5 event not found');
   });
 });

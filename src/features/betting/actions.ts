@@ -9,6 +9,7 @@ import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 const BATCH_SIZE = 100;
+const MAX_COMBINATIONS = 1000;
 
 export async function placeBets({
   raceId,
@@ -25,11 +26,11 @@ export async function placeBets({
 }) {
   const session = await requireUser();
 
-  if (combinations.length === 0) {
+  if (combinations.length === 0 || combinations.length > MAX_COMBINATIONS) {
     throw new Error(ADMIN_ERRORS.INVALID_INPUT);
   }
 
-  if (amountPerBet <= 0) {
+  if (amountPerBet <= 0 || amountPerBet % 100 !== 0) {
     throw new Error(ADMIN_ERRORS.INVALID_AMOUNT);
   }
 

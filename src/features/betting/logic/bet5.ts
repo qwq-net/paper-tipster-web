@@ -136,7 +136,22 @@ export async function placeBet5Bet({
     });
 
     if (!wallet) throw new Error('Wallet not found');
-    if (wallet.balance < cost) throw new Error('Insufficient balance');
+
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet:${wallet.id}`}))`);
+
+    const lockedEvent = await tx.query.bet5Events.findFirst({
+      where: eq(bet5Events.id, bet5EventId),
+    });
+
+    if (!lockedEvent || lockedEvent.status !== 'SCHEDULED') {
+      throw new Error('BET5 event is closed');
+    }
+
+    const lockedWallet = await tx.query.wallets.findFirst({
+      where: eq(wallets.id, wallet.id),
+    });
+
+    if (!lockedWallet || lockedWallet.balance < cost) throw new Error('Insufficient balance');
 
     const [ticket] = await tx
       .insert(bet5Tickets)
@@ -171,6 +186,8 @@ export async function placeBet5Bet({
 
 export async function calculateBet5Payout(bet5EventId: string) {
   return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet5payout:${bet5EventId}`}))`);
+
     const bet5Event = await tx.query.bet5Events.findFirst({
       where: eq(bet5Events.id, bet5EventId),
       with: {

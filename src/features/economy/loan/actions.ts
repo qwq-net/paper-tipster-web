@@ -42,11 +42,19 @@ export async function borrowLoan(eventId: string) {
     throw new Error('現在の残高では借り入れできません');
   }
 
-  const loanAmount = event.loanAmount ?? event.distributeAmount;
-
   await db.transaction(async (tx) => {
     const lockKey = `loan:${wallet.id}`;
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
+
+    const lockedEvent = await tx.query.events.findFirst({
+      where: eq(events.id, eventId),
+    });
+
+    if (!lockedEvent || lockedEvent.status !== 'ACTIVE') {
+      throw new Error('このイベントは現在開催中ではありません');
+    }
+
+    const loanAmount = lockedEvent.loanAmount ?? lockedEvent.distributeAmount;
 
     const lockedWallet = await tx.query.wallets.findFirst({
       where: eq(wallets.id, wallet.id),
@@ -56,7 +64,7 @@ export async function borrowLoan(eventId: string) {
       throw new Error('ウォレットが見つかりません');
     }
 
-    if (!isEligibleForLoan(lockedWallet.balance, event.distributeAmount, lockedWallet.totalLoaned > 0)) {
+    if (!isEligibleForLoan(lockedWallet.balance, lockedEvent.distributeAmount, lockedWallet.totalLoaned > 0)) {
       if (lockedWallet.totalLoaned > 0) {
         throw new Error('既に借り入れ済みです');
       }
@@ -75,7 +83,7 @@ export async function borrowLoan(eventId: string) {
       walletId: lockedWallet.id,
       type: 'LOAN',
       amount: loanAmount,
-      referenceId: event.id,
+      referenceId: lockedEvent.id,
     });
   });
 

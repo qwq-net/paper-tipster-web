@@ -72,6 +72,28 @@ export async function placeBets({
   }
 
   await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`bet:${walletId}`}))`);
+
+    const lockedRace = await tx.query.raceInstances.findFirst({
+      where: eq(raceInstances.id, raceId),
+    });
+
+    if (!lockedRace || lockedRace.status !== 'SCHEDULED') {
+      throw new Error(ADMIN_ERRORS.RACE_CLOSED);
+    }
+
+    if (lockedRace.closingAt && new Date() > new Date(lockedRace.closingAt)) {
+      throw new Error(ADMIN_ERRORS.DEADLINE_EXCEEDED);
+    }
+
+    const lockedWallet = await tx.query.wallets.findFirst({
+      where: eq(wallets.id, walletId),
+    });
+
+    if (!lockedWallet || lockedWallet.balance < totalAmount) {
+      throw new Error(ADMIN_ERRORS.INSUFFICIENT_BALANCE);
+    }
+
     const [betGroup] = await tx
       .insert(betGroups)
       .values({

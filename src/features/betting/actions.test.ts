@@ -1,0 +1,249 @@
+import { db } from '@/shared/db';
+import { ADMIN_ERRORS } from '@/shared/utils/admin';
+import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { placeBets } from './actions';
+
+vi.mock('@/shared/utils/admin', async () => {
+  const actual = await vi.importActual('@/shared/utils/admin');
+  return {
+    ...actual,
+    requireUser: vi.fn(),
+  };
+});
+
+vi.mock('@/shared/config/auth', () => ({
+  auth: vi.fn(),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  handlers: { GET: vi.fn(), POST: vi.fn() },
+}));
+
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+}));
+
+vi.mock('@/shared/db', () => ({
+  db: {
+    transaction: vi.fn(),
+    query: {
+      raceInstances: { findFirst: vi.fn() },
+      wallets: { findFirst: vi.fn() },
+    },
+  },
+}));
+
+vi.mock('@/shared/db/schema', () => ({
+  betGroups: { id: 'betGroups.id' },
+  bets: { id: 'bets.id' },
+  raceInstances: { id: 'raceInstances.id', status: 'status' },
+  transactions: {},
+  wallets: { id: 'wallets.id', balance: 'wallets.balance' },
+}));
+
+describe('placeBets', () => {
+  const userId = 'user-123';
+  const raceId = 'race-456';
+  const walletId = 'wallet-789';
+  const eventId = 'event-abc';
+
+  const mockRace = {
+    id: raceId,
+    status: 'SCHEDULED',
+    closingAt: null,
+    eventId,
+  };
+
+  const mockWallet = {
+    id: walletId,
+    userId,
+    eventId,
+    balance: 10000,
+  };
+
+  const defaultArgs = {
+    raceId,
+    walletId,
+    betType: 'win' as const,
+    combinations: [[1], [2]],
+    amountPerBet: 100,
+  };
+
+  let mockTx: {
+    execute: ReturnType<typeof vi.fn>;
+    query: {
+      raceInstances: { findFirst: ReturnType<typeof vi.fn> };
+      wallets: { findFirst: ReturnType<typeof vi.fn> };
+    };
+    insert: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
+    _insertChain: { values: ReturnType<typeof vi.fn>; returning: ReturnType<typeof vi.fn> };
+    _updateChain: { set: ReturnType<typeof vi.fn>; where: ReturnType<typeof vi.fn> };
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    const insertReturning = vi.fn().mockResolvedValue([{ id: 'bet-1' }]);
+    const insertValues = vi.fn().mockReturnValue({ returning: insertReturning });
+    const insertChain = { values: insertValues, returning: insertReturning };
+
+    const updateWhere = vi.fn().mockResolvedValue(undefined);
+    const updateSet = vi.fn().mockReturnValue({ where: updateWhere });
+    const updateChain = { set: updateSet, where: updateWhere };
+
+    mockTx = {
+      execute: vi.fn().mockResolvedValue(undefined),
+      query: {
+        raceInstances: { findFirst: vi.fn().mockResolvedValue(mockRace) },
+        wallets: { findFirst: vi.fn().mockResolvedValue(mockWallet) },
+      },
+      insert: vi.fn().mockReturnValue(insertChain),
+      update: vi.fn().mockReturnValue(updateChain),
+      _insertChain: insertChain,
+      _updateChain: updateChain,
+    };
+
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<unknown>) =>
+      cb(mockTx)
+    );
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(mockRace);
+    (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue(mockWallet);
+  });
+
+  it('ユーザー認証がない場合はエラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
+
+    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+  });
+
+  it('組み合わせが空の場合は INVALID_INPUT エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(placeBets({ ...defaultArgs, combinations: [] })).rejects.toThrow(ADMIN_ERRORS.INVALID_INPUT);
+  });
+
+  it('賭け金額が 0 以下の場合は INVALID_AMOUNT エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await expect(placeBets({ ...defaultArgs, amountPerBet: 0 })).rejects.toThrow(ADMIN_ERRORS.INVALID_AMOUNT);
+  });
+
+  it('レースが存在しない場合は NOT_FOUND エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(null);
+
+    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.NOT_FOUND);
+  });
+
+  it('レースが SCHEDULED 以外の場合は RACE_CLOSED エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ ...mockRace, status: 'CLOSED' });
+
+    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.RACE_CLOSED);
+  });
+
+  it('締切時刻を超えている場合は DEADLINE_EXCEEDED エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({
+      ...mockRace,
+      closingAt: new Date(Date.now() - 1000),
+    });
+
+    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.DEADLINE_EXCEEDED);
+  });
+
+  it('トランザクション内で advisory lock を取得する', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await placeBets(defaultArgs);
+
+    expect(mockTx.execute).toHaveBeenCalledTimes(1);
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    expect(lockArg).toContain('pg_advisory_xact_lock');
+  });
+
+  it('advisory lock のキーに walletId が含まれる', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await placeBets(defaultArgs);
+
+    const lockArg = JSON.stringify(mockTx.execute.mock.calls[0][0]);
+    expect(lockArg).toContain(walletId);
+  });
+
+  it('ロック取得後にトランザクション内でレースとウォレットを再読み込みする（競合対策）', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    const callOrder: string[] = [];
+    mockTx.execute.mockImplementation(async () => { callOrder.push('lock'); });
+    mockTx.query.raceInstances.findFirst.mockImplementation(async () => {
+      callOrder.push('readRace');
+      return mockRace;
+    });
+    mockTx.query.wallets.findFirst.mockImplementation(async () => {
+      callOrder.push('readWallet');
+      return mockWallet;
+    });
+
+    await placeBets(defaultArgs);
+
+    expect(callOrder[0]).toBe('lock');
+    expect(callOrder[1]).toBe('readRace');
+    expect(callOrder[2]).toBe('readWallet');
+  });
+
+  it('ロック後にレースが CLOSED になっていた場合は RACE_CLOSED エラーをスローする（競合シナリオ）', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ ...mockRace, status: 'CLOSED' });
+
+    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.RACE_CLOSED);
+  });
+
+  it('ロック後にレースの締切時刻を超えていた場合は DEADLINE_EXCEEDED エラーをスローする（競合シナリオ）', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({
+      ...mockRace,
+      closingAt: new Date(Date.now() - 1000),
+    });
+
+    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.DEADLINE_EXCEEDED);
+  });
+
+  it('トランザクション内の残高チェックで不足の場合は INSUFFICIENT_BALANCE エラーをスローする（競合シナリオ）', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue({ ...mockWallet, balance: 10000 });
+    mockTx.query.wallets.findFirst.mockResolvedValue({ ...mockWallet, balance: 50 });
+
+    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.INSUFFICIENT_BALANCE);
+  });
+
+  it('残高が十分な場合はウォレットが正しく減算される', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+
+    await placeBets(defaultArgs);
+
+    expect(mockTx.update).toHaveBeenCalled();
+    expect(mockTx.insert).toHaveBeenCalled();
+  });
+
+  it('lockedWallet が null の場合は INSUFFICIENT_BALANCE エラーをスローする', async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+    mockTx.query.wallets.findFirst.mockResolvedValue(null);
+
+    await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.INSUFFICIENT_BALANCE);
+  });
+});

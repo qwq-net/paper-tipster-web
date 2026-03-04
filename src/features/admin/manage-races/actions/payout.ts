@@ -18,34 +18,36 @@ import { eq, inArray, sql } from 'drizzle-orm';
 export async function finalizePayout(raceId: string) {
   await requireAdmin();
 
-  const race = await db.query.raceInstances.findFirst({
-    where: eq(raceInstances.id, raceId),
-    columns: { id: true, status: true, eventId: true },
-  });
-
-  if (!race) {
-    throw new Error(ADMIN_ERRORS.NOT_FOUND);
-  }
-
-  if (race.status === 'FINALIZED') {
-    throw new Error('すでに払戻確定済みです');
-  }
-
-  if (race.status !== 'CLOSED') {
-    throw new Error('レースが締切状態ではありません');
-  }
-
-  const results = await db.select().from(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
-  if (results.length === 0) {
-    throw new Error('払戻計算結果が存在しません');
-  }
-
-  const resultsMap = new Map<string, Array<{ numbers: number[]; payout: number }>>();
-  for (const r of results) {
-    resultsMap.set(r.type, r.combinations as Array<{ numbers: number[]; payout: number }>);
-  }
-
   await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`payout:${raceId}`}))`);
+
+    const race = await tx.query.raceInstances.findFirst({
+      where: eq(raceInstances.id, raceId),
+      columns: { id: true, status: true, eventId: true },
+    });
+
+    if (!race) {
+      throw new Error(ADMIN_ERRORS.NOT_FOUND);
+    }
+
+    if (race.status === 'FINALIZED') {
+      throw new Error('すでに払戻確定済みです');
+    }
+
+    if (race.status !== 'CLOSED') {
+      throw new Error('レースが締切状態ではありません');
+    }
+
+    const results = await tx.select().from(payoutResultsTable).where(eq(payoutResultsTable.raceId, raceId));
+    if (results.length === 0) {
+      throw new Error('払戻計算結果が存在しません');
+    }
+
+    const resultsMap = new Map<string, Array<{ numbers: number[]; payout: number }>>();
+    for (const r of results) {
+      resultsMap.set(r.type, r.combinations as Array<{ numbers: number[]; payout: number }>);
+    }
+
     const raceEntriesInRace = await tx.query.raceEntries.findMany({
       where: eq(raceEntries.raceId, raceId),
       columns: { horseNumber: true, bracketNumber: true, status: true },

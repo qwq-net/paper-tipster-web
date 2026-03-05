@@ -1,6 +1,6 @@
 'use client';
 
-import { EVENT_STATUS_LABELS, type EventStatus } from '@/shared/constants/status';
+import { type EventStatus } from '@/shared/constants/status';
 import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import { useTransition } from 'react';
 import { toast } from 'sonner';

@@ -24,7 +24,13 @@ vi.mock('@/shared/db', () => ({
 
 vi.mock('@/shared/db/schema', () => ({
   events: { id: 'events.id' },
-  wallets: { id: 'wallets.id', userId: 'wallets.userId', eventId: 'wallets.eventId', balance: 'wallets.balance', totalLoaned: 'wallets.totalLoaned' },
+  wallets: {
+    id: 'wallets.id',
+    userId: 'wallets.userId',
+    eventId: 'wallets.eventId',
+    balance: 'wallets.balance',
+    totalLoaned: 'wallets.totalLoaned',
+  },
   transactions: {},
 }));
 
@@ -47,7 +53,7 @@ describe('borrowLoan', () => {
     id: walletId,
     userId,
     eventId,
-    balance: 3000, // 閾値(10000*0.6=6000)未満 → 借入可能
+    balance: 3000,
     totalLoaned: 0,
   };
 
@@ -119,7 +125,7 @@ describe('borrowLoan', () => {
   it('残高が閾値以上の場合は借入できない', async () => {
     (db.query.wallets.findFirst as unknown as Mock).mockResolvedValue({
       ...mockWallet,
-      balance: 7000, // 閾値(6000)以上 → 借入不可
+      balance: 7000,
     });
 
     await expect(borrowLoan(eventId)).rejects.toThrow('現在の残高では借り入れできません');
@@ -220,6 +226,6 @@ describe('borrowLoan', () => {
 
     const insertValues = mockTx.insert.mock.results[0].value.values;
     const valuesArg = insertValues.mock.calls[0][0];
-    expect(valuesArg.amount).toBe(10000); // distributeAmount
+    expect(valuesArg.amount).toBe(10000);
   });
 });

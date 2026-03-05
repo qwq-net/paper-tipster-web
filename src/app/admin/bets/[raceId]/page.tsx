@@ -104,15 +104,20 @@ export default async function BetDetailPage({ params }: BetDetailPageProps) {
                       <Badge
                         variant="status"
                         label={
-                          bet.status === 'PENDING' ? '未確定' :
-                          bet.status === 'HIT' ? '的中' :
-                          bet.status === 'LOST' ? '不的中' :
-                          bet.status
+                          bet.status === 'PENDING'
+                            ? '未確定'
+                            : bet.status === 'HIT'
+                              ? '的中'
+                              : bet.status === 'LOST'
+                                ? '不的中'
+                                : bet.status
                         }
                         className={
-                          bet.status === 'HIT' ? 'bg-green-100 text-green-800' :
-                          bet.status === 'LOST' || bet.status === 'PENDING' ? 'bg-gray-100 text-gray-600' :
-                          undefined
+                          bet.status === 'HIT'
+                            ? 'bg-green-100 text-green-800'
+                            : bet.status === 'LOST' || bet.status === 'PENDING'
+                              ? 'bg-gray-100 text-gray-600'
+                              : undefined
                         }
                       />
                     </td>

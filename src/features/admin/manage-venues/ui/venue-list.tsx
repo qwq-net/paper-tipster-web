@@ -46,7 +46,7 @@ export async function VenueList() {
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap text-gray-900">
                 <Link
                   href={`/admin/venues/${venue.id}`}
-                  className="text-primary transition-colors hover:text-primary/80 hover:underline"
+                  className="text-primary hover:text-primary/80 transition-colors hover:underline"
                 >
                   {venue.name}
                 </Link>

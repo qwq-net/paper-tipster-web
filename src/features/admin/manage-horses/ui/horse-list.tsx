@@ -56,7 +56,7 @@ export async function HorseList() {
                   </span>
                   <Link
                     href={`/admin/horses/${horse.id}`}
-                    className="text-primary transition-colors hover:text-primary/80 hover:underline"
+                    className="text-primary hover:text-primary/80 transition-colors hover:underline"
                   >
                     {horse.name}
                   </Link>

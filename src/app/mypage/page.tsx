@@ -63,7 +63,7 @@ export default async function MyPage() {
             <div className="flex shrink-0 items-center gap-4">
               {session.user.role === 'ADMIN' && (
                 <Link href="/admin">
-                  <Button variant="outline" className="border-primary font-semibold text-primary hover:bg-primary/5">
+                  <Button variant="outline" className="border-primary text-primary hover:bg-primary/5 font-semibold">
                     管理者パネル
                   </Button>
                 </Link>

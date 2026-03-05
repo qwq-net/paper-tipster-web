@@ -70,11 +70,10 @@ describe('claimEvent', () => {
     mockTx = {
       execute: vi.fn().mockResolvedValue(undefined),
       query: {
-        wallets: { findFirst: vi.fn().mockResolvedValue(null) }, // ウォレット未作成
+        wallets: { findFirst: vi.fn().mockResolvedValue(null) },
       },
       insert: vi.fn().mockImplementation(() => {
         insertCallCount++;
-        // 1回目: ウォレット作成（returningあり）、2回目: トランザクション記録
         return insertCallCount === 1 ? walletInsert : txInsert;
       }),
       _insertCalls: [],
@@ -139,7 +138,6 @@ describe('claimEvent', () => {
   it('参加成功時にDISTRIBUTIONトランザクションが記録される', async () => {
     await claimEvent(eventId);
 
-    // 2回目のinsertがトランザクション記録
     expect(mockTx.insert).toHaveBeenCalledTimes(2);
     const secondInsertValues = mockTx.insert.mock.results[1].value.values;
     const txData = secondInsertValues.mock.calls[0][0];
@@ -148,9 +146,6 @@ describe('claimEvent', () => {
   });
 
   it('イベントステータスがトランザクション外でのみチェックされる（注意: ロック後に再チェックなし）', async () => {
-    // NOTE: claim/actions.ts ではトランザクション内でイベントステータスを再チェックしていない
-    // loan/actions.ts とは異なるパターン。これは意図的か要確認。
-    // このテストはその挙動をドキュメント化する。
     const callOrder: string[] = [];
     mockTx.execute.mockImplementation(async () => {
       callOrder.push('lock');
@@ -162,9 +157,7 @@ describe('claimEvent', () => {
 
     await claimEvent(eventId);
 
-    // lock後にイベント再読み込みが行われないことを確認
     expect(callOrder).toEqual(['lock', 'readWallet']);
-    // events.findFirst はトランザクション外のdb.queryで1回のみ呼ばれる
     expect(db.query.events.findFirst).toHaveBeenCalledTimes(1);
   });
 });

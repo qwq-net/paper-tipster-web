@@ -146,8 +146,6 @@ describe('closeRace', () => {
   });
 
   it('ステータスの事前チェックなしでCLOSEDに設定される（注意: FINALIZED含む全ステータスで実行可能）', async () => {
-    // NOTE: closeRace にはステータスの事前チェックがない。
-    // FINALIZED状態のレースもCLOSEDにできてしまう。要確認。
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
 
@@ -235,9 +233,7 @@ describe('setClosingTime', () => {
     const result = await setClosingTime('123', 30);
     const after = Date.now();
 
-    expect(mockSet).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'SCHEDULED' })
-    );
+    expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({ status: 'SCHEDULED' }));
     const setArgs = mockSet.mock.calls[0][0];
     const closingAt = setArgs.closingAt as Date;
     const expectedMin = before + 30 * 60 * 1000;
@@ -303,8 +299,6 @@ describe('updateRace ステータス遷移', () => {
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: '123', status: 'CLOSED' });
 
-    // parseJSTToUTC は 'T' 含む ISO 形式が必要（例: 2030-12-31T23:59）
-    // JST+09:00 として解釈され UTC に変換される
     await updateRace('123', createFormData({ closingAt: '2030-12-31T23:59' }));
 
     const setArgs = mockSet.mock.calls[0][0];
@@ -334,8 +328,6 @@ describe('updateRace ステータス遷移', () => {
   });
 
   it('FINALIZED状態のレースでもフィールド更新が実行される（注意: ステータスガードなし）', async () => {
-    // NOTE: updateRace にはFINALIZED状態への制限がない。
-    // 払戻確定済みレースのフィールド変更を許可してよいか要確認。
     const { requireAdmin } = await import('@/shared/utils/admin');
     (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
     mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: '123', status: 'FINALIZED' });

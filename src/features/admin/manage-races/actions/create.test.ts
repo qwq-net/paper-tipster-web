@@ -113,9 +113,7 @@ describe('createRace', () => {
 
     await createRace(formData);
 
-    expect(mockValues).toHaveBeenCalledWith(
-      expect.objectContaining({ raceNumber: 6 })
-    );
+    expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({ raceNumber: 6 }));
   });
 
   it('raceNumberが指定されている場合はそのまま使用される', async () => {
@@ -133,9 +131,7 @@ describe('createRace', () => {
 
     await createRace(formData);
 
-    expect(mockValues).toHaveBeenCalledWith(
-      expect.objectContaining({ raceNumber: 10 })
-    );
+    expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({ raceNumber: 10 }));
   });
 
   it('距離が100未満の場合はバリデーションエラーになる', async () => {
@@ -192,9 +188,7 @@ describe('createRace', () => {
 
     await createRace(formData);
 
-    expect(mockValues).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'SCHEDULED' })
-    );
+    expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({ status: 'SCHEDULED' }));
   });
 
   it('既存レースがない場合、raceNumber=1が自動付与される', async () => {
@@ -212,8 +206,6 @@ describe('createRace', () => {
 
     await createRace(formData);
 
-    expect(mockValues).toHaveBeenCalledWith(
-      expect.objectContaining({ raceNumber: 1 })
-    );
+    expect(mockValues).toHaveBeenCalledWith(expect.objectContaining({ raceNumber: 1 }));
   });
 });

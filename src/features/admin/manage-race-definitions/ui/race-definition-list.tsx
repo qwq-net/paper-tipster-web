@@ -59,7 +59,7 @@ export async function RaceDefinitionList() {
               <td className="px-6 py-4 text-sm font-semibold whitespace-nowrap">
                 <Link
                   href={`/admin/race-definitions/${def.id}`}
-                  className="text-primary transition-colors hover:text-primary/80 hover:underline"
+                  className="text-primary hover:text-primary/80 transition-colors hover:underline"
                 >
                   {def.name}
                 </Link>

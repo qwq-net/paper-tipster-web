@@ -1,5 +1,5 @@
-import { afterEach, Mock, beforeEach, describe, expect, it, vi } from 'vitest';
-import { calculateOdds, calculateAllProvisionalOdds, getRaceOdds } from './odds';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { calculateAllProvisionalOdds, calculateOdds, getRaceOdds } from './odds';
 
 vi.mock('@/shared/db', () => ({
   db: {
@@ -66,7 +66,6 @@ describe('calculateOdds', () => {
     const insertValues = (db.insert as unknown as Mock).mock.results[0].value.values;
     const valuesArg = insertValues.mock.calls[0][0];
     expect(valuesArg.raceId).toBe(raceId);
-    // 馬番1: 1500/1000 = 1.5, 馬番2: 1500/500 = 3.0
     expect(valuesArg.winOdds).toEqual({ '1': 1.5, '2': 3.0 });
   });
 
@@ -93,7 +92,6 @@ describe('calculateOdds', () => {
 
     const insertValues = (db.insert as unknown as Mock).mock.results[0].value.values;
     const valuesArg = insertValues.mock.calls[0][0];
-    // 馬番1: 1500/1000 = 1.5, 馬番2: 1500/500 = 3.0
     expect(valuesArg.winOdds['1']).toBe(1.5);
     expect(valuesArg.winOdds['2']).toBe(3.0);
   });
@@ -108,7 +106,6 @@ describe('calculateOdds', () => {
 
     const insertValues = (db.insert as unknown as Mock).mock.results[0].value.values;
     const valuesArg = insertValues.mock.calls[0][0];
-    // 1000/1000 = 1.0 → 最低値1.1
     expect(valuesArg.winOdds['1']).toBe(1.1);
   });
 
@@ -119,16 +116,8 @@ describe('calculateOdds', () => {
 
       await calculateOdds(raceId);
 
-      expect(raceEventEmitter.emit).toHaveBeenCalledWith(
-        'RACE_ODDS_UPDATED',
-        expect.objectContaining({ raceId })
-      );
-      expect(redis.set).toHaveBeenCalledWith(
-        `race:${raceId}:last_odds_notification`,
-        'true',
-        'EX',
-        10
-      );
+      expect(raceEventEmitter.emit).toHaveBeenCalledWith('RACE_ODDS_UPDATED', expect.objectContaining({ raceId }));
+      expect(redis.set).toHaveBeenCalledWith(`race:${raceId}:last_odds_notification`, 'true', 'EX', 10);
     });
 
     it('スロットル中はSSEイベントを即時発火せずtrailing-edge更新をスケジュールする', async () => {
@@ -140,14 +129,7 @@ describe('calculateOdds', () => {
       await calculateOdds(raceId);
 
       expect(raceEventEmitter.emit).not.toHaveBeenCalled();
-      // NX付きでスケジュールキーをセット（TTL+1秒で自動削除）
-      expect(redis.set).toHaveBeenCalledWith(
-        `race:${raceId}:update_scheduled`,
-        'true',
-        'EX',
-        6,
-        'NX'
-      );
+      expect(redis.set).toHaveBeenCalledWith(`race:${raceId}:update_scheduled`, 'true', 'EX', 6, 'NX');
     });
 
     it('既にスケジュール済み（NX=null）の場合は重複スケジュールしない', async () => {
@@ -184,13 +166,7 @@ describe('calculateOdds', () => {
           data: expect.objectContaining({ winOdds: { '1': 2.5, '2': 4.0 } }),
         })
       );
-      // trailing-edge 後にもスロットルキーを再セット
-      expect(redis.set).toHaveBeenCalledWith(
-        `race:${raceId}:last_odds_notification`,
-        'true',
-        'EX',
-        10
-      );
+      expect(redis.set).toHaveBeenCalledWith(`race:${raceId}:last_odds_notification`, 'true', 'EX', 10);
       expect(redis.del).toHaveBeenCalledWith(`race:${raceId}:update_scheduled`);
     });
 
@@ -261,9 +237,7 @@ describe('calculateAllProvisionalOdds', () => {
     const result = await calculateAllProvisionalOdds(raceId);
 
     expect(result.win).toBeDefined();
-    // 馬番1: 1500/1000 = 1.5 → guaranteedOdds(1.5) → 1.5
     expect(result.win[JSON.stringify([1])]).toBe(1.5);
-    // 馬番2: 1500/500 = 3.0 → guaranteedOdds(1.5) → 3.0
     expect(result.win[JSON.stringify([2])]).toBe(3.0);
   });
 
@@ -278,9 +252,7 @@ describe('calculateAllProvisionalOdds', () => {
 
     const result = await calculateAllProvisionalOdds(raceId);
 
-    // 馬番1: 1000/900 = 1.1 → guaranteedOdds(2.0) → 2.0
     expect(result.win[JSON.stringify([1])]).toBe(2.0);
-    // 馬番2: 1000/100 = 10.0 → guaranteedOdds(2.0) → 10.0
     expect(result.win[JSON.stringify([2])]).toBe(10.0);
   });
 
@@ -292,7 +264,6 @@ describe('calculateAllProvisionalOdds', () => {
 
     const result = await calculateAllProvisionalOdds(raceId);
 
-    // 1000/1000 = 1.0 → 最低値1.1
     expect(result.win[JSON.stringify([1])]).toBe(1.1);
   });
 
@@ -314,7 +285,6 @@ describe('calculateAllProvisionalOdds', () => {
 
     const result = await calculateAllProvisionalOdds(raceId);
 
-    // [3,1] と [1,3] は正規化されて [1,3] に集約 → 1000/1000 = 1.0 → 最低値1.1
     expect(result.quinella[JSON.stringify([1, 3])]).toBe(1.1);
     expect(Object.keys(result.quinella)).toHaveLength(1);
   });
@@ -328,7 +298,6 @@ describe('calculateAllProvisionalOdds', () => {
 
     const result = await calculateAllProvisionalOdds(raceId);
 
-    // [3,1] と [1,3] は別の組み合わせ
     expect(result.exacta[JSON.stringify([3, 1])]).toBe(2.0);
     expect(result.exacta[JSON.stringify([1, 3])]).toBe(2.0);
     expect(Object.keys(result.exacta)).toHaveLength(2);

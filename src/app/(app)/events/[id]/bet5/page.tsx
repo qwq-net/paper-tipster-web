@@ -35,7 +35,10 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
         <div className="w-full max-w-4xl space-y-4">
           <h1 className="text-2xl font-semibold text-gray-900">BET5</h1>
           <p className="text-gray-500">このイベントではBET5は開催されていません。</p>
-          <Link href="/mypage/sokubet" className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900">
+          <Link
+            href="/mypage/sokubet"
+            className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900"
+          >
             <ChevronLeft className="h-4 w-4" />
             即BETトップへ戻る
           </Link>
@@ -76,40 +79,40 @@ export default async function Bet5Page({ params }: { params: Promise<{ id: strin
   return (
     <div className="flex flex-col items-center p-4 lg:p-8">
       <div className="w-full max-w-4xl space-y-6">
-      <div className="flex items-center gap-2">
-        <Link href="/mypage/sokubet" className="text-sm font-medium text-gray-500 hover:text-gray-900">
-          <ChevronLeft className="h-4 w-4" />
-        </Link>
-        <h1 className="text-xl font-semibold text-gray-900">BET5 投票</h1>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>キャリーオーバー: {bet5Event.initialPot.toLocaleString('ja-JP')}円 + α</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>5つのレース全ての1着馬を予想してください。1口100円から投票できます。</p>
-          <div className="mt-2 text-sm text-gray-500">
-            現在のステータス: {bet5Event.status === 'SCHEDULED' ? '受付中' : '受付終了'}
-          </div>
-        </CardContent>
-      </Card>
-
-      <LoanBanner
-        eventId={id}
-        balance={wallet.balance}
-        distributeAmount={event.distributeAmount}
-        loanAmount={event.loanAmount ?? event.distributeAmount}
-        hasLoaned={wallet.totalLoaned > 0}
-      />
-
-      {bet5Event.status === 'SCHEDULED' ? (
-        <Bet5VotingForm eventId={id} bet5EventId={bet5Event.id} races={orderedRaces} balance={wallet.balance} />
-      ) : (
-        <div className="rounded-lg bg-gray-50 p-8 text-center">
-          <p className="text-lg font-semibold text-gray-500">投票受付は終了しました</p>
+        <div className="flex items-center gap-2">
+          <Link href="/mypage/sokubet" className="text-sm font-medium text-gray-500 hover:text-gray-900">
+            <ChevronLeft className="h-4 w-4" />
+          </Link>
+          <h1 className="text-xl font-semibold text-gray-900">BET5 投票</h1>
         </div>
-      )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>キャリーオーバー: {bet5Event.initialPot.toLocaleString('ja-JP')}円 + α</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>5つのレース全ての1着馬を予想してください。1口100円から投票できます。</p>
+            <div className="mt-2 text-sm text-gray-500">
+              現在のステータス: {bet5Event.status === 'SCHEDULED' ? '受付中' : '受付終了'}
+            </div>
+          </CardContent>
+        </Card>
+
+        <LoanBanner
+          eventId={id}
+          balance={wallet.balance}
+          distributeAmount={event.distributeAmount}
+          loanAmount={event.loanAmount ?? event.distributeAmount}
+          hasLoaned={wallet.totalLoaned > 0}
+        />
+
+        {bet5Event.status === 'SCHEDULED' ? (
+          <Bet5VotingForm eventId={id} bet5EventId={bet5Event.id} races={orderedRaces} balance={wallet.balance} />
+        ) : (
+          <div className="rounded-lg bg-gray-50 p-8 text-center">
+            <p className="text-lg font-semibold text-gray-500">投票受付は終了しました</p>
+          </div>
+        )}
       </div>
     </div>
   );

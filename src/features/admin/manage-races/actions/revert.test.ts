@@ -148,4 +148,44 @@ describe('resetRaceResults', () => {
     expect(mockTx.update).toHaveBeenCalled();
     expect(mockTx.delete).toHaveBeenCalled();
   });
+
+  it('リセット完了後にSSEイベント（RACE_RESULT_UPDATED）が空の結果で発火される', async () => {
+    await setupAdminAuth();
+    const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
+
+    await resetRaceResults(raceId);
+
+    expect(raceEventEmitter.emit).toHaveBeenCalledWith(
+      'RACE_RESULT_UPDATED',
+      expect.objectContaining({
+        raceId,
+        results: [],
+      })
+    );
+  });
+
+  it('管理者でない場合はエラーをスローする', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockRejectedValue(new Error('認証されていません'));
+
+    await expect(resetRaceResults(raceId)).rejects.toThrow('認証されていません');
+  });
+
+  it('CLOSED状態のレースはリセットできる', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: raceId, status: 'CLOSED' });
+
+    const result = await resetRaceResults(raceId);
+
+    expect(result).toEqual({ success: true });
+  });
+
+  it('SCHEDULED状態のレースもリセットできる', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: raceId, status: 'SCHEDULED' });
+
+    const result = await resetRaceResults(raceId);
+
+    expect(result).toEqual({ success: true });
+  });
 });

@@ -2,7 +2,7 @@ import { db } from '@/shared/db';
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
 import { revalidatePath } from 'next/cache';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
-import { closeRace, updateRace } from './update';
+import { closeRace, reopenRace, setClosingTime, updateRace } from './update';
 
 vi.mock('@/shared/utils/admin', async () => {
   const actual = await vi.importActual('@/shared/utils/admin');
@@ -38,7 +38,14 @@ vi.mock('@/shared/lib/sse/event-emitter', () => ({
   },
   RACE_EVENTS: {
     RACE_CLOSED: 'RACE_CLOSED',
+    RACE_REOPENED: 'RACE_REOPENED',
   },
+}));
+
+vi.mock('@/shared/constants/race', () => ({
+  VENUE_DIRECTIONS: ['LEFT', 'RIGHT', 'STRAIGHT'] as const,
+  RACE_GRADES: ['G1', 'G2', 'G3', 'L', 'OP', '3_WIN', '2_WIN', '1_WIN', 'MAIDEN', 'NEWCOMER'] as const,
+  RACE_TYPES: ['REAL', 'FICTIONAL'] as const,
 }));
 
 describe('updateRace', () => {
@@ -136,5 +143,205 @@ describe('closeRace', () => {
     expect(raceEventEmitter.emit).toHaveBeenCalledWith('RACE_CLOSED', expect.objectContaining({ raceId: '123' }));
 
     expect(revalidatePath).toHaveBeenCalled();
+  });
+
+  it('ステータスの事前チェックなしでCLOSEDに設定される（注意: FINALIZED含む全ステータスで実行可能）', async () => {
+    // NOTE: closeRace にはステータスの事前チェックがない。
+    // FINALIZED状態のレースもCLOSEDにできてしまう。要確認。
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+
+    await closeRace('123');
+
+    expect(mockUpdate).toHaveBeenCalled();
+    expect(mockSet).toHaveBeenCalledWith({ status: 'CLOSED' });
+  });
+});
+
+describe('reopenRace', () => {
+  const mockUpdate = vi.fn();
+  const mockSet = vi.fn();
+  const mockWhere = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdate.mockReturnValue({ set: mockSet });
+    mockSet.mockReturnValue({ where: mockWhere });
+    (db.update as unknown as Mock).mockImplementation(mockUpdate);
+  });
+
+  it('管理者でない場合はエラーをスローする', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
+
+    await expect(reopenRace('123')).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+  });
+
+  it('レースをSCHEDULED状態に戻し、closingAtをnullにリセットする', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+
+    const result = await reopenRace('123');
+
+    expect(mockUpdate).toHaveBeenCalled();
+    expect(mockSet).toHaveBeenCalledWith({ status: 'SCHEDULED', closingAt: null });
+    expect(result).toEqual({ success: true });
+  });
+
+  it('SSEイベント（RACE_REOPENED）が発火される', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+
+    await reopenRace('123');
+
+    const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
+    expect(raceEventEmitter.emit).toHaveBeenCalledWith('RACE_REOPENED', expect.objectContaining({ raceId: '123' }));
+  });
+
+  it('revalidatePathが呼ばれる', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+
+    await reopenRace('123');
+
+    expect(revalidatePath).toHaveBeenCalled();
+  });
+});
+
+describe('setClosingTime', () => {
+  const mockUpdate = vi.fn();
+  const mockSet = vi.fn();
+  const mockWhere = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdate.mockReturnValue({ set: mockSet });
+    mockSet.mockReturnValue({ where: mockWhere });
+    (db.update as unknown as Mock).mockImplementation(mockUpdate);
+  });
+
+  it('管理者でない場合はエラーをスローする', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockRejectedValue(new Error(ADMIN_ERRORS.UNAUTHORIZED));
+
+    await expect(setClosingTime('123', 30)).rejects.toThrow(ADMIN_ERRORS.UNAUTHORIZED);
+  });
+
+  it('指定分数後の締切時刻を設定してSCHEDULED状態にする', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+
+    const before = Date.now();
+    const result = await setClosingTime('123', 30);
+    const after = Date.now();
+
+    expect(mockSet).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'SCHEDULED' })
+    );
+    const setArgs = mockSet.mock.calls[0][0];
+    const closingAt = setArgs.closingAt as Date;
+    const expectedMin = before + 30 * 60 * 1000;
+    const expectedMax = after + 30 * 60 * 1000;
+    expect(closingAt.getTime()).toBeGreaterThanOrEqual(expectedMin);
+    expect(closingAt.getTime()).toBeLessThanOrEqual(expectedMax);
+    expect(result.success).toBe(true);
+    expect(result.closingAt).toBeDefined();
+  });
+
+  it('SSEイベント（RACE_REOPENED）が発火される', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+
+    await setClosingTime('123', 10);
+
+    const { raceEventEmitter } = await import('@/shared/lib/sse/event-emitter');
+    expect(raceEventEmitter.emit).toHaveBeenCalledWith('RACE_REOPENED', expect.objectContaining({ raceId: '123' }));
+  });
+});
+
+describe('updateRace ステータス遷移', () => {
+  const mockUpdate = vi.fn();
+  const mockSet = vi.fn();
+  const mockWhere = vi.fn();
+  const mockTx = {
+    update: mockUpdate,
+    query: {
+      raceInstances: {
+        findFirst: vi.fn(),
+      },
+    },
+  };
+
+  const createFormData = (overrides: Record<string, string> = {}) => {
+    const defaults: Record<string, string> = {
+      eventId: 'event-1',
+      date: '2026-03-10',
+      venueId: 'venue-1',
+      name: 'テストレース',
+      distance: '2000',
+      surface: 'turf',
+    };
+    const merged = { ...defaults, ...overrides };
+    const fd = new FormData();
+    for (const [key, value] of Object.entries(merged)) {
+      fd.set(key, value);
+    }
+    return fd;
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdate.mockReturnValue({ set: mockSet });
+    mockSet.mockReturnValue({ where: mockWhere });
+    (db.transaction as unknown as Mock).mockImplementation(async (cb: (tx: typeof mockTx) => Promise<unknown>) =>
+      cb(mockTx)
+    );
+  });
+
+  it('CLOSED状態のレースに未来の締切時刻を設定するとSCHEDULEDに遷移する', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: '123', status: 'CLOSED' });
+
+    // parseJSTToUTC は 'T' 含む ISO 形式が必要（例: 2030-12-31T23:59）
+    // JST+09:00 として解釈され UTC に変換される
+    await updateRace('123', createFormData({ closingAt: '2030-12-31T23:59' }));
+
+    const setArgs = mockSet.mock.calls[0][0];
+    expect(setArgs.status).toBe('SCHEDULED');
+  });
+
+  it('CLOSED状態のレースに過去の締切時刻を設定してもCLOSEDのまま', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: '123', status: 'CLOSED' });
+
+    await updateRace('123', createFormData({ closingAt: '2020-01-01T00:00' }));
+
+    const setArgs = mockSet.mock.calls[0][0];
+    expect(setArgs.status).toBe('CLOSED');
+  });
+
+  it('SCHEDULED状態のレースのステータスは維持される', async () => {
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: '123', status: 'SCHEDULED' });
+
+    await updateRace('123', createFormData());
+
+    const setArgs = mockSet.mock.calls[0][0];
+    expect(setArgs.status).toBe('SCHEDULED');
+  });
+
+  it('FINALIZED状態のレースでもフィールド更新が実行される（注意: ステータスガードなし）', async () => {
+    // NOTE: updateRace にはFINALIZED状態への制限がない。
+    // 払戻確定済みレースのフィールド変更を許可してよいか要確認。
+    const { requireAdmin } = await import('@/shared/utils/admin');
+    (requireAdmin as unknown as Mock).mockResolvedValue({ user: { role: 'ADMIN' } });
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({ id: '123', status: 'FINALIZED' });
+
+    await updateRace('123', createFormData({ name: '変更後のレース名' }));
+
+    expect(mockUpdate).toHaveBeenCalled();
   });
 });

@@ -10,6 +10,11 @@ RUN corepack enable && corepack prepare pnpm@10.29.1 --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# ビルド時のダミー値（バリデーション通過用。実行時は docker-compose の environment で上書き）
+ARG DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
+ARG REDIS_URL=redis://localhost:6379
+ENV DATABASE_URL=$DATABASE_URL
+ENV REDIS_URL=$REDIS_URL
 RUN pnpm build
 
 FROM node:20-alpine AS runner

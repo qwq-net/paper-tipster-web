@@ -28,7 +28,6 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
-COPY --from=builder /app/src/shared/db/schema ./src/shared/db/schema
-COPY --from=builder /app/src/entities ./src/entities
+COPY --from=builder /app/src ./src
 EXPOSE 3000
 CMD ["pnpm", "start"]

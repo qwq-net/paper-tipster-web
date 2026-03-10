@@ -26,6 +26,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/src/shared/db/schema ./src/shared/db/schema
 COPY --from=builder /app/src/entities ./src/entities

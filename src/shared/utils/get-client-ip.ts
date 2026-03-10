@@ -3,6 +3,9 @@ import { headers } from 'next/headers';
 export async function getClientIp(): Promise<string> {
   const headersList = await headers();
 
+  const cfIp = headersList.get('cf-connecting-ip');
+  if (cfIp) return cfIp.trim();
+
   const realIp = headersList.get('x-real-ip');
   if (realIp) return realIp.trim();
 

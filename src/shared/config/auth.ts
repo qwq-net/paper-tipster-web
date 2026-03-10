@@ -49,6 +49,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: 'jwt',
     maxAge: 6 * 60 * 60,
   },
+  trustHost: true,
   providers: [
     Discord({
       authorization: 'https://discord.com/api/oauth2/authorize?scope=identify',

@@ -39,6 +39,21 @@ tasks:
     cmds:
       - docker compose --profile prod down
 
+  docker:up:dev:
+    desc: 開発用プロファイル（Cloudflare Tunnel含む）でDockerコンテナを起動します
+    cmds:
+      - docker compose --profile dev up -d
+
+  docker:down:dev:
+    desc: 開発用プロファイルでDockerコンテナを停止します
+    cmds:
+      - docker compose --profile dev down
+
+  docker:logs:tunnel:
+    desc: 開発用Cloudflare Tunnelのログを表示し、発行されたURLを確認します
+    cmds:
+      - docker compose --profile dev logs tunnel-dev
+
   docker:logs:
     desc: Dockerログを表示します
     cmds:

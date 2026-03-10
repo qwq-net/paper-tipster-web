@@ -49,6 +49,14 @@ services:
     profiles:
       - prod
 
+  tunnel-dev:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    profiles:
+      - dev
+
 volumes:
   db-data:
   redis-data:

@@ -1,6 +1,6 @@
 import { Button, NumericInput } from '@/shared/ui';
 import { Calculator, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { NumericKeypad } from './numeric-keypad';
 
 interface BetSummaryFooterProps {
@@ -25,6 +25,58 @@ export function BetSummaryFooter({
   onSubmit,
 }: BetSummaryFooterProps) {
   const [showKeypad, setShowKeypad] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // キーパッド表示時にNumericInputへフォーカス
+  useEffect(() => {
+    if (showKeypad) {
+      inputRef.current?.focus();
+    }
+  }, [showKeypad]);
+
+  // キーパッド表示中のEscapeキー対応
+  useEffect(() => {
+    if (!showKeypad) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowKeypad(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showKeypad]);
+
+  const displayValue = amount / 100;
+
+  const handleDigit = useCallback(
+    (n: number) => {
+      const valStr = displayValue === 0 ? '' : displayValue.toString();
+      const newVal = parseInt(`${valStr}${n}`, 10);
+      if (newVal <= 999999) {
+        onAmountChange(newVal * 100);
+      }
+    },
+    [displayValue, onAmountChange]
+  );
+
+  const handleBackspace = useCallback(() => {
+    const valStr = displayValue.toString();
+    if (valStr.length <= 1) {
+      onAmountChange(0);
+    } else {
+      onAmountChange(parseInt(valStr.slice(0, -1), 10) * 100);
+    }
+  }, [displayValue, onAmountChange]);
+
+  const handleClear = useCallback(() => {
+    onAmountChange(0);
+  }, [onAmountChange]);
+
+  const handleEnter = useCallback(() => {
+    if (showKeypad) {
+      setShowKeypad(false);
+    }
+  }, [showKeypad]);
 
   return (
     <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 shadow-sm md:p-6">
@@ -41,17 +93,17 @@ export function BetSummaryFooter({
           <div className="col-span-2 flex flex-col gap-2 lg:col-auto lg:flex-row lg:items-center lg:gap-3">
             <label className="text-sm font-semibold text-gray-500">1点あたり</label>
             <div className="flex items-center gap-2">
-              <div className="relative flex items-center">
-                <NumericInput
-                  value={amount / 100}
-                  onChange={(val) => onAmountChange((val || 0) * 100)}
-                  min={1}
-                  max={999999}
-                  disabled={isClosed || isPending}
-                  className="w-28 pr-11 text-right font-semibold disabled:bg-gray-100"
-                />
-                <span className="pointer-events-none absolute right-3 text-sm font-semibold text-gray-400">00円</span>
-              </div>
+              <NumericInput
+                ref={inputRef}
+                value={displayValue}
+                onChange={(val) => onAmountChange((val || 0) * 100)}
+                min={0}
+                max={999999}
+                disabled={isClosed || isPending}
+                className="w-28 text-right font-semibold disabled:bg-gray-100"
+                suffix="00円"
+                onEnter={handleEnter}
+              />
               <div className="relative">
                 <Button
                   type="button"
@@ -67,10 +119,11 @@ export function BetSummaryFooter({
                 {showKeypad && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setShowKeypad(false)} />
-                    <div className="absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2">
+                    <div className="absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2">
                       <NumericKeypad
-                        value={amount / 100}
-                        onChange={(val: number) => onAmountChange(val * 100)}
+                        onDigit={handleDigit}
+                        onBackspace={handleBackspace}
+                        onClear={handleClear}
                         onClose={() => setShowKeypad(false)}
                       />
                     </div>

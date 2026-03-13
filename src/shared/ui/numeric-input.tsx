@@ -2,7 +2,7 @@
 
 import { cn } from '@/shared/utils/cn';
 import { getPasswordManagerIgnoreAttributes } from '@/shared/utils/form';
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useImperativeHandle, useRef } from 'react';
 
 function formatWithCommas(value: number): string {
   if (isNaN(value) || value === 0) return '0';
@@ -27,6 +27,8 @@ interface NumericInputProps {
   placeholder?: string;
   name?: string;
   ignorePasswordManager?: boolean;
+  onEnter?: () => void;
+  suffix?: string;
 }
 
 export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps>(
@@ -43,12 +45,14 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
       placeholder,
       name,
       ignorePasswordManager = true,
+      onEnter,
+      suffix,
     },
     ref
   ) => {
     const ignoreAttrs = getPasswordManagerIgnoreAttributes(ignorePasswordManager);
     const innerRef = useRef<HTMLInputElement>(null);
-    const inputRef = (ref as React.RefObject<HTMLInputElement>) || innerRef;
+    useImperativeHandle(ref, () => innerRef.current as HTMLInputElement);
     const isComposing = useRef(false);
 
     const [localValue, setLocalValue] = React.useState(
@@ -125,15 +129,26 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
       });
     }, []);
 
-    return (
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && onEnter) {
+          e.preventDefault();
+          onEnter();
+        }
+      },
+      [onEnter]
+    );
+
+    const inputElement = (
       <input
-        ref={inputRef}
+        ref={innerRef}
         id={id}
         type="text"
         inputMode={allowDecimal ? 'decimal' : 'numeric'}
         value={localValue}
         onChange={handleChange}
         onFocus={handleFocus}
+        onKeyDown={onEnter ? handleKeyDown : undefined}
         onCompositionStart={handleCompositionStart}
         onCompositionEnd={handleCompositionEnd}
         disabled={disabled}
@@ -141,11 +156,25 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
         name={name}
         className={cn(
           'focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+          suffix && 'pr-12',
           className
         )}
         {...ignoreAttrs}
       />
     );
+
+    if (suffix) {
+      return (
+        <div className="relative flex items-center">
+          {inputElement}
+          <span className="pointer-events-none absolute right-3 text-sm font-semibold text-gray-400">
+            {suffix}
+          </span>
+        </div>
+      );
+    }
+
+    return inputElement;
   }
 );
 NumericInput.displayName = 'NumericInput';

@@ -32,6 +32,20 @@ vi.mock('@/shared/db', () => ({
   },
 }));
 
+vi.mock('@/shared/lib/redis', () => ({
+  redis: {
+    get: vi.fn(),
+    set: vi.fn(),
+    del: vi.fn(),
+    on: vi.fn(),
+  },
+}));
+
+vi.mock('@/shared/lib/sse/event-emitter', () => ({
+  raceEventEmitter: { emit: vi.fn() },
+  RACE_EVENTS: { ODDS_UPDATED: 'ODDS_UPDATED' },
+}));
+
 vi.mock('@/shared/db/schema', () => ({
   betGroups: { id: 'betGroups.id' },
   bets: { id: 'bets.id' },

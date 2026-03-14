@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@10.29.1",
   "scripts": {
-    "_guard": "[ -f /.dockerenv ] || (printf '\\nRun via task instead:\\n  task dev / task build / task test\\n\\n' >&2 && exit 1)",
+    "_guard": "[ -f /.dockerenv ] || [ \"$CI\" = 'true' ] || (printf '\\nRun via task instead:\\n  task dev / task build / task test\\n\\n' >&2 && exit 1)",
     "dev": "pnpm _guard && next dev",
     "build": "pnpm _guard && next build",
     "start": "next start",

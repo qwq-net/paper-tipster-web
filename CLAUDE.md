@@ -14,16 +14,16 @@ Run via task instead:
 
 このエラーはバグではありません。必ず以下の task コマンドを使ってください。
 
-| やりたいこと | コマンド |
-|---|---|
-| 開発サーバー起動 | `task docker:up` |
-| テスト実行 | `task test` |
-| フルテスト（重いテスト含む） | `task test:full` |
-| ビルド | `task build` |
-| Lint・型チェック | `task check` |
-| 自動修正 | `task check:fix` |
-| DB セットアップ | `task db:setup` |
-| ログ確認 | `task docker:logs` |
+| やりたいこと                 | コマンド           |
+| ---------------------------- | ------------------ |
+| 開発サーバー起動             | `task docker:up`   |
+| テスト実行                   | `task test`        |
+| フルテスト（重いテスト含む） | `task test:full`   |
+| ビルド                       | `task build`       |
+| Lint・型チェック             | `task check`       |
+| 自動修正                     | `task check:fix`   |
+| DB セットアップ              | `task db:setup`    |
+| ログ確認                     | `task docker:logs` |
 
 利用可能なタスク一覧は `task` で確認できます。
 

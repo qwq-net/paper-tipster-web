@@ -3,8 +3,9 @@
   "private": true,
   "packageManager": "pnpm@10.29.1",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "_guard": "[ -f /.dockerenv ] || (printf '\\nRun via task instead:\\n  task dev / task build / task test\\n\\n' >&2 && exit 1)",
+    "dev": "pnpm _guard && next dev",
+    "build": "pnpm _guard && next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -13,7 +14,7 @@
     "format:check": "prettier --check .",
     "check": "pnpm lint && pnpm typecheck && pnpm format:check",
     "check:fix": "pnpm lint:fix && pnpm format",
-    "test": "vitest --run --silent=passed-only"
+    "test": "pnpm _guard && vitest --run --silent=passed-only"
   },
   "dependencies": {
     "@auth/core": "0.41.1",

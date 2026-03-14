@@ -27,14 +27,12 @@ export function BetSummaryFooter({
   const [showKeypad, setShowKeypad] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // キーパッド表示時にNumericInputへフォーカス
   useEffect(() => {
     if (showKeypad) {
       inputRef.current?.focus();
     }
   }, [showKeypad]);
 
-  // キーパッド表示中のEscapeキー対応
   useEffect(() => {
     if (!showKeypad) return;
     const handleKeyDown = (e: KeyboardEvent) => {

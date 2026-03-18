@@ -1,4 +1,16 @@
-import { date, index, integer, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  date,
+  index,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { RACE_GRADES, RACE_TYPES } from '../../constants/race';
 import { events } from './events';
 import { horses } from './horses';
@@ -48,6 +60,8 @@ export const raceInstances = pgTable(
     closingAt: timestamp('closing_at', { withTimezone: true }),
     finalizedAt: timestamp('finalized_at', { withTimezone: true }),
     guaranteedOdds: jsonb('guaranteed_odds').$type<Record<string, number>>(),
+    netkeibaUrl: text('netkeiba_url'),
+    fixedOddsMode: boolean('fixed_odds_mode').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

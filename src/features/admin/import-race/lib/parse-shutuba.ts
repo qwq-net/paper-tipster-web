@@ -1,8 +1,7 @@
 import { parse } from 'node-html-parser';
 import type { RacePreviewData, ScrapedHorse, ScrapedRaceInfo } from '../model/types';
 
-const NETKEIBA_URL_RE =
-  /^https:\/\/race\.netkeiba\.com\/race\/shutuba\.html\?race_id=(\d{12})$/;
+const NETKEIBA_URL_RE = /^https:\/\/race\.netkeiba\.com\/race\/shutuba\.html\?race_id=(\d{12})$/;
 
 const GENDER_MAP: Record<string, 'HORSE' | 'MARE' | 'GELDING'> = {
   牡: 'HORSE',
@@ -19,9 +18,7 @@ function extractRaceId(url: string): string {
 function parseRaceInfo(root: ReturnType<typeof parse>, raceId: string): ScrapedRaceInfo {
   const raceData01 = root.querySelector('.RaceData01')?.text ?? '';
   const raceName =
-    root.querySelector('.RaceName')?.text?.trim() ??
-    root.querySelector('h1.RaceName')?.text?.trim() ??
-    '';
+    root.querySelector('.RaceName')?.text?.trim() ?? root.querySelector('h1.RaceName')?.text?.trim() ?? '';
 
   const distanceMatch = raceData01.match(/(\d+)m/);
   const distance = distanceMatch ? parseInt(distanceMatch[1]) : 0;

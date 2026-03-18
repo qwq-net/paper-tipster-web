@@ -10,6 +10,7 @@ import {
   ClipboardList,
   Coins,
   Crown,
+  Download,
   ExternalLink,
   Key,
   LayoutDashboard,
@@ -47,6 +48,7 @@ const NAV_GROUPS = [
       { label: '出走馬管理', href: '/admin/entries', icon: ClipboardList },
       { label: 'BET5管理', href: '/admin/bet5', icon: Crown },
       { label: '馬券管理', href: '/admin/bets', icon: Ticket },
+      { label: '出馬表インポート', href: '/admin/import-race', icon: Download },
     ],
   },
   {

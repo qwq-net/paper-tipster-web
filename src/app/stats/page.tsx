@@ -25,7 +25,7 @@ export default async function StatsPage() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <CurrentBalanceDisplay amount={stats.totalBalance} />
-          <KarmaDisplay totalKarma={stats.totalLoan} />
+          {stats.totalLoan > 0 && <KarmaDisplay totalKarma={stats.totalLoan} />}
           <NetWorthDisplay amount={stats.totalNet} />
         </div>
 

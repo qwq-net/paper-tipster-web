@@ -15,6 +15,7 @@ ARG DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
 ARG REDIS_URL=redis://localhost:6379
 ENV DATABASE_URL=$DATABASE_URL
 ENV REDIS_URL=$REDIS_URL
+ENV CI=true
 RUN pnpm build
 
 FROM node:20-alpine AS runner

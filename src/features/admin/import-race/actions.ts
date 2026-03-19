@@ -10,7 +10,10 @@ import { parseNetkeibaResult } from './lib/parse-result';
 import { parseShutuba } from './lib/parse-shutuba';
 import type { HorsePreviewItem, NetkeibaRaceResult, RacePreviewWithHorseStatus } from './model/types';
 
-const NETKEIBA_BASE = 'https://race.netkeiba.com/race/shutuba.html';
+const ALLOWED_HOSTS: Record<string, string> = {
+  'race.netkeiba.com': 'https://race.netkeiba.com/race/shutuba.html',
+  'nar.netkeiba.com': 'https://nar.netkeiba.com/race/shutuba.html',
+};
 
 function normalizeNetkeibaUrl(input: string): string {
   let parsed: URL;
@@ -19,14 +22,19 @@ function normalizeNetkeibaUrl(input: string): string {
   } catch {
     throw new Error('URLの形式が正しくありません');
   }
-  if (parsed.hostname !== 'race.netkeiba.com' || parsed.pathname !== '/race/shutuba.html') {
+  const base = ALLOWED_HOSTS[parsed.hostname];
+  if (!base || parsed.pathname !== '/race/shutuba.html') {
     throw new Error('Netkeiba出馬表のURLを入力してください');
   }
   const raceId = parsed.searchParams.get('race_id');
   if (!raceId || !/^\d{12}$/.test(raceId)) {
     throw new Error('race_idが正しくありません（12桁の数字が必要です）');
   }
-  return `${NETKEIBA_BASE}?race_id=${raceId}`;
+  return `${base}?race_id=${raceId}`;
+}
+
+function isNarUrl(url: string): boolean {
+  return new URL(url).hostname === 'nar.netkeiba.com';
 }
 
 async function fetchNetkeibaHtml(url: string): Promise<string> {
@@ -89,7 +97,10 @@ export async function fetchRacePreview(url: string): Promise<RacePreviewWithHors
   const normalizedUrl = normalizeNetkeibaUrl(url);
   const raceId = new URL(normalizedUrl).searchParams.get('race_id')!;
 
-  const [html, winOdds] = await Promise.all([fetchNetkeibaHtml(normalizedUrl), fetchNetkeibaWinOdds(raceId)]);
+  const [html, winOdds] = await Promise.all([
+    fetchNetkeibaHtml(normalizedUrl),
+    isNarUrl(normalizedUrl) ? Promise.resolve<Record<string, number>>({}) : fetchNetkeibaWinOdds(raceId),
+  ]);
   const preview = parseShutuba(html, normalizedUrl);
 
   const horseItems: HorsePreviewItem[] = await Promise.all(
@@ -211,6 +222,8 @@ export async function updateOddsFromNetkeiba(raceId: string): Promise<void> {
   });
   if (!race?.netkeibaUrl) throw new Error('Netkeiba URLが設定されていません');
 
+  if (isNarUrl(race.netkeibaUrl)) throw new Error('地方競馬のオッズ更新は対応していません');
+
   const netkeibaRaceId = new URL(race.netkeibaUrl).searchParams.get('race_id');
   if (!netkeibaRaceId) throw new Error('race_idが取得できません');
 
@@ -240,7 +253,8 @@ export async function fetchNetkeibaRaceResult(raceId: string): Promise<NetkeibaR
   const netkeibaRaceId = new URL(race.netkeibaUrl).searchParams.get('race_id');
   if (!netkeibaRaceId) throw new Error('race_idが取得できません');
 
-  const resultUrl = `https://race.netkeiba.com/race/result.html?race_id=${netkeibaRaceId}`;
+  const host = isNarUrl(race.netkeibaUrl) ? 'nar.netkeiba.com' : 'race.netkeiba.com';
+  const resultUrl = `https://${host}/race/result.html?race_id=${netkeibaRaceId}`;
   const html = await fetchNetkeibaHtml(resultUrl);
 
   return parseNetkeibaResult(html);

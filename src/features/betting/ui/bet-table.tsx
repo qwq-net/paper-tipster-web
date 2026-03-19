@@ -50,7 +50,6 @@ export function BetTable({
   closingAt,
   initialOdds,
   fixedOddsMode = false,
-  netkeibaUrl,
 }: BetTableProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();

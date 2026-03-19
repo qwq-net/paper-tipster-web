@@ -113,7 +113,7 @@ export function ImportRaceClient({ events, venues }: Props) {
           <Input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://race.netkeiba.com/race/shutuba.html?race_id=..."
+            placeholder="https://race.netkeiba.com/race/shutuba.html?race_id=... (地方: nar.netkeiba.com)"
             className="flex-1"
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleFetch();

@@ -54,14 +54,15 @@ function parseHorses(root: ReturnType<typeof parse>): ScrapedHorse[] {
       const horseNumber = parseInt(umaban?.text?.trim() ?? '') || idx + 1;
 
       const waku = row.querySelector('td[class*="Waku"]');
-      const bracketNumber = parseInt(waku?.querySelector('span')?.text?.trim() ?? '') || 0;
+      const bracketNumber = parseInt(waku?.querySelector('span')?.text?.trim() || waku?.text?.trim() || '') || 0;
 
       const horseName =
         row.querySelector('td.HorseInfo .HorseName a')?.getAttribute('title')?.trim() ??
         row.querySelector('td.HorseInfo .HorseName a')?.text?.trim() ??
         '';
 
-      const bareiText = row.querySelector('td.Barei')?.text?.trim() ?? '';
+      const bareiText =
+        row.querySelector('td.Barei')?.text?.trim() || row.querySelector('td.HorseInfo .Age')?.text?.trim() || '';
       const genderChar = bareiText[0] ?? '';
       const gender = GENDER_MAP[genderChar] ?? 'HORSE';
       const ageMatch = bareiText.match(/(\d+)/);

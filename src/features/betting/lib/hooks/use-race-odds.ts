@@ -8,14 +8,23 @@ import { toast } from 'sonner';
 
 type OddsData = Awaited<ReturnType<typeof fetchRaceOdds>>;
 
-export function useRaceOdds(raceId: string, initialOdds: OddsData, isFinalized: boolean = false) {
+export function useRaceOdds(
+  raceId: string,
+  initialOdds: OddsData,
+  isFinalized: boolean = false,
+  fixedOddsMode: boolean = false
+) {
   const [odds, setOdds] = useState<OddsData>(initialOdds);
 
-  const handleOddsUpdated = useCallback((message: SSERaceOddsUpdatedMessage) => {
-    const nextOdds = message.data as OddsData;
-    setOdds(nextOdds);
-    toast.info('オッズが更新されました');
-  }, []);
+  const handleOddsUpdated = useCallback(
+    (message: SSERaceOddsUpdatedMessage) => {
+      if (fixedOddsMode) return;
+      const nextOdds = message.data as OddsData;
+      setOdds(nextOdds);
+      toast.info('オッズが更新されました');
+    },
+    [fixedOddsMode]
+  );
 
   useRaceEvents({
     raceId,

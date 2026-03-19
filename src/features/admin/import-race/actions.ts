@@ -6,8 +6,9 @@ import { requireAdmin } from '@/shared/utils/admin';
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { inflateSync } from 'zlib';
+import { parseNetkeibaResult } from './lib/parse-result';
 import { parseShutuba } from './lib/parse-shutuba';
-import type { HorsePreviewItem, RacePreviewWithHorseStatus } from './model/types';
+import type { HorsePreviewItem, NetkeibaRaceResult, RacePreviewWithHorseStatus } from './model/types';
 
 const NETKEIBA_BASE = 'https://race.netkeiba.com/race/shutuba.html';
 
@@ -225,4 +226,22 @@ export async function updateOddsFromNetkeiba(raceId: string): Promise<void> {
     });
 
   revalidatePath(`/admin/races/${raceId}`);
+}
+
+export async function fetchNetkeibaRaceResult(raceId: string): Promise<NetkeibaRaceResult | null> {
+  await requireAdmin();
+
+  const race = await db.query.raceInstances.findFirst({
+    where: eq(raceInstances.id, raceId),
+    columns: { netkeibaUrl: true },
+  });
+  if (!race?.netkeibaUrl) throw new Error('Netkeiba URLが設定されていません');
+
+  const netkeibaRaceId = new URL(race.netkeibaUrl).searchParams.get('race_id');
+  if (!netkeibaRaceId) throw new Error('race_idが取得できません');
+
+  const resultUrl = `https://race.netkeiba.com/race/result.html?race_id=${netkeibaRaceId}`;
+  const html = await fetchNetkeibaHtml(resultUrl);
+
+  return parseNetkeibaResult(html);
 }

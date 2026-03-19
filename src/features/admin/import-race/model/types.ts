@@ -34,3 +34,13 @@ export type RacePreviewWithHorseStatus = {
   horses: HorsePreviewItem[];
   sourceUrl: string;
 };
+
+export type NetkeibaPayoutEntry = {
+  numbers: number[];
+  payout: number;
+};
+
+export type NetkeibaRaceResult = {
+  finishOrder: number[];
+  payouts: Partial<Record<string, NetkeibaPayoutEntry[]>>;
+};

@@ -1,6 +1,7 @@
 'use server';
 
 import { BetDetail, calculatePayoutRate, Finisher, isWinningBet, normalizeSelections, ODDS_UNIT } from '@/entities/bet';
+import type { NetkeibaPayoutEntry } from '@/features/admin/import-race/model/types';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { db } from '@/shared/db';
 import { bets, raceEntries, raceInstances } from '@/shared/db/schema';
@@ -13,7 +14,8 @@ export async function finalizeRace(
   options: { payoutMode: 'TOTAL_DISTRIBUTION' | 'MANUAL'; takeoutRate: number } = {
     payoutMode: 'TOTAL_DISTRIBUTION',
     takeoutRate: 0,
-  }
+  },
+  netkeibaPayouts?: Partial<Record<string, NetkeibaPayoutEntry[]>>
 ) {
   await requireAdmin();
 
@@ -128,57 +130,65 @@ export async function finalizeRace(
       }
     }
 
-    const takeoutRate =
-      options.payoutMode === 'TOTAL_DISTRIBUTION' ? 0 : Math.max(0, Math.min(1, Number(options.takeoutRate || 0)));
-
     const payoutCalculationsByType: Record<string, { numbers: number[]; payout: number }[]> = {};
 
-    for (const [type, selectionAmounts] of Object.entries(winningSelectionAmounts)) {
-      const totalWinningAmount = Object.values(selectionAmounts).reduce((sum, amount) => sum + amount, 0);
-      const winningCount = Object.keys(selectionAmounts).length;
-
-      if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
-
-      for (const [selectionKey, selectionAmount] of Object.entries(selectionAmounts)) {
-        let rate = calculatePayoutRate(
-          poolByBetType[type],
-          selectionAmount,
-          totalWinningAmount,
-          winningCount,
-          takeoutRate
-        );
-
-        if (guaranteedOdds?.[type]) {
-          rate = Math.max(rate, guaranteedOdds[type]);
+    if (netkeibaPayouts) {
+      for (const [type, entries] of Object.entries(netkeibaPayouts)) {
+        if (entries && entries.length > 0) {
+          payoutCalculationsByType[type] = entries;
         }
-
-        const unitPayout = Math.floor(ODDS_UNIT * rate);
-        payoutCalculationsByType[type].push({ numbers: JSON.parse(selectionKey) as number[], payout: unitPayout });
       }
-    }
+    } else {
+      const takeoutRate =
+        options.payoutMode === 'TOTAL_DISTRIBUTION' ? 0 : Math.max(0, Math.min(1, Number(options.takeoutRate || 0)));
 
-    const { BET_TYPES } = await import('@/entities/bet');
-    const { getWinningCombinations } = await import('@/entities/bet');
+      for (const [type, selectionAmounts] of Object.entries(winningSelectionAmounts)) {
+        const totalWinningAmount = Object.values(selectionAmounts).reduce((sum, amount) => sum + amount, 0);
+        const winningCount = Object.keys(selectionAmounts).length;
 
-    for (const type of Object.values(BET_TYPES)) {
-      if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
+        if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
 
-      const winningCombinations = getWinningCombinations(type, finishers);
-      const defaultRate =
-        guaranteedOdds?.[type] ?? DEFAULT_GUARANTEED_ODDS[type as keyof typeof DEFAULT_GUARANTEED_ODDS] ?? 1.0;
+        for (const [selectionKey, selectionAmount] of Object.entries(selectionAmounts)) {
+          let rate = calculatePayoutRate(
+            poolByBetType[type],
+            selectionAmount,
+            totalWinningAmount,
+            winningCount,
+            takeoutRate
+          );
 
-      for (const combination of winningCombinations) {
-        const key = normalizeSelections(type, combination);
-        const exists = payoutCalculationsByType[type].some((p) => normalizeSelections(type, p.numbers) === key);
-        if (!exists) {
-          const payout = Math.floor(ODDS_UNIT * defaultRate);
-          payoutCalculationsByType[type].push({ numbers: combination, payout });
+          if (guaranteedOdds?.[type]) {
+            rate = Math.max(rate, guaranteedOdds[type]);
+          }
+
+          const unitPayout = Math.floor(ODDS_UNIT * rate);
+          payoutCalculationsByType[type].push({ numbers: JSON.parse(selectionKey) as number[], payout: unitPayout });
         }
       }
 
-      payoutCalculationsByType[type] = payoutCalculationsByType[type].sort((a, b) => {
-        return a.numbers.join('-').localeCompare(b.numbers.join('-'));
-      });
+      const { BET_TYPES } = await import('@/entities/bet');
+      const { getWinningCombinations } = await import('@/entities/bet');
+
+      for (const type of Object.values(BET_TYPES)) {
+        if (!payoutCalculationsByType[type]) payoutCalculationsByType[type] = [];
+
+        const winningCombinations = getWinningCombinations(type, finishers);
+        const defaultRate =
+          guaranteedOdds?.[type] ?? DEFAULT_GUARANTEED_ODDS[type as keyof typeof DEFAULT_GUARANTEED_ODDS] ?? 1.0;
+
+        for (const combination of winningCombinations) {
+          const key = normalizeSelections(type, combination);
+          const exists = payoutCalculationsByType[type].some((p) => normalizeSelections(type, p.numbers) === key);
+          if (!exists) {
+            const payout = Math.floor(ODDS_UNIT * defaultRate);
+            payoutCalculationsByType[type].push({ numbers: combination, payout });
+          }
+        }
+
+        payoutCalculationsByType[type] = payoutCalculationsByType[type].sort((a, b) => {
+          return a.numbers.join('-').localeCompare(b.numbers.join('-'));
+        });
+      }
     }
 
     const { payoutResults: payoutResultsTable } = await import('@/shared/db/schema');

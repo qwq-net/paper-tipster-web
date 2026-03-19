@@ -225,6 +225,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 condition: (race.condition as '良' | '稍重' | '重' | '不良' | null) || null,
                 closingAt: race.closingAt ? race.closingAt.toISOString() : null,
                 netkeibaUrl: race.netkeibaUrl ?? null,
+                fixedOddsMode: race.fixedOddsMode,
               }}
             />
           ) : (
@@ -287,6 +288,12 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                   <span className="font-medium text-gray-500">レース作成方法</span>
                   <span className="font-semibold text-gray-900">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
                 </div>
+                {race.fixedOddsMode && (
+                  <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                    <span className="font-medium text-gray-500">オッズ設定</span>
+                    <span className="font-semibold text-blue-600">固定オッズ</span>
+                  </div>
+                )}
                 {oddsRecord && (
                   <div className="flex items-center justify-between pb-2">
                     <span className="font-medium text-gray-500">オッズ更新</span>

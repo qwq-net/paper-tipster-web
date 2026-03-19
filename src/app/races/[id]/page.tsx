@@ -6,7 +6,7 @@ import { getEventWallets, WalletMissingCard } from '@/features/economy/wallet';
 import { RankingButton } from '@/features/ranking/components/ranking-button';
 import { auth } from '@/shared/config/auth';
 import { Button } from '@/shared/ui';
-import { ChevronLeft, Loader2 } from 'lucide-react';
+import { ChevronLeft, ExternalLink, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Suspense } from 'react';
@@ -78,7 +78,20 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
               )}
             </div>
             <div className="flex items-center justify-between gap-4">
-              <h1 className="text-3xl font-semibold text-gray-900">{race.name}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl font-semibold text-gray-900">{race.name}</h1>
+                {race.netkeibaUrl && (
+                  <a
+                    href={race.netkeibaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Netkeiba
+                  </a>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 <RankingButton eventId={race.eventId} size="md" />
                 <Button variant="outline" asChild>
@@ -112,6 +125,8 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
           initialStatus={race.status}
           closingAt={race.closingAt ? race.closingAt.toISOString() : null}
           initialOdds={initialOdds}
+          fixedOddsMode={race.fixedOddsMode}
+          netkeibaUrl={race.netkeibaUrl}
         />
 
         <Suspense

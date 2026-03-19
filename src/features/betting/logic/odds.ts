@@ -9,6 +9,13 @@ import { aggregateOddsPool, BetDetail, calculateProvisionalOdds, calculateWinOdd
 const THROTTLE_SECONDS = 10;
 
 export async function calculateOdds(raceId: string) {
+  const race = await db.query.raceInstances.findFirst({
+    where: eq(raceInstances.id, raceId),
+    columns: { fixedOddsMode: true },
+  });
+
+  if (race?.fixedOddsMode) return;
+
   const raceBets = (await db.query.bets.findMany({
     where: eq(bets.raceId, raceId),
   })) as { amount: number; details: BetDetail }[];

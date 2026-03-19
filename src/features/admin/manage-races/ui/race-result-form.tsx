@@ -1,5 +1,7 @@
 'use client';
 
+import { fetchNetkeibaRaceResult } from '@/features/admin/import-race/actions';
+import type { NetkeibaRaceResult } from '@/features/admin/import-race/model/types';
 import { Badge, Button } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
@@ -17,7 +19,16 @@ import {
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { AlertCircle, CheckCircle2, ExternalLink, GripVertical, Info, RotateCcw, Settings2 } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  ExternalLink,
+  GripVertical,
+  Info,
+  Loader2,
+  RotateCcw,
+  Settings2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -53,6 +64,7 @@ interface RaceResultFormProps {
     condition: '良' | '稍重' | '重' | '不良' | null;
     closingAt: string | null;
     netkeibaUrl?: string | null;
+    fixedOddsMode: boolean;
   };
 }
 
@@ -159,6 +171,8 @@ export function RaceResultForm({
   const [showConfirm, setShowConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isPayoutMoving, setIsPayoutMoving] = useState(false);
+  const [netkeibaResult, setNetkeibaResult] = useState<NetkeibaRaceResult | null>(null);
+  const [showNetkeibaConfirm, setShowNetkeibaConfirm] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -261,6 +275,51 @@ export function RaceResultForm({
     });
   };
 
+  const handleFetchNetkeibaResult = () => {
+    startTransition(async () => {
+      try {
+        const result = await fetchNetkeibaRaceResult(raceId);
+        if (!result) {
+          toast.info('レース結果はまだ確定していません。しばらく後に再試行してください。');
+          return;
+        }
+        setNetkeibaResult(result);
+        setShowNetkeibaConfirm(true);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'エラーが発生しました');
+      }
+    });
+  };
+
+  const handleNetkeibaFinalize = () => {
+    setShowNetkeibaConfirm(false);
+    if (!netkeibaResult) return;
+
+    startTransition(async () => {
+      const results = netkeibaResult.finishOrder
+        .map((horseNumber, index) => {
+          const entry = initialEntries.find((e) => e.horseNumber === horseNumber);
+          return entry ? { entryId: entry.id, finishPosition: index + 1 } : null;
+        })
+        .filter((r): r is { entryId: string; finishPosition: number } => r !== null);
+
+      try {
+        await finalizeRace(
+          raceId,
+          results,
+          { payoutMode: 'TOTAL_DISTRIBUTION', takeoutRate: 0 },
+          netkeibaResult.payouts
+        );
+        toast.success('着順を確定しました（Netkeibaオッズ払い戻し計算完了）', {
+          icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
+        });
+        router.refresh();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'エラーが発生しました');
+      }
+    });
+  };
+
   const activeEntry = activeId ? sortedEntries.find((e) => e.id === activeId) : null;
   const activePosition = activeEntry ? sortedEntries.findIndex((e) => e.id === activeEntry.id) + 1 : 0;
   const entryCount = initialEntries.length;
@@ -268,27 +327,38 @@ export function RaceResultForm({
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="space-y-4 lg:col-span-2">
-        <div className="flex items-end justify-between px-1">
-          <div className="flex items-center gap-3">
-            <div className="mb-0.5 flex items-center gap-1.5 text-sm font-semibold text-gray-400">
-              <Info className="h-4 w-4" />
-              ドラッグして着順を並び替えてください
+        {!race.fixedOddsMode && (
+          <div className="flex items-end justify-between px-1">
+            <div className="flex items-center gap-3">
+              <div className="mb-0.5 flex items-center gap-1.5 text-sm font-semibold text-gray-400">
+                <Info className="h-4 w-4" />
+                ドラッグして着順を並び替えてください
+              </div>
             </div>
+            {isChanged && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReset}
+                className="mb-0.5 h-auto p-0 font-semibold text-gray-400 hover:bg-transparent hover:text-gray-600"
+              >
+                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                リセット
+              </Button>
+            )}
           </div>
-          {isChanged && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleReset}
-              className="mb-0.5 h-auto p-0 font-semibold text-gray-400 hover:bg-transparent hover:text-gray-600"
-            >
-              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              リセット
-            </Button>
-          )}
-        </div>
+        )}
 
-        {race.status === 'CLOSED' ? (
+        {race.fixedOddsMode && race.status === 'CLOSED' ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center text-gray-400">
+            <Loader2 className="mb-4 h-10 w-10 animate-spin opacity-20" />
+            <p className="text-sm font-semibold">
+              Netkeibaの実際のレース結果が確定するまでお待ちください。
+              <br />
+              確定後、右のボタンから結果を取得して着順を確定してください。
+            </p>
+          </div>
+        ) : race.status === 'CLOSED' ? (
           <DndContext
             id={`result-dnd-${raceId}`}
             sensors={sensors}
@@ -383,6 +453,12 @@ export function RaceResultForm({
               <span className="font-medium text-gray-500">レース作成方法</span>
               <span className="font-semibold text-gray-900">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
             </div>
+            {race.fixedOddsMode && (
+              <div className="flex items-center justify-between py-2">
+                <span className="font-medium text-gray-500">オッズ設定</span>
+                <span className="font-semibold text-blue-600">固定オッズ</span>
+              </div>
+            )}
             <div className="flex items-center justify-between py-2">
               <span className="font-medium text-gray-500">ステータス</span>
               <Badge variant="status" label={race.status} />
@@ -441,67 +517,140 @@ export function RaceResultForm({
                   受付を再開する
                 </Button>
 
-                <AlertDialog.Root open={showConfirm} onOpenChange={setShowConfirm}>
-                  <AlertDialog.Trigger asChild>
+                {race.fixedOddsMode ? (
+                  <>
+                    {!canFinalizePayout && (
+                      <div className="flex items-start gap-1.5 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 ring-1 ring-blue-100">
+                        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        Netkeiba上で結果が確定するまで確定はできません
+                      </div>
+                    )}
                     <Button
-                      className={cn(
-                        'shadow-primary/20 relative w-full py-6 text-lg font-semibold shadow-lg transition-all duration-300 active:scale-[0.98]',
-                        isChanged ? 'from-primary to-primary/80 bg-linear-to-br' : 'grayscale-50'
-                      )}
+                      className="shadow-primary/20 relative w-full py-6 text-lg font-semibold shadow-lg transition-all duration-300 active:scale-[0.98]"
+                      onClick={handleFetchNetkeibaResult}
                       disabled={isPending || isPayoutMoving || canFinalizePayout}
                     >
-                      {isPending ? '確定処理中...' : canFinalizePayout ? '着順確定済み' : '着順を確定する'}
-                      {isChanged && !isPending && (
-                        <span className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-white/40" />
+                      {isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          取得中...
+                        </>
+                      ) : canFinalizePayout ? (
+                        '着順確定済み'
+                      ) : (
+                        '確定'
                       )}
                     </Button>
-                  </AlertDialog.Trigger>
-                  <AlertDialog.Portal>
-                    <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-all duration-300" />
-                    <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl transition-all duration-300">
-                      <div className="flex flex-col items-center text-center">
-                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-500">
-                          <AlertCircle className="h-8 w-8" />
-                        </div>
-                        <AlertDialog.Title className="mb-2 text-xl font-semibold text-gray-900">
-                          着順を確定しますか？
-                        </AlertDialog.Title>
-                        <AlertDialog.Description asChild className="text-sm text-gray-500">
-                          <div>
-                            この操作を行うと、投票された馬券の払い戻し計算が実行されます。
-                            <br />
-                            <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
-                              <div className="flex justify-between py-1">
-                                <span className="text-amber-600">1着</span>
-                                <span>{sortedEntries[0]?.horseName}</span>
+
+                    <AlertDialog.Root open={showNetkeibaConfirm} onOpenChange={setShowNetkeibaConfirm}>
+                      <AlertDialog.Portal>
+                        <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-all duration-300" />
+                        <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl transition-all duration-300">
+                          <div className="flex flex-col items-center text-center">
+                            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-500">
+                              <CheckCircle2 className="h-8 w-8" />
+                            </div>
+                            <AlertDialog.Title className="mb-2 text-xl font-semibold text-gray-900">
+                              Netkeibaの結果で確定しますか？
+                            </AlertDialog.Title>
+                            <AlertDialog.Description asChild className="w-full text-sm text-gray-500">
+                              <div>
+                                Netkeibaの実際の払い戻しオッズで計算されます。
+                                <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+                                  {netkeibaResult?.finishOrder.slice(0, 3).map((horseNumber, index) => {
+                                    const labels = ['1着', '2着', '3着'];
+                                    const colors = ['text-amber-600', 'text-slate-500', 'text-orange-600'];
+                                    const entry = initialEntries.find((e) => e.horseNumber === horseNumber);
+                                    return (
+                                      <div key={horseNumber} className="flex justify-between py-1">
+                                        <span className={colors[index]}>{labels[index]}</span>
+                                        <span>{entry?.horseName ?? `${horseNumber}番`}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
                               </div>
-                              <div className="flex justify-between py-1">
-                                <span className="text-slate-500">2着</span>
-                                <span>{sortedEntries[1]?.horseName}</span>
-                              </div>
-                              <div className="flex justify-between py-1">
-                                <span className="text-orange-600">3着</span>
-                                <span>{sortedEntries[2]?.horseName}</span>
+                            </AlertDialog.Description>
+                          </div>
+                          <div className="mt-8 flex flex-col gap-3">
+                            <AlertDialog.Action asChild>
+                              <Button onClick={handleNetkeibaFinalize} className="w-full py-5 text-lg font-semibold">
+                                確定する
+                              </Button>
+                            </AlertDialog.Action>
+                            <AlertDialog.Cancel asChild>
+                              <Button variant="outline" className="w-full py-5 text-lg font-semibold">
+                                キャンセル
+                              </Button>
+                            </AlertDialog.Cancel>
+                          </div>
+                        </AlertDialog.Content>
+                      </AlertDialog.Portal>
+                    </AlertDialog.Root>
+                  </>
+                ) : (
+                  <AlertDialog.Root open={showConfirm} onOpenChange={setShowConfirm}>
+                    <AlertDialog.Trigger asChild>
+                      <Button
+                        className={cn(
+                          'shadow-primary/20 relative w-full py-6 text-lg font-semibold shadow-lg transition-all duration-300 active:scale-[0.98]',
+                          isChanged ? 'from-primary to-primary/80 bg-linear-to-br' : 'grayscale-50'
+                        )}
+                        disabled={isPending || isPayoutMoving || canFinalizePayout}
+                      >
+                        {isPending ? '確定処理中...' : canFinalizePayout ? '着順確定済み' : '着順を確定する'}
+                        {isChanged && !isPending && (
+                          <span className="absolute -top-1 -right-1 h-3 w-3 animate-ping rounded-full bg-white/40" />
+                        )}
+                      </Button>
+                    </AlertDialog.Trigger>
+                    <AlertDialog.Portal>
+                      <AlertDialog.Overlay className="animate-in fade-in fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-all duration-300" />
+                      <AlertDialog.Content className="animate-in zoom-in-95 fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white p-6 shadow-2xl transition-all duration-300">
+                        <div className="flex flex-col items-center text-center">
+                          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-500">
+                            <AlertCircle className="h-8 w-8" />
+                          </div>
+                          <AlertDialog.Title className="mb-2 text-xl font-semibold text-gray-900">
+                            着順を確定しますか？
+                          </AlertDialog.Title>
+                          <AlertDialog.Description asChild className="text-sm text-gray-500">
+                            <div>
+                              この操作を行うと、投票された馬券の払い戻し計算が実行されます。
+                              <br />
+                              <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+                                <div className="flex justify-between py-1">
+                                  <span className="text-amber-600">1着</span>
+                                  <span>{sortedEntries[0]?.horseName}</span>
+                                </div>
+                                <div className="flex justify-between py-1">
+                                  <span className="text-slate-500">2着</span>
+                                  <span>{sortedEntries[1]?.horseName}</span>
+                                </div>
+                                <div className="flex justify-between py-1">
+                                  <span className="text-orange-600">3着</span>
+                                  <span>{sortedEntries[2]?.horseName}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </AlertDialog.Description>
-                      </div>
-                      <div className="mt-8 flex flex-col gap-3">
-                        <AlertDialog.Action asChild>
-                          <Button onClick={handleSubmit} className="w-full py-5 text-lg font-semibold">
-                            確定する
-                          </Button>
-                        </AlertDialog.Action>
-                        <AlertDialog.Cancel asChild>
-                          <Button variant="outline" className="w-full py-5 text-lg font-semibold">
-                            キャンセル
-                          </Button>
-                        </AlertDialog.Cancel>
-                      </div>
-                    </AlertDialog.Content>
-                  </AlertDialog.Portal>
-                </AlertDialog.Root>
+                          </AlertDialog.Description>
+                        </div>
+                        <div className="mt-8 flex flex-col gap-3">
+                          <AlertDialog.Action asChild>
+                            <Button onClick={handleSubmit} className="w-full py-5 text-lg font-semibold">
+                              確定する
+                            </Button>
+                          </AlertDialog.Action>
+                          <AlertDialog.Cancel asChild>
+                            <Button variant="outline" className="w-full py-5 text-lg font-semibold">
+                              キャンセル
+                            </Button>
+                          </AlertDialog.Cancel>
+                        </div>
+                      </AlertDialog.Content>
+                    </AlertDialog.Portal>
+                  </AlertDialog.Root>
+                )}
               </div>
             )}
 

@@ -27,7 +27,7 @@ export function UpdateNetkeibaOddsButton({ raceId, className }: { raceId: string
   return (
     <Button variant="outline" onClick={handleUpdate} disabled={isPending} className={className}>
       <RefreshCw className={cn('mr-1.5 h-3.5 w-3.5', isPending && 'animate-spin')} />
-      {isPending ? 'オッズ更新中...' : 'Netkeibaからオッズを更新'}
+      {isPending ? 'オッズ更新中...' : 'オッズを更新'}
     </Button>
   );
 }

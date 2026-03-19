@@ -15,7 +15,7 @@ import { BracketBadge } from '@/shared/ui/bracket-badge';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getGenderAge } from '@/shared/utils/gender';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -37,9 +37,21 @@ interface BetTableProps {
   initialStatus: string;
   closingAt: string | null;
   initialOdds: Awaited<ReturnType<typeof fetchRaceOdds>>;
+  fixedOddsMode?: boolean;
+  netkeibaUrl?: string | null;
 }
 
-export function BetTable({ raceId, walletId, balance, entries, initialStatus, closingAt, initialOdds }: BetTableProps) {
+export function BetTable({
+  raceId,
+  walletId,
+  balance,
+  entries,
+  initialStatus,
+  closingAt,
+  initialOdds,
+  fixedOddsMode = false,
+  netkeibaUrl,
+}: BetTableProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showBetConfirm, setShowBetConfirm] = useState(false);
@@ -55,7 +67,7 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
     onMessage: handleSSEMessage,
   });
 
-  const odds = useRaceOddsData(raceId, initialOdds);
+  const odds = useRaceOddsData(raceId, initialOdds, false, fixedOddsMode);
 
   const {
     betType,
@@ -155,14 +167,23 @@ export function BetTable({ raceId, walletId, balance, entries, initialStatus, cl
           このレースは受付を終了しました。現在、馬券を購入することはできません。
         </div>
       )}
-
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <BetTypeSelector betType={betType} onBetTypeChange={handleBetTypeChange} />
-        {odds?.updatedAt && (
-          <span className="w-full text-right text-sm text-gray-500 sm:w-auto">
-            オッズ最終更新:{' '}
-            <FormattedDate date={odds.updatedAt} options={{ hour: '2-digit', minute: '2-digit', second: '2-digit' }} />
+        {fixedOddsMode ? (
+          <span className="flex w-full items-center justify-end gap-1 text-sm font-semibold text-blue-600 sm:w-auto">
+            <Lock className="h-3.5 w-3.5" />
+            Netkeibaオッズ（固定）
           </span>
+        ) : (
+          odds?.updatedAt && (
+            <span className="w-full text-right text-sm text-gray-500 sm:w-auto">
+              オッズ最終更新:{' '}
+              <FormattedDate
+                date={odds.updatedAt}
+                options={{ hour: '2-digit', minute: '2-digit', second: '2-digit' }}
+              />
+            </span>
+          )
         )}
       </div>
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">

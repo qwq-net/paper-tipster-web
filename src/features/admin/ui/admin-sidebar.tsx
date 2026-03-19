@@ -159,17 +159,6 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
               })}
             </div>
           ))}
-
-          <div className="mt-4 border-t border-gray-700 pt-4">
-            <Link
-              href="/mypage"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 rounded-md px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
-            >
-              <ExternalLink className="h-4.5 w-4.5 opacity-70" />
-              マイページ
-            </Link>
-          </div>
         </nav>
 
         <div className="pb-safe border-t border-gray-800 bg-black/20 p-4">
@@ -192,6 +181,14 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
               <span className="mt-1 text-sm text-gray-400">{ROLE_LABELS[user.role as Role] || '管理者'}</span>
             </div>
           </div>
+          <Link
+            href="/mypage"
+            onClick={() => setIsOpen(false)}
+            className="mb-2 flex w-full items-center justify-center gap-2 rounded-md border border-gray-600 bg-transparent px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <ExternalLink className="h-4 w-4" />
+            マイページ
+          </Link>
           <LogoutButton
             className="mb-4 w-full border-gray-600 bg-transparent text-gray-300 hover:bg-white/10 hover:text-white"
             variant="outline"

@@ -79,6 +79,18 @@ export const normalizeSelections = (type: BetType, numbers: number[]) => {
   return JSON.stringify([...numbers].sort((a, b) => a - b));
 };
 
+export function isRefundedBet(
+  type: string,
+  selections: number[],
+  invalidHorseIds: Set<number>,
+  validBrackets: Set<number>
+): boolean {
+  if (type === BET_TYPES.BRACKET_QUINELLA) {
+    return selections.some((bracket) => !validBrackets.has(bracket));
+  }
+  return selections.some((horse) => invalidHorseIds.has(horse));
+}
+
 export function calculatePayoutRate(
   totalPool: number,
   winningAmount: number,

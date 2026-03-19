@@ -3,6 +3,7 @@ export {
   calculatePayoutRate,
   getWinningCombinations,
   isOrderSensitive,
+  isRefundedBet,
   isWinningBet,
   normalizeSelections,
   type Finisher,

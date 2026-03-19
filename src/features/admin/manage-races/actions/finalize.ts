@@ -1,6 +1,14 @@
 'use server';
 
-import { BetDetail, calculatePayoutRate, Finisher, isWinningBet, normalizeSelections, ODDS_UNIT } from '@/entities/bet';
+import {
+  BetDetail,
+  calculatePayoutRate,
+  Finisher,
+  isRefundedBet,
+  isWinningBet,
+  normalizeSelections,
+  ODDS_UNIT,
+} from '@/entities/bet';
 import type { NetkeibaPayoutEntry } from '@/features/admin/import-race/model/types';
 import { DEFAULT_GUARANTEED_ODDS } from '@/shared/constants/odds';
 import { db } from '@/shared/db';
@@ -105,18 +113,11 @@ export async function finalizeRace(
     const poolByBetType: Record<string, number> = {};
     const winningSelectionAmounts: Record<string, Record<string, number>> = {};
 
-    const isRefundedBet = (type: string, selections: number[]) => {
-      if (type === 'bracket_quinella') {
-        return selections.some((bracket) => !validBrackets.has(bracket));
-      }
-      return selections.some((horse) => invalidHorseIds.has(horse));
-    };
-
     for (const bet of allBets) {
       const betDetail = bet.details as BetDetail;
       const type = betDetail.type;
 
-      if (isRefundedBet(type, betDetail.selections)) {
+      if (isRefundedBet(type, betDetail.selections, invalidHorseIds, validBrackets)) {
         continue;
       }
 

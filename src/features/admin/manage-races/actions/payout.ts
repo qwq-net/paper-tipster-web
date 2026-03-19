@@ -12,7 +12,7 @@ import {
   wallets,
 } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireAdmin, revalidateRacePaths } from '@/shared/utils/admin';
-import { normalizeSelections, ODDS_UNIT } from '@/shared/utils/payout';
+import { isRefundedBet, normalizeSelections, ODDS_UNIT } from '@/shared/utils/payout';
 import { eq, inArray, sql } from 'drizzle-orm';
 
 export async function finalizePayout(raceId: string) {
@@ -64,13 +64,6 @@ export async function finalizePayout(raceId: string) {
         .filter((b): b is number => b !== null)
     );
 
-    const isRefundedBet = (type: string, selections: number[]) => {
-      if (type === 'bracket_quinella') {
-        return selections.some((bracket) => !validBrackets.has(bracket));
-      }
-      return selections.some((horse) => invalidHorseIds.has(horse));
-    };
-
     const allBets = await tx.query.bets.findMany({
       where: eq(bets.raceId, raceId),
     });
@@ -101,7 +94,7 @@ export async function finalizePayout(raceId: string) {
     for (const bet of allBets) {
       const betDetail = bet.details as BetDetail;
 
-      if (isRefundedBet(betDetail.type, betDetail.selections)) {
+      if (isRefundedBet(betDetail.type, betDetail.selections, invalidHorseIds, validBrackets)) {
         betUpdates.push({
           id: bet.id,
           status: 'REFUNDED',

@@ -1,7 +1,7 @@
 import { db } from '@/shared/db';
 import { ADMIN_ERRORS } from '@/shared/utils/admin';
 import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
-import { placeBets } from './actions';
+import { getUserBetGroupsForRace, placeBets } from './actions';
 
 vi.mock('@/shared/utils/admin', async () => {
   const actual = await vi.importActual('@/shared/utils/admin');
@@ -28,9 +28,22 @@ vi.mock('@/shared/db', () => ({
     query: {
       raceInstances: { findFirst: vi.fn() },
       wallets: { findFirst: vi.fn() },
+      betGroups: { findMany: vi.fn() },
+      bets: { findMany: vi.fn() },
+      raceEntries: { findMany: vi.fn() },
+      raceOdds: { findFirst: vi.fn() },
     },
+    insert: vi.fn(),
   },
 }));
+
+vi.mock('@/shared/utils/payout', async () => {
+  const actual = await vi.importActual('@/shared/utils/payout');
+  return {
+    ...actual,
+    isRefundedBet: vi.fn().mockReturnValue(false),
+  };
+});
 
 vi.mock('@/shared/lib/redis', () => ({
   redis: {
@@ -48,8 +61,10 @@ vi.mock('@/shared/lib/sse/event-emitter', () => ({
 
 vi.mock('@/shared/db/schema', () => ({
   betGroups: { id: 'betGroups.id' },
-  bets: { id: 'bets.id' },
+  bets: { id: 'bets.id', raceId: 'bets.raceId' },
   raceInstances: { id: 'raceInstances.id', status: 'status' },
+  raceEntries: { raceId: 'raceEntries.raceId' },
+  raceOdds: { raceId: 'raceOdds.raceId' },
   transactions: {},
   wallets: { id: 'wallets.id', balance: 'wallets.balance' },
 }));
@@ -278,5 +293,121 @@ describe('placeBets', () => {
     mockTx.query.wallets.findFirst.mockResolvedValue(null);
 
     await expect(placeBets(defaultArgs)).rejects.toThrow(ADMIN_ERRORS.INSUFFICIENT_BALANCE);
+  });
+});
+
+describe('getUserBetGroupsForRace', () => {
+  const userId = 'user-123';
+  const raceId = 'race-456';
+
+  const setupAuth = async () => {
+    const { requireUser } = await import('@/shared/utils/admin');
+    (requireUser as unknown as Mock).mockResolvedValue({ user: { id: userId } });
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('SCHEDULED レースではオッズ付与なしでグループを返す', async () => {
+    await setupAuth();
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ status: 'SCHEDULED' });
+    (db.query.betGroups.findMany as unknown as Mock).mockResolvedValue([
+      {
+        id: 'bg1',
+        type: 'win',
+        totalAmount: 200,
+        createdAt: new Date(),
+        bets: [
+          {
+            id: 'b1',
+            details: { type: 'win', selections: [1] },
+            amount: 100,
+            status: 'PENDING',
+            odds: null,
+            race: { entries: [{ horseNumber: 1, horse: { name: 'Horse1' } }] },
+          },
+        ],
+      },
+    ]);
+
+    const result = await getUserBetGroupsForRace(raceId);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].bets[0].odds).toBeNull();
+  });
+
+  it('CLOSED レースでは想定オッズが付与される', async () => {
+    await setupAuth();
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({
+      status: 'CLOSED',
+      guaranteedOdds: null,
+      fixedOddsMode: false,
+    });
+    (db.query.betGroups.findMany as unknown as Mock).mockResolvedValue([
+      {
+        id: 'bg1',
+        type: 'win',
+        totalAmount: 200,
+        createdAt: new Date(),
+        bets: [
+          {
+            id: 'b1',
+            details: { type: 'win', selections: [1] },
+            amount: 100,
+            status: 'PENDING',
+            odds: null,
+            race: { entries: [{ horseNumber: 1, horse: { name: 'Horse1' } }] },
+          },
+        ],
+      },
+    ]);
+    (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
+      { amount: 100, details: { type: 'win', selections: [1] } },
+      { amount: 100, details: { type: 'win', selections: [2] } },
+    ]);
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
+    const result = await getUserBetGroupsForRace(raceId);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].bets[0].odds).toBeDefined();
+    expect(typeof result[0].bets[0].odds).toBe('string');
+  });
+
+  it('FINALIZED レースではオッズ付与なしでグループを返す', async () => {
+    await setupAuth();
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ status: 'FINALIZED' });
+    (db.query.betGroups.findMany as unknown as Mock).mockResolvedValue([
+      {
+        id: 'bg1',
+        type: 'win',
+        totalAmount: 100,
+        createdAt: new Date(),
+        bets: [
+          {
+            id: 'b1',
+            details: { type: 'win', selections: [1] },
+            amount: 100,
+            status: 'HIT',
+            odds: '2.5',
+            race: { entries: [{ horseNumber: 1, horse: { name: 'Horse1' } }] },
+          },
+        ],
+      },
+    ]);
+
+    const result = await getUserBetGroupsForRace(raceId);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].bets[0].odds).toBe('2.5');
+  });
+
+  it('ベットグループが空の場合は空配列を返す', async () => {
+    await setupAuth();
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({ status: 'SCHEDULED' });
+    (db.query.betGroups.findMany as unknown as Mock).mockResolvedValue([]);
+
+    const result = await getUserBetGroupsForRace(raceId);
+    expect(result).toEqual([]);
   });
 });

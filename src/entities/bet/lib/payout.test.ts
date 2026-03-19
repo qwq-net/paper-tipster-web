@@ -1,6 +1,13 @@
 import { BET_TYPES, BetDetail } from '@/entities/bet/constants';
 import { describe, expect, it } from 'vitest';
-import { Finisher, calculatePayoutRate, getWinningCombinations, isWinningBet, normalizeSelections } from './payout';
+import {
+  Finisher,
+  calculatePayoutRate,
+  getWinningCombinations,
+  isRefundedBet,
+  isWinningBet,
+  normalizeSelections,
+} from './payout';
 
 describe('isWinningBet (的中判定)', () => {
   const finishers: Finisher[] = [
@@ -235,5 +242,66 @@ describe('normalizeSelections (選択正規化)', () => {
 
   it('PLACE は順序依存', () => {
     expect(normalizeSelections(BET_TYPES.PLACE, [4])).toBe(JSON.stringify([4]));
+  });
+});
+
+describe('isRefundedBet (返還判定)', () => {
+  const invalidHorseIds = new Set([4, 5]);
+  const validBrackets = new Set([1, 2, 3]);
+
+  it('単勝: 取消馬への投票は返還', () => {
+    expect(isRefundedBet(BET_TYPES.WIN, [4], invalidHorseIds, validBrackets)).toBe(true);
+    expect(isRefundedBet(BET_TYPES.WIN, [1], invalidHorseIds, validBrackets)).toBe(false);
+  });
+
+  it('複勝: 取消馬への投票は返還', () => {
+    expect(isRefundedBet(BET_TYPES.PLACE, [5], invalidHorseIds, validBrackets)).toBe(true);
+    expect(isRefundedBet(BET_TYPES.PLACE, [2], invalidHorseIds, validBrackets)).toBe(false);
+  });
+
+  it('馬連: 片方でも取消馬なら返還', () => {
+    expect(isRefundedBet(BET_TYPES.QUINELLA, [1, 4], invalidHorseIds, validBrackets)).toBe(true);
+    expect(isRefundedBet(BET_TYPES.QUINELLA, [4, 5], invalidHorseIds, validBrackets)).toBe(true);
+    expect(isRefundedBet(BET_TYPES.QUINELLA, [1, 2], invalidHorseIds, validBrackets)).toBe(false);
+  });
+
+  it('3連単: 1頭でも取消馬なら返還', () => {
+    expect(isRefundedBet(BET_TYPES.TRIFECTA, [1, 2, 4], invalidHorseIds, validBrackets)).toBe(true);
+    expect(isRefundedBet(BET_TYPES.TRIFECTA, [1, 2, 3], invalidHorseIds, validBrackets)).toBe(false);
+  });
+
+  it('3連複: 1頭でも取消馬なら返還', () => {
+    expect(isRefundedBet(BET_TYPES.TRIO, [1, 4, 3], invalidHorseIds, validBrackets)).toBe(true);
+    expect(isRefundedBet(BET_TYPES.TRIO, [1, 2, 3], invalidHorseIds, validBrackets)).toBe(false);
+  });
+
+  it('ワイド: 片方でも取消馬なら返還', () => {
+    expect(isRefundedBet(BET_TYPES.WIDE, [1, 5], invalidHorseIds, validBrackets)).toBe(true);
+    expect(isRefundedBet(BET_TYPES.WIDE, [1, 3], invalidHorseIds, validBrackets)).toBe(false);
+  });
+
+  it('馬単: 片方でも取消馬なら返還', () => {
+    expect(isRefundedBet(BET_TYPES.EXACTA, [4, 1], invalidHorseIds, validBrackets)).toBe(true);
+    expect(isRefundedBet(BET_TYPES.EXACTA, [1, 2], invalidHorseIds, validBrackets)).toBe(false);
+  });
+
+  it('枠連: 無効枠が含まれていたら返還', () => {
+    expect(isRefundedBet(BET_TYPES.BRACKET_QUINELLA, [1, 4], invalidHorseIds, validBrackets)).toBe(true);
+    expect(isRefundedBet(BET_TYPES.BRACKET_QUINELLA, [1, 2], invalidHorseIds, validBrackets)).toBe(false);
+  });
+
+  it('枠連: 枠判定は validBrackets を使い、invalidHorseIds は無関係', () => {
+    const horseInvalid = new Set([1]);
+    const bracketsValid = new Set([1, 2]);
+    expect(isRefundedBet(BET_TYPES.BRACKET_QUINELLA, [1, 2], horseInvalid, bracketsValid)).toBe(false);
+  });
+
+  it('取消馬がいない場合は全券種で返還なし', () => {
+    const noInvalid = new Set<number>();
+    const allBrackets = new Set([1, 2, 3, 4, 5]);
+    expect(isRefundedBet(BET_TYPES.WIN, [1], noInvalid, allBrackets)).toBe(false);
+    expect(isRefundedBet(BET_TYPES.QUINELLA, [1, 2], noInvalid, allBrackets)).toBe(false);
+    expect(isRefundedBet(BET_TYPES.BRACKET_QUINELLA, [1, 2], noInvalid, allBrackets)).toBe(false);
+    expect(isRefundedBet(BET_TYPES.TRIFECTA, [1, 2, 3], noInvalid, allBrackets)).toBe(false);
   });
 });

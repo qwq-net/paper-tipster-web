@@ -318,6 +318,65 @@ describe('finalizeRace', () => {
     expect(winHit!.payout).toBe(200);
   });
 
+  it('netkeibaPayouts を渡した場合、プール計算をスキップしてそのまま payoutResults に保存する', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
+    mockTx.query.bets.findMany.mockResolvedValue([
+      { id: 'b1', amount: 100, details: { type: BET_TYPES.WIN, selections: [1] } },
+      { id: 'b2', amount: 100, details: { type: BET_TYPES.WIN, selections: [2] } },
+    ]);
+
+    const netkeibaPayouts = {
+      [BET_TYPES.WIN]: [{ numbers: [1], payout: 540 }],
+      [BET_TYPES.PLACE]: [
+        { numbers: [1], payout: 180 },
+        { numbers: [2], payout: 220 },
+        { numbers: [3], payout: 350 },
+      ],
+      [BET_TYPES.TRIFECTA]: [{ numbers: [1, 2, 3], payout: 25600 }],
+    };
+
+    await finalizeRace('race1', defaultResults, undefined, netkeibaPayouts);
+
+    const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN && v.raceId === 'race1');
+    expect(winInsert).toBeDefined();
+    const winCombos = winInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    expect(winCombos).toEqual([{ numbers: [1], payout: 540 }]);
+
+    const placeInsert = insertedValues.find((v) => v.type === BET_TYPES.PLACE && v.raceId === 'race1');
+    expect(placeInsert).toBeDefined();
+    const placeCombos = placeInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    expect(placeCombos).toHaveLength(3);
+    expect(placeCombos[0].payout).toBe(180);
+
+    const trifectaInsert = insertedValues.find((v) => v.type === BET_TYPES.TRIFECTA && v.raceId === 'race1');
+    expect(trifectaInsert).toBeDefined();
+    expect((trifectaInsert!.combinations as Array<{ numbers: number[]; payout: number }>)[0].payout).toBe(25600);
+  });
+
+  it('netkeibaPayouts を渡した場合、保証オッズやデフォルトオッズによる補完が行われない', async () => {
+    await setupAdminAuth();
+    mockTx.query.raceEntries.findMany.mockResolvedValue(threeFinishers);
+    mockTx.query.raceInstances.findFirst.mockResolvedValue({
+      status: 'CLOSED',
+      guaranteedOdds: { [BET_TYPES.WIN]: 10.0 },
+    });
+    mockTx.query.bets.findMany.mockResolvedValue([]);
+
+    const netkeibaPayouts = {
+      [BET_TYPES.WIN]: [{ numbers: [1], payout: 540 }],
+    };
+
+    await finalizeRace('race1', defaultResults, undefined, netkeibaPayouts);
+
+    const allTypes = insertedValues.map((v) => v.type);
+    expect(allTypes).toEqual([BET_TYPES.WIN]);
+
+    const winInsert = insertedValues.find((v) => v.type === BET_TYPES.WIN);
+    const winCombos = winInsert!.combinations as Array<{ numbers: number[]; payout: number }>;
+    expect(winCombos).toEqual([{ numbers: [1], payout: 540 }]);
+  });
+
   it('取消馬への投票はプール計算から除外される（返還は払戻確定時に実施）', async () => {
     await setupAdminAuth();
     const finishersWithScratch = [

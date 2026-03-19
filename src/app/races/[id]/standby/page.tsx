@@ -139,7 +139,7 @@ export default async function RaceStandbyPage({ params }: { params: Promise<{ id
           entryCount={entries.length}
         />
 
-        <PurchasedTicketList ticketGroups={ticketGroups} />
+        <PurchasedTicketList ticketGroups={ticketGroups} fixedOddsMode={race.fixedOddsMode} />
       </div>
     </div>
   );

@@ -563,6 +563,63 @@ describe('finalizePayout', () => {
     expect(refundTx?.type).toBe('REFUND');
   });
 
+  it('Netkeiba由来の高額payoutResultsで正しく払戻される', async () => {
+    const { bet: betHit } = await createBet({ type: 'trifecta', selections: [1, 2, 3], amount: 100 });
+    const { bet: betMiss } = await createBet({ type: 'trifecta', selections: [3, 2, 1], amount: 100 });
+
+    await db.insert(payoutResults).values({
+      raceId: raceId,
+      type: 'trifecta',
+      combinations: [{ numbers: [1, 2, 3], payout: 125600 }],
+    });
+
+    await finalizePayout(raceId);
+
+    const updatedHit = await db.query.bets.findFirst({ where: eq(bets.id, betHit.id) });
+    const updatedMiss = await db.query.bets.findFirst({ where: eq(bets.id, betMiss.id) });
+    const updatedWallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+
+    expect(updatedHit?.status).toBe('HIT');
+    expect(Number(updatedHit?.payout)).toBe(125600);
+    expect(updatedHit?.odds).toBe('1256.0');
+
+    expect(updatedMiss?.status).toBe('LOST');
+    expect(Number(updatedMiss?.payout)).toBe(0);
+
+    expect(Number(updatedWallet?.balance)).toBe(10000 + 125600);
+  });
+
+  it('Netkeiba由来の複数券種payoutResultsで的中・不的中・キャリーオーバーが正しく処理される', async () => {
+    const { bet: winHit } = await createBet({ type: 'win', selections: [1], amount: 200 });
+    await createBet({ type: 'win', selections: [2], amount: 200 });
+    const { bet: quinellaHit } = await createBet({ type: 'quinella', selections: [2, 1], amount: 100 });
+    await createBet({ type: 'exacta', selections: [2, 1], amount: 100 });
+
+    await db.insert(payoutResults).values([
+      { raceId, type: 'win', combinations: [{ numbers: [1], payout: 540 }] },
+      { raceId, type: 'quinella', combinations: [{ numbers: [1, 2], payout: 1520 }] },
+      { raceId, type: 'exacta', combinations: [{ numbers: [1, 2], payout: 2840 }] },
+    ]);
+
+    await finalizePayout(raceId);
+
+    const updatedWinHit = await db.query.bets.findFirst({ where: eq(bets.id, winHit.id) });
+    expect(updatedWinHit?.status).toBe('HIT');
+    expect(Number(updatedWinHit?.payout)).toBe(1080);
+    expect(updatedWinHit?.odds).toBe('5.4');
+
+    const updatedQuinellaHit = await db.query.bets.findFirst({ where: eq(bets.id, quinellaHit.id) });
+    expect(updatedQuinellaHit?.status).toBe('HIT');
+    expect(Number(updatedQuinellaHit?.payout)).toBe(1520);
+    expect(updatedQuinellaHit?.odds).toBe('15.2');
+
+    const event = await db.query.events.findFirst({ where: eq(events.id, eventId) });
+    expect(Number(event?.carryoverAmount)).toBe(100);
+
+    const wallet = await db.query.wallets.findFirst({ where: eq(wallets.id, walletId) });
+    expect(Number(wallet?.balance)).toBe(10000 + 1080 + 1520);
+  });
+
   itSlow('1000件超の大量購入でもバッチ更新とPAYOUT記録が整合する', async () => {
     const hitCount = 1005;
     const loseCount = 205;

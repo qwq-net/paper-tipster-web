@@ -35,9 +35,10 @@ interface BetGroup {
 
 interface PurchasedTicketListProps {
   ticketGroups: BetGroup[];
+  fixedOddsMode?: boolean;
 }
 
-export function PurchasedTicketList({ ticketGroups }: PurchasedTicketListProps) {
+export function PurchasedTicketList({ ticketGroups, fixedOddsMode = false }: PurchasedTicketListProps) {
   if (ticketGroups.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/30 py-12 text-center shadow-sm">
@@ -72,14 +73,14 @@ export function PurchasedTicketList({ ticketGroups }: PurchasedTicketListProps) 
 
       <div className="space-y-4">
         {ticketGroups.map((group) => (
-          <TicketGroupItem key={group.id} group={group} />
+          <TicketGroupItem key={group.id} group={group} fixedOddsMode={fixedOddsMode} />
         ))}
       </div>
     </div>
   );
 }
 
-function TicketGroupItem({ group }: { group: BetGroup }) {
+function TicketGroupItem({ group, fixedOddsMode }: { group: BetGroup; fixedOddsMode: boolean }) {
   const [isOpen, setIsOpen] = useState(true);
 
   const groupPayout = group.bets.reduce((sum, bet) => sum + (bet.payout || 0), 0);
@@ -174,6 +175,8 @@ function TicketGroupItem({ group }: { group: BetGroup }) {
           </div>
           {groupPayout > 0 ? (
             <div className="text-sm font-semibold text-red-600">+{groupPayout.toLocaleString('ja-JP')}円</div>
+          ) : fixedOddsMode ? (
+            <div className="mt-0.5 text-sm text-gray-400">Netkeibaオッズで払戻</div>
           ) : (
             hasProvisional && (
               <div className="mt-0.5 text-sm font-medium text-amber-600">

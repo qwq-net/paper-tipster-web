@@ -1,15 +1,16 @@
 import { getPayoutResults } from '@/entities/race/actions';
+import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { getRaceById } from '@/features/admin/manage-races/actions';
 import { RaceResultForm } from '@/features/admin/manage-races/ui/race-result-form';
 import { auth } from '@/shared/config/auth';
 import { db } from '@/shared/db';
-import { bet5Events, horses, raceEntries } from '@/shared/db/schema';
+import { bet5Events, horses, raceEntries, raceOdds } from '@/shared/db/schema';
 import { Badge, Button, Card, CardContent, CardHeader } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
 import { cn } from '@/shared/utils/cn';
 import { eq } from 'drizzle-orm';
-import { ChevronLeft, Info, Settings2, Trophy } from 'lucide-react';
+import { ChevronLeft, ExternalLink, Info, Settings2, Trophy } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
@@ -29,18 +30,26 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
   if (!race) {
     notFound();
   }
-  const entriesWithResult = await db
-    .select({
-      id: raceEntries.id,
-      horseNumber: raceEntries.horseNumber,
-      bracketNumber: raceEntries.bracketNumber,
-      finishPosition: raceEntries.finishPosition,
-      horseName: horses.name,
-    })
-    .from(raceEntries)
-    .innerJoin(horses, eq(raceEntries.horseId, horses.id))
-    .where(eq(raceEntries.raceId, id))
-    .orderBy(raceEntries.finishPosition, raceEntries.horseNumber);
+  const [entriesWithResult, oddsRecord] = await Promise.all([
+    db
+      .select({
+        id: raceEntries.id,
+        horseNumber: raceEntries.horseNumber,
+        bracketNumber: raceEntries.bracketNumber,
+        finishPosition: raceEntries.finishPosition,
+        jockey: raceEntries.jockey,
+        horseName: horses.name,
+      })
+      .from(raceEntries)
+      .innerJoin(horses, eq(raceEntries.horseId, horses.id))
+      .where(eq(raceEntries.raceId, id))
+      .orderBy(raceEntries.finishPosition, raceEntries.horseNumber),
+    db.query.raceOdds.findFirst({
+      where: eq(raceOdds.raceId, id),
+      columns: { winOdds: true, updatedAt: true },
+    }),
+  ]);
+  const oddsMap = oddsRecord?.winOdds ?? {};
 
   const bet5Event = await db.query.bet5Events.findFirst({
     where: eq(bet5Events.eventId, race.eventId),
@@ -79,6 +88,17 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 {race.raceNumber ? `${race.raceNumber}R` : '-'}
               </span>
               <h1 className="text-2xl font-semibold text-gray-900">{race.name}</h1>
+              {race.netkeibaUrl && (
+                <a
+                  href={race.netkeibaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700 ring-1 ring-blue-100 hover:bg-blue-100"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Netkeiba
+                </a>
+              )}
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <p>
@@ -151,8 +171,22 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                         </span>
                       </div>
 
-                      <div className="flex-1">
-                        <span className="text-base font-semibold text-gray-900">{entry.horseName}</span>
+                      <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                        <span className="truncate text-base font-semibold text-gray-900">{entry.horseName}</span>
+                        {entry.jockey && (
+                          <>
+                            <span className="shrink-0 text-sm text-gray-400">/</span>
+                            <span className="shrink-0 text-sm text-gray-500">{entry.jockey}</span>
+                          </>
+                        )}
+                        {oddsMap[String(entry.horseNumber)] != null && (
+                          <>
+                            <span className="shrink-0 text-sm text-gray-400">/</span>
+                            <span className="shrink-0 text-sm font-semibold text-gray-600">
+                              オッズ: {oddsMap[String(entry.horseNumber)].toFixed(1)}倍
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -169,6 +203,8 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 horseNumber: e.horseNumber,
                 horseName: e.horseName,
                 bracketNumber: e.bracketNumber,
+                jockey: e.jockey,
+                odds: oddsMap[String(e.horseNumber)] ?? null,
               }))}
               race={{
                 id: race.id,
@@ -182,6 +218,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                 distance: race.distance,
                 condition: (race.condition as '良' | '稍重' | '重' | '不良' | null) || null,
                 closingAt: race.closingAt ? race.closingAt.toISOString() : null,
+                netkeibaUrl: race.netkeibaUrl ?? null,
               }}
             />
           ) : (
@@ -240,7 +277,23 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                     )}
                   </span>
                 </div>
+                {oddsRecord && (
+                  <div className="flex items-center justify-between pb-2">
+                    <span className="font-medium text-gray-500">オッズ更新</span>
+                    <span className="text-sm text-gray-400">
+                      <FormattedDate
+                        date={oddsRecord.updatedAt}
+                        options={{ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }}
+                      />
+                    </span>
+                  </div>
+                )}
               </CardContent>
+              {race.netkeibaUrl && (
+                <div className="border-t border-gray-50 p-4">
+                  <UpdateNetkeibaOddsButton raceId={id} />
+                </div>
+              )}
             </Card>
           </div>
         )}

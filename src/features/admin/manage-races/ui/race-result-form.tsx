@@ -1,5 +1,6 @@
 'use client';
 
+import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { Badge, Button } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
@@ -31,6 +32,8 @@ interface Entry {
   horseNumber: number | null;
   horseName: string;
   bracketNumber: number | null;
+  jockey?: string | null;
+  odds?: number | null;
 }
 
 interface RaceResultFormProps {
@@ -50,6 +53,7 @@ interface RaceResultFormProps {
     distance: number;
     condition: '良' | '稍重' | '重' | '不良' | null;
     closingAt: string | null;
+    netkeibaUrl?: string | null;
   };
 }
 
@@ -117,8 +121,20 @@ function SortableResultItem({ entry, position }: { entry: Entry; position: numbe
         </span>
       </div>
 
-      <div className="flex flex-1 flex-col truncate">
+      <div className="flex min-w-0 flex-1 items-center gap-1.5 truncate">
         <span className="truncate text-sm font-semibold text-gray-900">{entry.horseName}</span>
+        {entry.jockey && (
+          <>
+            <span className="shrink-0 text-sm text-gray-400">/</span>
+            <span className="shrink-0 text-sm text-gray-500">{entry.jockey}</span>
+          </>
+        )}
+        {entry.odds != null && (
+          <>
+            <span className="shrink-0 text-sm text-gray-400">/</span>
+            <span className="shrink-0 text-sm font-semibold text-gray-600">オッズ: {entry.odds.toFixed(1)}倍</span>
+          </>
+        )}
       </div>
     </div>
   );
@@ -309,7 +325,23 @@ export function RaceResultForm({
                       {activeEntry.horseNumber || '?'}
                     </span>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900">{activeEntry.horseName}</span>
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span className="text-sm font-semibold text-gray-900">{activeEntry.horseName}</span>
+                    {activeEntry.jockey && (
+                      <>
+                        <span className="text-sm text-gray-400">/</span>
+                        <span className="text-sm text-gray-500">{activeEntry.jockey}</span>
+                      </>
+                    )}
+                    {activeEntry.odds != null && (
+                      <>
+                        <span className="text-sm text-gray-400">/</span>
+                        <span className="text-sm font-semibold text-gray-600">
+                          オッズ: {activeEntry.odds.toFixed(1)}倍
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
             </DragOverlay>
@@ -403,6 +435,12 @@ export function RaceResultForm({
               <Badge variant="condition" label={race.condition} />
             </div>
           </div>
+
+          {race.netkeibaUrl && (
+            <div className="mb-4">
+              <UpdateNetkeibaOddsButton raceId={raceId} />
+            </div>
+          )}
 
           <div className="mt-8 space-y-3">
             {race.status === 'SCHEDULED' && (

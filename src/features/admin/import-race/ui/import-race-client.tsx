@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Card, Checkbox, Input, Label, Select } from '@/shared/ui';
+import { Badge, Button, Card, Checkbox, Input, Label, Select } from '@/shared/ui';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -31,7 +31,7 @@ export function ImportRaceClient({ events, venues }: Props) {
   const [preview, setPreview] = useState<RacePreviewWithHorseStatus | null>(null);
 
   const [raceName, setRaceName] = useState('');
-  const [raceDate, setRaceDate] = useState('');
+  const [raceDate, setRaceDate] = useState(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' }));
   const [venueId, setVenueId] = useState('');
   const [eventId, setEventId] = useState('');
   const [fixedOddsMode, setFixedOddsMode] = useState(true);
@@ -43,7 +43,7 @@ export function ImportRaceClient({ events, venues }: Props) {
         const result = await fetchRacePreview(url.trim());
         setPreview(result);
         setRaceName(result.raceInfo.raceName);
-        setRaceDate('');
+        setRaceDate(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' }));
         const matched = venues.find((v) => v.code === result.raceInfo.netkeibaVenueCode);
         setVenueId(matched?.id ?? '');
         setEventId(events[0]?.id ?? '');
@@ -211,7 +211,7 @@ export function ImportRaceClient({ events, venues }: Props) {
                 </thead>
                 <tbody>
                   {preview.horses.map((h) => (
-                    <tr key={h.horseNumber} className="border-b last:border-0">
+                    <tr key={h.name} className="border-b last:border-0">
                       <td className="px-2 py-1.5">{h.bracketNumber}</td>
                       <td className="px-2 py-1.5">{h.horseNumber}</td>
                       <td className="px-2 py-1.5 font-medium">{h.name}</td>
@@ -224,13 +224,9 @@ export function ImportRaceClient({ events, venues }: Props) {
                       <td className="px-2 py-1.5">{h.odds?.toFixed(1) ?? '-'}</td>
                       <td className="px-2 py-1.5">
                         {h.existingHorseId ? (
-                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-sm font-medium text-blue-700">
-                            既存
-                          </span>
+                          <Badge label="既存" className="bg-blue-100 text-blue-700" />
                         ) : (
-                          <span className="rounded-full bg-green-100 px-2 py-0.5 text-sm font-medium text-green-700">
-                            新規
-                          </span>
+                          <Badge label="新規" className="bg-green-100 text-green-700" />
                         )}
                       </td>
                     </tr>

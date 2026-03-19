@@ -3,12 +3,30 @@
 import { db } from '@/shared/db';
 import { horses, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
 import { requireAdmin } from '@/shared/utils/admin';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { inflateSync } from 'zlib';
 import { parseShutuba } from './lib/parse-shutuba';
 import type { HorsePreviewItem, RacePreviewWithHorseStatus } from './model/types';
 
-const NETKEIBA_URL_RE = /^https:\/\/race\.netkeiba\.com\/race\/shutuba\.html\?race_id=(\d{12})$/;
+const NETKEIBA_BASE = 'https://race.netkeiba.com/race/shutuba.html';
+
+function normalizeNetkeibaUrl(input: string): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(input);
+  } catch {
+    throw new Error('URLの形式が正しくありません');
+  }
+  if (parsed.hostname !== 'race.netkeiba.com' || parsed.pathname !== '/race/shutuba.html') {
+    throw new Error('Netkeiba出馬表のURLを入力してください');
+  }
+  const raceId = parsed.searchParams.get('race_id');
+  if (!raceId || !/^\d{12}$/.test(raceId)) {
+    throw new Error('race_idが正しくありません（12桁の数字が必要です）');
+  }
+  return `${NETKEIBA_BASE}?race_id=${raceId}`;
+}
 
 async function fetchNetkeibaHtml(url: string): Promise<string> {
   const res = await fetch(url, {
@@ -18,18 +36,60 @@ async function fetchNetkeibaHtml(url: string): Promise<string> {
   });
   if (!res.ok) throw new Error(`Netkeibaページの取得に失敗しました (${res.status})`);
   const buffer = await res.arrayBuffer();
+
   const contentType = res.headers.get('content-type') ?? '';
-  const charsetMatch = contentType.match(/charset=([^\s;]+)/i);
-  const charset = charsetMatch?.[1] ?? 'utf-8';
+  let charset = contentType.match(/charset=([^\s;]+)/i)?.[1];
+
+  if (!charset) {
+    const head = new TextDecoder('latin1').decode(buffer.slice(0, 2048));
+    charset = head.match(/charset=["']?([^\s;"'>]+)/i)?.[1];
+  }
+
+  charset ??= 'euc-jp';
+
   return new TextDecoder(charset).decode(buffer);
+}
+
+async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, number>> {
+  const apiUrl = `https://race.netkeiba.com/api/api_get_jra_odds.html?race_id=${raceId}&type=1&action=init&output=jsonp&callback=cb`;
+  const res = await fetch(apiUrl, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PaperTipster/1.0)' },
+    signal: AbortSignal.timeout(10000),
+    cache: 'no-store',
+  });
+  if (!res.ok) return {};
+
+  const text = await res.text();
+  const jsonStr = text.replace(/^cb\(/, '').replace(/\)\s*$/, '');
+  const json = JSON.parse(jsonStr) as { status: string; data: string | unknown };
+
+  if (json.status !== 'result' || !json.data) return {};
+
+  let oddsData: { odds?: Record<string, Record<string, [string, string, string]>> };
+  if (typeof json.data === 'string') {
+    const buf = Buffer.from(json.data, 'base64');
+    oddsData = JSON.parse(inflateSync(buf).toString('utf-8'));
+  } else {
+    oddsData = json.data as typeof oddsData;
+  }
+
+  const winOddsRaw = oddsData.odds?.['1'] ?? {};
+  const result: Record<string, number> = {};
+  for (const [key, val] of Object.entries(winOddsRaw)) {
+    const horseNum = parseInt(key, 10);
+    const oddsVal = parseFloat(val[0]);
+    if (!isNaN(oddsVal)) result[String(horseNum)] = oddsVal;
+  }
+  return result;
 }
 
 export async function fetchRacePreview(url: string): Promise<RacePreviewWithHorseStatus> {
   await requireAdmin();
-  if (!NETKEIBA_URL_RE.test(url)) throw new Error('URLの形式が正しくありません');
+  const normalizedUrl = normalizeNetkeibaUrl(url);
+  const raceId = new URL(normalizedUrl).searchParams.get('race_id')!;
 
-  const html = await fetchNetkeibaHtml(url);
-  const preview = parseShutuba(html, url);
+  const [html, winOdds] = await Promise.all([fetchNetkeibaHtml(normalizedUrl), fetchNetkeibaWinOdds(raceId)]);
+  const preview = parseShutuba(html, normalizedUrl);
 
   const horseItems: HorsePreviewItem[] = await Promise.all(
     preview.horses.map(async (h) => {
@@ -37,7 +97,8 @@ export async function fetchRacePreview(url: string): Promise<RacePreviewWithHors
         where: eq(horses.name, h.name),
         columns: { id: true },
       });
-      return { ...h, existingHorseId: existing?.id ?? null };
+      const oddsFromApi = winOdds[String(h.horseNumber)] ?? null;
+      return { ...h, odds: oddsFromApi ?? h.odds, existingHorseId: existing?.id ?? null };
     })
   );
 
@@ -70,8 +131,14 @@ type ImportRaceParams = {
 export async function importRace(params: ImportRaceParams): Promise<{ raceId: string }> {
   await requireAdmin();
 
-  if (!NETKEIBA_URL_RE.test(params.url)) throw new Error('URLの形式が正しくありません');
+  normalizeNetkeibaUrl(params.url);
   if (params.horses.length === 0) throw new Error('出走馬が0頭です');
+
+  const duplicateRace = await db.query.raceInstances.findFirst({
+    where: and(eq(raceInstances.eventId, params.eventId), eq(raceInstances.name, params.raceName)),
+    columns: { id: true },
+  });
+  if (duplicateRace) throw new Error(`同じイベントに「${params.raceName}」は既に登録されています`);
 
   const result = await db.transaction(async (tx) => {
     const horseIds: Record<number, string> = {};
@@ -143,13 +210,11 @@ export async function updateOddsFromNetkeiba(raceId: string): Promise<void> {
   });
   if (!race?.netkeibaUrl) throw new Error('Netkeiba URLが設定されていません');
 
-  const html = await fetchNetkeibaHtml(race.netkeibaUrl);
-  const preview = parseShutuba(html, race.netkeibaUrl);
+  const netkeibaRaceId = new URL(race.netkeibaUrl).searchParams.get('race_id');
+  if (!netkeibaRaceId) throw new Error('race_idが取得できません');
 
-  const winOdds: Record<string, number> = {};
-  for (const h of preview.horses) {
-    if (h.odds !== null) winOdds[String(h.horseNumber)] = h.odds;
-  }
+  const winOdds = await fetchNetkeibaWinOdds(netkeibaRaceId);
+  if (Object.keys(winOdds).length === 0) throw new Error('オッズデータが取得できませんでした');
 
   await db
     .insert(raceOdds)

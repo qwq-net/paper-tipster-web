@@ -6,6 +6,7 @@ vi.mock('@/shared/db', () => ({
     query: {
       bets: { findMany: vi.fn() },
       raceInstances: { findFirst: vi.fn() },
+      raceEntries: { findMany: vi.fn() },
       raceOdds: { findFirst: vi.fn() },
     },
     insert: vi.fn(),
@@ -15,7 +16,12 @@ vi.mock('@/shared/db', () => ({
 vi.mock('@/shared/db/schema', () => ({
   bets: { raceId: 'bets.raceId' },
   raceInstances: { id: 'raceInstances.id' },
+  raceEntries: { raceId: 'raceEntries.raceId' },
   raceOdds: { raceId: 'raceOdds.raceId' },
+}));
+
+vi.mock('@/shared/utils/payout', () => ({
+  isRefundedBet: vi.fn().mockReturnValue(false),
 }));
 
 vi.mock('@/shared/lib/redis', () => ({
@@ -232,7 +238,9 @@ describe('calculateAllProvisionalOdds', () => {
     ]);
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({
       guaranteedOdds: { win: 1.5 },
+      fixedOddsMode: false,
     });
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
 
     const result = await calculateAllProvisionalOdds(raceId);
 
@@ -248,7 +256,9 @@ describe('calculateAllProvisionalOdds', () => {
     ]);
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({
       guaranteedOdds: { win: 2.0 },
+      fixedOddsMode: false,
     });
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
 
     const result = await calculateAllProvisionalOdds(raceId);
 
@@ -261,6 +271,7 @@ describe('calculateAllProvisionalOdds', () => {
       { amount: 1000, details: { type: 'win', selections: [1] } },
     ]);
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(null);
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
 
     const result = await calculateAllProvisionalOdds(raceId);
 
@@ -270,6 +281,7 @@ describe('calculateAllProvisionalOdds', () => {
   it('ベットがない場合は空のオブジェクトを返す', async () => {
     (db.query.bets.findMany as unknown as Mock).mockResolvedValue([]);
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(null);
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
 
     const result = await calculateAllProvisionalOdds(raceId);
 
@@ -282,6 +294,7 @@ describe('calculateAllProvisionalOdds', () => {
       { amount: 500, details: { type: 'quinella', selections: [1, 3] } },
     ]);
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(null);
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
 
     const result = await calculateAllProvisionalOdds(raceId);
 
@@ -295,12 +308,28 @@ describe('calculateAllProvisionalOdds', () => {
       { amount: 500, details: { type: 'exacta', selections: [1, 3] } },
     ]);
     (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue(null);
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
 
     const result = await calculateAllProvisionalOdds(raceId);
 
     expect(result.exacta[JSON.stringify([3, 1])]).toBe(2.0);
     expect(result.exacta[JSON.stringify([1, 3])]).toBe(2.0);
     expect(Object.keys(result.exacta)).toHaveLength(2);
+  });
+
+  it('fixedOddsModeの場合は空のオブジェクトを返す', async () => {
+    (db.query.bets.findMany as unknown as Mock).mockResolvedValue([
+      { amount: 1000, details: { type: 'win', selections: [1] } },
+    ]);
+    (db.query.raceInstances.findFirst as unknown as Mock).mockResolvedValue({
+      guaranteedOdds: null,
+      fixedOddsMode: true,
+    });
+    (db.query.raceEntries.findMany as unknown as Mock).mockResolvedValue([]);
+
+    const result = await calculateAllProvisionalOdds(raceId);
+
+    expect(result).toEqual({});
   });
 });
 

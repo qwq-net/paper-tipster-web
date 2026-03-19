@@ -1,7 +1,8 @@
 import { db } from '@/shared/db';
-import { bets, raceInstances, raceOdds } from '@/shared/db/schema';
+import { bets, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
 import { redis } from '@/shared/lib/redis';
 import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
+import { isRefundedBet } from '@/shared/utils/payout';
 import { eq } from 'drizzle-orm';
 
 import { aggregateOddsPool, BetDetail, calculateProvisionalOdds, calculateWinOdds } from '@/entities/bet';
@@ -84,17 +85,36 @@ export async function calculateOdds(raceId: string) {
 }
 
 export async function calculateAllProvisionalOdds(raceId: string) {
-  const [raceBetsRaw, race] = await Promise.all([
+  const [raceBetsRaw, race, entriesInRace] = await Promise.all([
     db.query.bets.findMany({
       where: eq(bets.raceId, raceId),
     }),
     db.query.raceInstances.findFirst({
       where: eq(raceInstances.id, raceId),
-      columns: { guaranteedOdds: true },
+      columns: { guaranteedOdds: true, fixedOddsMode: true },
+    }),
+    db.query.raceEntries.findMany({
+      where: eq(raceEntries.raceId, raceId),
+      columns: { horseNumber: true, bracketNumber: true, status: true },
     }),
   ]);
 
-  const raceBets = raceBetsRaw as { amount: number; details: BetDetail }[];
+  if (race?.fixedOddsMode) return {};
+
+  const invalidHorseIds = new Set(
+    entriesInRace.filter((e) => e.status === 'SCRATCHED' || e.status === 'EXCLUDED').map((e) => e.horseNumber!)
+  );
+  const validBrackets = new Set(
+    entriesInRace
+      .filter((e) => e.status === 'ENTRANT')
+      .map((e) => e.bracketNumber!)
+      .filter((b): b is number => b !== null)
+  );
+
+  const raceBets = (raceBetsRaw as { amount: number; details: BetDetail }[]).filter(
+    (bet) => !isRefundedBet(bet.details.type, bet.details.selections, invalidHorseIds, validBrackets)
+  );
+
   const pool = aggregateOddsPool(raceBets);
   return calculateProvisionalOdds(pool, (race?.guaranteedOdds as Record<string, number>) || undefined);
 }

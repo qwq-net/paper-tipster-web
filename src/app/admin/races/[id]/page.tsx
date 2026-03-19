@@ -107,6 +107,12 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
             </div>
           </div>
           <div className="flex gap-2">
+            {race.netkeibaUrl && (
+              <UpdateNetkeibaOddsButton
+                raceId={id}
+                className="border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"
+              />
+            )}
             <Button variant="outline" asChild>
               <Link href={`/admin/races/${race.id}/odds`}>
                 <Trophy className="mr-2 h-4 w-4" />
@@ -277,6 +283,10 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                     )}
                   </span>
                 </div>
+                <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+                  <span className="font-medium text-gray-500">レース作成方法</span>
+                  <span className="font-semibold text-gray-900">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
+                </div>
                 {oddsRecord && (
                   <div className="flex items-center justify-between pb-2">
                     <span className="font-medium text-gray-500">オッズ更新</span>
@@ -289,11 +299,6 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ id:
                   </div>
                 )}
               </CardContent>
-              {race.netkeibaUrl && (
-                <div className="border-t border-gray-50 p-4">
-                  <UpdateNetkeibaOddsButton raceId={id} />
-                </div>
-              )}
             </Card>
           </div>
         )}

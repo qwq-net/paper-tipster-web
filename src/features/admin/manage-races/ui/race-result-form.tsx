@@ -1,6 +1,5 @@
 'use client';
 
-import { UpdateNetkeibaOddsButton } from '@/features/admin/import-race/ui/update-odds-button';
 import { Badge, Button } from '@/shared/ui';
 import { FormattedDate } from '@/shared/ui/formatted-date';
 import { getBracketColor } from '@/shared/utils/bracket';
@@ -70,6 +69,26 @@ const getRankStyles = (position: number) => {
   }
 };
 
+function HorseInfo({ horseName, jockey, odds }: { horseName: string; jockey?: string | null; odds?: number | null }) {
+  return (
+    <>
+      <span className="truncate text-sm font-semibold text-gray-900">{horseName}</span>
+      {jockey && (
+        <>
+          <span className="shrink-0 text-sm text-gray-400">/</span>
+          <span className="shrink-0 text-sm text-gray-500">{jockey}</span>
+        </>
+      )}
+      {odds != null && (
+        <>
+          <span className="shrink-0 text-sm text-gray-400">/</span>
+          <span className="shrink-0 text-sm font-semibold text-gray-600">オッズ: {odds.toFixed(1)}倍</span>
+        </>
+      )}
+    </>
+  );
+}
+
 function SortableResultItem({ entry, position }: { entry: Entry; position: number }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: entry.id,
@@ -80,8 +99,6 @@ function SortableResultItem({ entry, position }: { entry: Entry; position: numbe
     transition,
     zIndex: isDragging ? 20 : 0,
   };
-
-  const rankStyle = getRankStyles(position);
 
   return (
     <div
@@ -97,7 +114,7 @@ function SortableResultItem({ entry, position }: { entry: Entry; position: numbe
       <div
         className={cn(
           'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-lg font-semibold transition-colors',
-          rankStyle
+          getRankStyles(position)
         )}
       >
         {position}
@@ -122,19 +139,7 @@ function SortableResultItem({ entry, position }: { entry: Entry; position: numbe
       </div>
 
       <div className="flex min-w-0 flex-1 items-center gap-1.5 truncate">
-        <span className="truncate text-sm font-semibold text-gray-900">{entry.horseName}</span>
-        {entry.jockey && (
-          <>
-            <span className="shrink-0 text-sm text-gray-400">/</span>
-            <span className="shrink-0 text-sm text-gray-500">{entry.jockey}</span>
-          </>
-        )}
-        {entry.odds != null && (
-          <>
-            <span className="shrink-0 text-sm text-gray-400">/</span>
-            <span className="shrink-0 text-sm font-semibold text-gray-600">オッズ: {entry.odds.toFixed(1)}倍</span>
-          </>
-        )}
+        <HorseInfo horseName={entry.horseName} jockey={entry.jockey} odds={entry.odds} />
       </div>
     </div>
   );
@@ -262,7 +267,6 @@ export function RaceResultForm({
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      {}
       <div className="space-y-4 lg:col-span-2">
         <div className="flex items-end justify-between px-1">
           <div className="flex items-center gap-3">
@@ -326,21 +330,7 @@ export function RaceResultForm({
                     </span>
                   </div>
                   <div className="flex min-w-0 items-center gap-1.5">
-                    <span className="text-sm font-semibold text-gray-900">{activeEntry.horseName}</span>
-                    {activeEntry.jockey && (
-                      <>
-                        <span className="text-sm text-gray-400">/</span>
-                        <span className="text-sm text-gray-500">{activeEntry.jockey}</span>
-                      </>
-                    )}
-                    {activeEntry.odds != null && (
-                      <>
-                        <span className="text-sm text-gray-400">/</span>
-                        <span className="text-sm font-semibold text-gray-600">
-                          オッズ: {activeEntry.odds.toFixed(1)}倍
-                        </span>
-                      </>
-                    )}
+                    <HorseInfo horseName={activeEntry.horseName} jockey={activeEntry.jockey} odds={activeEntry.odds} />
                   </div>
                 </div>
               )}
@@ -365,7 +355,6 @@ export function RaceResultForm({
         )}
       </div>
 
-      {}
       <div className="space-y-6">
         {showBet5CloseReminder && (
           <div className="flex items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm">
@@ -384,63 +373,49 @@ export function RaceResultForm({
         )}
 
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-          <div className="mb-6 space-y-4 text-sm">
-            <div className="flex items-center gap-2 border-b border-gray-50 pb-4">
-              <Settings2 className="h-4 w-4 text-gray-400" />
-              <h4 className="font-semibold text-gray-900">レース情報</h4>
+          <div className="mb-2 flex items-center gap-2 border-b border-gray-50 pb-4 text-sm">
+            <Settings2 className="h-4 w-4 text-gray-400" />
+            <h4 className="font-semibold text-gray-900">レース情報</h4>
+          </div>
+
+          <div className="divide-y divide-gray-50 text-sm">
+            <div className="flex items-center justify-between py-2">
+              <span className="font-medium text-gray-500">レース作成方法</span>
+              <span className="font-semibold text-gray-900">{race.netkeibaUrl ? 'Netkeibaから' : '手動'}</span>
             </div>
-            <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+            <div className="flex items-center justify-between py-2">
               <span className="font-medium text-gray-500">ステータス</span>
-              <div className="flex flex-col items-end gap-1">
-                <Badge variant="status" label={race.status} />
-              </div>
+              <Badge variant="status" label={race.status} />
             </div>
-            <div className="border-b border-gray-50 pb-2">
-              <div className="flex items-center justify-between border-b border-gray-50 pb-2">
-                <span className="font-medium text-gray-500">出走馬数</span>
-                <span className="text-sm font-semibold text-gray-900">{entryCount}頭</span>
-              </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="font-medium text-gray-500">出走馬数</span>
+              <span className="font-semibold text-gray-900">{entryCount}頭</span>
             </div>
-            <div className="border-b border-gray-50 pb-2">
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-500">受付終了予定</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-gray-900">
-                    {race.closingAt ? (
-                      <FormattedDate
-                        date={race.closingAt}
-                        options={{
-                          month: 'numeric',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        }}
-                      />
-                    ) : (
-                      '手動'
-                    )}
-                  </span>
-                </div>
-              </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="font-medium text-gray-500">受付終了予定</span>
+              <span className="font-semibold text-gray-900">
+                {race.closingAt ? (
+                  <FormattedDate
+                    date={race.closingAt}
+                    options={{ month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }}
+                  />
+                ) : (
+                  '手動'
+                )}
+              </span>
             </div>
-            <div className="flex items-center justify-between border-b border-gray-50 pb-2">
+            <div className="flex items-center justify-between py-2">
               <span className="font-medium text-gray-500">コース</span>
-              <div>
+              <div className="flex items-center gap-1.5">
                 <Badge variant="surface" label={race.surface} />
-                <span className="text-md ml-1 font-semibold text-gray-700">{race.distance}m</span>
+                <span className="font-semibold text-gray-700">{race.distance}m</span>
               </div>
             </div>
-            <div className="flex items-center justify-between pb-2">
+            <div className="flex items-center justify-between py-2">
               <span className="font-medium text-gray-500">馬場状態</span>
               <Badge variant="condition" label={race.condition} />
             </div>
           </div>
-
-          {race.netkeibaUrl && (
-            <div className="mb-4">
-              <UpdateNetkeibaOddsButton raceId={raceId} />
-            </div>
-          )}
 
           <div className="mt-8 space-y-3">
             {race.status === 'SCHEDULED' && (
@@ -495,16 +470,16 @@ export function RaceResultForm({
                           <div>
                             この操作を行うと、投票された馬券の払い戻し計算が実行されます。
                             <br />
-                            <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
-                              <div className="flex justify-between border-b border-gray-100 pb-1">
+                            <div className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-100 bg-gray-50/50 p-4 font-semibold text-gray-900">
+                              <div className="flex justify-between py-1">
                                 <span className="text-amber-600">1着</span>
                                 <span>{sortedEntries[0]?.horseName}</span>
                               </div>
-                              <div className="flex justify-between border-b border-gray-100 py-1">
+                              <div className="flex justify-between py-1">
                                 <span className="text-slate-500">2着</span>
                                 <span>{sortedEntries[1]?.horseName}</span>
                               </div>
-                              <div className="flex justify-between pt-1">
+                              <div className="flex justify-between py-1">
                                 <span className="text-orange-600">3着</span>
                                 <span>{sortedEntries[2]?.horseName}</span>
                               </div>

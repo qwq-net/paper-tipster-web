@@ -8,7 +8,7 @@ import { useTransition } from 'react';
 import { toast } from 'sonner';
 import { updateOddsFromNetkeiba } from '../actions';
 
-export function UpdateNetkeibaOddsButton({ raceId }: { raceId: string }) {
+export function UpdateNetkeibaOddsButton({ raceId, className }: { raceId: string; className?: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -25,7 +25,7 @@ export function UpdateNetkeibaOddsButton({ raceId }: { raceId: string }) {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleUpdate} disabled={isPending} className="w-full">
+    <Button variant="outline" onClick={handleUpdate} disabled={isPending} className={className}>
       <RefreshCw className={cn('mr-1.5 h-3.5 w-3.5', isPending && 'animate-spin')} />
       {isPending ? 'オッズ更新中...' : 'Netkeibaからオッズを更新'}
     </Button>

@@ -8,7 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { inflateSync } from 'zlib';
 import { parseNetkeibaResult } from './lib/parse-result';
 import { parseShutuba } from './lib/parse-shutuba';
-import type { HorsePreviewItem, NetkeibaRaceResult, RacePreviewWithHorseStatus } from './model/types';
+import type { ActionResult, HorsePreviewItem, NetkeibaRaceResult, RacePreviewWithHorseStatus } from './model/types';
 
 const ALLOWED_HOSTS: Record<string, string> = {
   'race.netkeiba.com': 'https://race.netkeiba.com/race/shutuba.html',
@@ -23,8 +23,11 @@ function normalizeNetkeibaUrl(input: string): string {
     throw new Error('URLの形式が正しくありません');
   }
   const base = ALLOWED_HOSTS[parsed.hostname];
-  if (!base || parsed.pathname !== '/race/shutuba.html') {
+  if (!base) {
     throw new Error('Netkeiba出馬表のURLを入力してください');
+  }
+  if (parsed.pathname !== '/race/shutuba.html') {
+    throw new Error('出馬表（shutuba.html）のURLを入力してください。結果ページ等には対応していません');
   }
   const raceId = parsed.searchParams.get('race_id');
   if (!raceId || !/^\d{12}$/.test(raceId)) {
@@ -92,29 +95,33 @@ async function fetchNetkeibaWinOdds(raceId: string): Promise<Record<string, numb
   return result;
 }
 
-export async function fetchRacePreview(url: string): Promise<RacePreviewWithHorseStatus> {
-  await requireAdmin();
-  const normalizedUrl = normalizeNetkeibaUrl(url);
-  const raceId = new URL(normalizedUrl).searchParams.get('race_id')!;
+export async function fetchRacePreview(url: string): Promise<ActionResult<RacePreviewWithHorseStatus>> {
+  try {
+    await requireAdmin();
+    const normalizedUrl = normalizeNetkeibaUrl(url);
+    const raceId = new URL(normalizedUrl).searchParams.get('race_id')!;
 
-  const [html, winOdds] = await Promise.all([
-    fetchNetkeibaHtml(normalizedUrl),
-    isNarUrl(normalizedUrl) ? Promise.resolve<Record<string, number>>({}) : fetchNetkeibaWinOdds(raceId),
-  ]);
-  const preview = parseShutuba(html, normalizedUrl);
+    const [html, winOdds] = await Promise.all([
+      fetchNetkeibaHtml(normalizedUrl),
+      isNarUrl(normalizedUrl) ? Promise.resolve<Record<string, number>>({}) : fetchNetkeibaWinOdds(raceId),
+    ]);
+    const preview = parseShutuba(html, normalizedUrl);
 
-  const horseItems: HorsePreviewItem[] = await Promise.all(
-    preview.horses.map(async (h) => {
-      const existing = await db.query.horses.findFirst({
-        where: eq(horses.name, h.name),
-        columns: { id: true },
-      });
-      const oddsFromApi = winOdds[String(h.horseNumber)] ?? null;
-      return { ...h, odds: oddsFromApi ?? h.odds, existingHorseId: existing?.id ?? null };
-    })
-  );
+    const horseItems: HorsePreviewItem[] = await Promise.all(
+      preview.horses.map(async (h) => {
+        const existing = await db.query.horses.findFirst({
+          where: eq(horses.name, h.name),
+          columns: { id: true },
+        });
+        const oddsFromApi = winOdds[String(h.horseNumber)] ?? null;
+        return { ...h, odds: oddsFromApi ?? h.odds, existingHorseId: existing?.id ?? null };
+      })
+    );
 
-  return { raceInfo: preview.raceInfo, horses: horseItems, sourceUrl: preview.sourceUrl };
+    return { success: true, data: { raceInfo: preview.raceInfo, horses: horseItems, sourceUrl: preview.sourceUrl } };
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : '予期しないエラーが発生しました' };
+  }
 }
 
 type ImportRaceParams = {
@@ -140,77 +147,81 @@ type ImportRaceParams = {
   }>;
 };
 
-export async function importRace(params: ImportRaceParams): Promise<{ raceId: string }> {
-  await requireAdmin();
+export async function importRace(params: ImportRaceParams): Promise<ActionResult<{ raceId: string }>> {
+  try {
+    await requireAdmin();
 
-  normalizeNetkeibaUrl(params.url);
-  if (params.horses.length === 0) throw new Error('出走馬が0頭です');
+    normalizeNetkeibaUrl(params.url);
+    if (params.horses.length === 0) throw new Error('出走馬が0頭です');
 
-  const duplicateRace = await db.query.raceInstances.findFirst({
-    where: and(eq(raceInstances.eventId, params.eventId), eq(raceInstances.name, params.raceName)),
-    columns: { id: true },
-  });
-  if (duplicateRace) throw new Error(`同じイベントに「${params.raceName}」は既に登録されています`);
+    const duplicateRace = await db.query.raceInstances.findFirst({
+      where: and(eq(raceInstances.eventId, params.eventId), eq(raceInstances.name, params.raceName)),
+      columns: { id: true },
+    });
+    if (duplicateRace) throw new Error(`同じイベントに「${params.raceName}」は既に登録されています`);
 
-  const result = await db.transaction(async (tx) => {
-    const horseIds: Record<number, string> = {};
+    const result = await db.transaction(async (tx) => {
+      const horseIds: Record<number, string> = {};
 
-    for (const horse of params.horses) {
-      const existing = await tx.query.horses.findFirst({
-        where: eq(horses.name, horse.name),
-        columns: { id: true },
-      });
+      for (const horse of params.horses) {
+        const existing = await tx.query.horses.findFirst({
+          where: eq(horses.name, horse.name),
+          columns: { id: true },
+        });
 
-      if (existing) {
-        horseIds[horse.horseNumber] = existing.id;
-      } else {
-        const [inserted] = await tx
-          .insert(horses)
-          .values({ name: horse.name, gender: horse.gender, age: horse.age })
-          .returning({ id: horses.id });
-        horseIds[horse.horseNumber] = inserted.id;
+        if (existing) {
+          horseIds[horse.horseNumber] = existing.id;
+        } else {
+          const [inserted] = await tx
+            .insert(horses)
+            .values({ name: horse.name, gender: horse.gender, age: horse.age })
+            .returning({ id: horses.id });
+          horseIds[horse.horseNumber] = inserted.id;
+        }
       }
-    }
 
-    const [race] = await tx
-      .insert(raceInstances)
-      .values({
-        eventId: params.eventId,
-        venueId: params.venueId,
-        date: params.date,
-        name: params.raceName,
-        raceNumber: params.raceNumber,
-        distance: params.distance,
-        surface: params.surface,
-        direction: params.direction,
-        condition: params.condition,
-        status: 'SCHEDULED',
-        netkeibaUrl: params.url,
-        fixedOddsMode: params.fixedOddsMode,
-      })
-      .returning({ id: raceInstances.id });
+      const [race] = await tx
+        .insert(raceInstances)
+        .values({
+          eventId: params.eventId,
+          venueId: params.venueId,
+          date: params.date,
+          name: params.raceName,
+          raceNumber: params.raceNumber,
+          distance: params.distance,
+          surface: params.surface,
+          direction: params.direction,
+          condition: params.condition,
+          status: 'SCHEDULED',
+          netkeibaUrl: params.url,
+          fixedOddsMode: params.fixedOddsMode,
+        })
+        .returning({ id: raceInstances.id });
 
-    await tx.insert(raceEntries).values(
-      params.horses.map((h) => ({
-        raceId: race.id,
-        horseId: horseIds[h.horseNumber],
-        horseNumber: h.horseNumber,
-        bracketNumber: h.bracketNumber,
-        jockey: h.jockey,
-      }))
-    );
+      await tx.insert(raceEntries).values(
+        params.horses.map((h) => ({
+          raceId: race.id,
+          horseId: horseIds[h.horseNumber],
+          horseNumber: h.horseNumber,
+          bracketNumber: h.bracketNumber,
+          jockey: h.jockey,
+        }))
+      );
 
-    const winOdds: Record<string, number> = {};
-    for (const h of params.horses) {
-      if (h.odds !== null) winOdds[String(h.horseNumber)] = h.odds;
-    }
-    await tx.insert(raceOdds).values({ raceId: race.id, winOdds, placeOdds: {} });
+      const winOdds: Record<string, number> = {};
+      for (const h of params.horses) {
+        if (h.odds !== null) winOdds[String(h.horseNumber)] = h.odds;
+      }
+      await tx.insert(raceOdds).values({ raceId: race.id, winOdds, placeOdds: {} });
 
-    return { raceId: race.id };
-  });
+      return { raceId: race.id };
+    });
 
-  revalidatePath('/admin/races');
-  return result;
+    revalidatePath('/admin/races');
+    return { success: true, data: result };
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : '予期しないエラーが発生しました' };
+  }
 }
 
 export async function updateOddsFromNetkeiba(raceId: string): Promise<void> {

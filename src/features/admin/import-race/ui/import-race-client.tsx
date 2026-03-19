@@ -39,18 +39,18 @@ export function ImportRaceClient({ events, venues }: Props) {
   function handleFetch() {
     setFetchError(null);
     startFetchTransition(async () => {
-      try {
-        const result = await fetchRacePreview(url.trim());
-        setPreview(result);
-        setRaceName(result.raceInfo.raceName);
-        setRaceDate(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' }));
-        const matched = venues.find((v) => v.code === result.raceInfo.netkeibaVenueCode);
-        setVenueId(matched?.id ?? '');
-        setEventId(events[0]?.id ?? '');
-      } catch (err) {
-        setFetchError(err instanceof Error ? err.message : 'エラーが発生しました');
+      const result = await fetchRacePreview(url.trim());
+      if (!result.success) {
+        setFetchError(result.error);
         setPreview(null);
+        return;
       }
+      setPreview(result.data);
+      setRaceName(result.data.raceInfo.raceName);
+      setRaceDate(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' }));
+      const matched = venues.find((v) => v.code === result.data.raceInfo.netkeibaVenueCode);
+      setVenueId(matched?.id ?? '');
+      setEventId(events[0]?.id ?? '');
     });
   }
 
@@ -74,34 +74,34 @@ export function ImportRaceClient({ events, venues }: Props) {
     }
 
     startImportTransition(async () => {
-      try {
-        await importRace({
-          url: preview.sourceUrl,
-          eventId,
-          venueId,
-          date: raceDate,
-          raceName: raceName.trim(),
-          raceNumber: preview.raceInfo.raceNumber,
-          distance: preview.raceInfo.distance,
-          surface: preview.raceInfo.surface,
-          direction: preview.raceInfo.direction,
-          condition: preview.raceInfo.condition,
-          fixedOddsMode,
-          horses: preview.horses.map((h) => ({
-            horseNumber: h.horseNumber,
-            bracketNumber: h.bracketNumber,
-            name: h.name,
-            gender: h.gender,
-            age: h.age,
-            jockey: h.jockey,
-            odds: h.odds,
-          })),
-        });
-        toast.success('インポートが完了しました');
-        router.push('/admin/races');
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'インポートに失敗しました');
+      const result = await importRace({
+        url: preview.sourceUrl,
+        eventId,
+        venueId,
+        date: raceDate,
+        raceName: raceName.trim(),
+        raceNumber: preview.raceInfo.raceNumber,
+        distance: preview.raceInfo.distance,
+        surface: preview.raceInfo.surface,
+        direction: preview.raceInfo.direction,
+        condition: preview.raceInfo.condition,
+        fixedOddsMode,
+        horses: preview.horses.map((h) => ({
+          horseNumber: h.horseNumber,
+          bracketNumber: h.bracketNumber,
+          name: h.name,
+          gender: h.gender,
+          age: h.age,
+          jockey: h.jockey,
+          odds: h.odds,
+        })),
+      });
+      if (!result.success) {
+        toast.error(result.error);
+        return;
       }
+      toast.success('インポートが完了しました');
+      router.push('/admin/races');
     });
   }
 

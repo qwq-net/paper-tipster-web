@@ -10,11 +10,8 @@ class RaceEventEmitter extends EventEmitter {
 
 const globalForEvents = global as unknown as { raceEventEmitter: RaceEventEmitter };
 
-export const raceEventEmitter = globalForEvents.raceEventEmitter || new RaceEventEmitter();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForEvents.raceEventEmitter = raceEventEmitter;
-}
+export const raceEventEmitter = globalForEvents.raceEventEmitter ?? new RaceEventEmitter();
+globalForEvents.raceEventEmitter = raceEventEmitter;
 
 export const RACE_EVENTS = {
   RACE_FINALIZED: 'RACE_FINALIZED',

@@ -1,5 +1,5 @@
 import { BetDetail, BetType } from '../constants';
-import { isOrderSensitive } from './payout';
+import { normalizeSelections } from './payout';
 
 export interface OddsPool {
   poolByBetType: Record<string, number>;
@@ -13,9 +13,7 @@ export function aggregateOddsPool(bets: { amount: number; details: BetDetail }[]
   for (const bet of bets) {
     const details = bet.details as BetDetail;
     const betType = details.type as BetType;
-    const key = JSON.stringify(
-      isOrderSensitive(betType) ? details.selections : [...details.selections].sort((a, b) => a - b)
-    );
+    const key = normalizeSelections(betType, details.selections);
 
     poolByBetType[betType] = (poolByBetType[betType] || 0) + bet.amount;
     if (!amountBySelection[betType]) amountBySelection[betType] = {};

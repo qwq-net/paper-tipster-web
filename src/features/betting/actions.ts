@@ -4,7 +4,7 @@ import { BetDetail, BetType } from '@/entities/bet';
 import { db } from '@/shared/db';
 import { betGroups, bets, raceInstances, transactions, wallets } from '@/shared/db/schema';
 import { ADMIN_ERRORS, requireUser } from '@/shared/utils/admin';
-import { isOrderSensitive } from '@/shared/utils/payout';
+import { normalizeSelections } from '@/shared/utils/payout';
 import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -189,9 +189,7 @@ export async function getUserBetGroupsForRace(raceId: string) {
       bets: group.bets.map((bet) => {
         const details = bet.details as BetDetail;
         const betType = details.type as BetType;
-        const selectionKey = JSON.stringify(
-          isOrderSensitive(betType) ? details.selections : [...details.selections].sort((a, b) => a - b)
-        );
+        const selectionKey = normalizeSelections(betType, details.selections);
 
         const oddsValue = provisionalOdds[betType]?.[selectionKey];
         return {

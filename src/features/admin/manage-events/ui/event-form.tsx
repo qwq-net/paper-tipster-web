@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Input, Label, NumericInput, Textarea } from '@/shared/ui';
+import { preventEnterSubmit } from '@/shared/utils/form';
 import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -49,7 +50,7 @@ export function EventForm({ initialData, onSuccess }: EventFormProps) {
   }
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-5">
+    <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-5">
       <div>
         <Label>イベント名</Label>
         <Input name="name" required defaultValue={initialData?.name} placeholder="例: 第1回 拠り所杯" />

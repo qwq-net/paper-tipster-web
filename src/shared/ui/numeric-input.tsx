@@ -5,7 +5,7 @@ import { getPasswordManagerIgnoreAttributes } from '@/shared/utils/form';
 import React, { useCallback, useImperativeHandle, useRef } from 'react';
 
 function formatWithCommas(value: number): string {
-  if (isNaN(value) || value === 0) return '0';
+  if (isNaN(value) || value === 0) return '';
   return value.toLocaleString('en-US');
 }
 
@@ -54,13 +54,14 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
     const innerRef = useRef<HTMLInputElement>(null);
     useImperativeHandle(ref, () => innerRef.current as HTMLInputElement);
     const isComposing = useRef(false);
+    const isFocused = useRef(false);
 
     const [localValue, setLocalValue] = React.useState(
       allowDecimal ? (value === 0 ? '' : value.toString()) : formatWithCommas(value)
     );
 
     React.useEffect(() => {
-      if (!isComposing.current) {
+      if (!isComposing.current && !isFocused.current) {
         const nextValue = allowDecimal ? (value === 0 ? '' : value.toString()) : formatWithCommas(value);
         setLocalValue(nextValue);
       }
@@ -113,6 +114,12 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
           return;
         }
 
+        if (raw.replace(/[^0-9]/g, '') === '') {
+          setLocalValue('');
+          onChange(0);
+          return;
+        }
+
         const num = parseNumericString(raw);
         if (max !== undefined && num > max) return;
         if (min !== undefined && num < min) return;
@@ -124,10 +131,17 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
     );
 
     const handleFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+      isFocused.current = true;
       requestAnimationFrame(() => {
         e.target.select();
       });
     }, []);
+
+    const handleBlur = useCallback(() => {
+      isFocused.current = false;
+      const formatted = allowDecimal ? (value === 0 ? '' : value.toString()) : formatWithCommas(value);
+      setLocalValue(formatted);
+    }, [value, allowDecimal]);
 
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -148,11 +162,12 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
         value={localValue}
         onChange={handleChange}
         onFocus={handleFocus}
+        onBlur={handleBlur}
         onKeyDown={onEnter ? handleKeyDown : undefined}
         onCompositionStart={handleCompositionStart}
         onCompositionEnd={handleCompositionEnd}
         disabled={disabled}
-        placeholder={placeholder}
+        placeholder={placeholder ?? '0'}
         name={name}
         className={cn(
           'focus:ring-primary/20 focus:border-primary w-full rounded-md border border-gray-300 px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',

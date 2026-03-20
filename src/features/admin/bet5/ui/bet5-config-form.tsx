@@ -2,6 +2,7 @@
 
 import { createBet5EventAction } from '@/features/betting';
 import { Button, Card, CardContent, CardHeader, CardTitle, Label, NumericInput } from '@/shared/ui';
+import { preventEnterSubmit } from '@/shared/utils/form';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -75,7 +76,7 @@ export function Bet5ConfigForm({ eventId, races }: Bet5ConfigFormProps) {
         <CardTitle>BET5設定</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label>対象レース選択 (5レース)</Label>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

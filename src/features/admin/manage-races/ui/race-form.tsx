@@ -2,6 +2,7 @@
 
 import { VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
+import { preventEnterSubmit } from '@/shared/utils/form';
 import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -114,7 +115,7 @@ export function RaceForm({ initialData, events, raceDefinitions = [], venues = [
   }
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-5">
+    <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-5">
       <div>
         <Label>イベント</Label>
         <Select name="eventId" required value={eventId} onChange={(e) => setEventId(e.target.value)}>

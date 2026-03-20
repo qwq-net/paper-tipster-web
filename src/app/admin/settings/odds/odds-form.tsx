@@ -2,6 +2,7 @@
 
 import { GuaranteedOddsInputs } from '@/features/admin/shared/ui/guaranteed-odds-inputs';
 import { Button } from '@/shared/ui';
+import { preventEnterSubmit } from '@/shared/utils/form';
 import { useState } from 'react';
 
 export function OddsForm({
@@ -14,7 +15,7 @@ export function OddsForm({
   const [odds, setOdds] = useState(initialOdds || {});
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} onKeyDown={preventEnterSubmit} className="space-y-6">
       <input type="hidden" name="odds" value={JSON.stringify(odds)} />
       <GuaranteedOddsInputs value={odds} onChange={setOdds} />
       <div className="flex justify-end">

@@ -2,6 +2,7 @@
 
 import { updateUserOnboarding } from '@/features/user/actions/user-actions';
 import { Button, Input } from '@/shared/ui';
+import { preventEnterSubmit } from '@/shared/utils/form';
 import { Loader2 } from 'lucide-react';
 import { useActionState } from 'react';
 import { toast } from 'sonner';
@@ -29,7 +30,7 @@ export function NameChangeForm({ initialName }: { initialName: string }) {
   };
 
   return (
-    <form action={action} className="w-full max-w-sm space-y-4">
+    <form action={action} onKeyDown={preventEnterSubmit} className="w-full max-w-sm space-y-4">
       <div className="space-y-2">
         <label
           htmlFor="name"

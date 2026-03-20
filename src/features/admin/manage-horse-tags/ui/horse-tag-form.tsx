@@ -4,6 +4,7 @@ import { HorseTagType } from '@/entities/horse';
 import { HORSE_TAG_TYPES } from '@/shared/constants/horse';
 import { HORSE_TAG_CATEGORIES } from '@/shared/constants/horse-tags';
 import { Button, Input, Label, Select } from '@/shared/ui';
+import { preventEnterSubmit } from '@/shared/utils/form';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { createHorseTag, updateHorseTag } from '../actions';
@@ -39,7 +40,7 @@ export function HorseTagForm({ initialData, onSuccess }: HorseTagFormProps) {
   }
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-4">
+    <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label>種別</Label>
         <Select name="type" value={type} onChange={(e) => setType(e.target.value as HorseTagType)} required>

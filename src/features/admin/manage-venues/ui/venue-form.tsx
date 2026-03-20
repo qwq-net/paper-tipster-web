@@ -2,6 +2,7 @@
 
 import { VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
+import { preventEnterSubmit } from '@/shared/utils/form';
 import { useRef } from 'react';
 import { toast } from 'sonner';
 import { createVenue, updateVenue } from '../actions';
@@ -45,7 +46,7 @@ export function VenueForm({ initialData, onSuccess }: VenueFormProps) {
   }
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-5">
+    <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-5">
       <div>
         <Label>会場名 (例: 東京競馬場)</Label>
         <Input name="name" type="text" required defaultValue={initialData?.name} placeholder="例: 東京競馬場" />

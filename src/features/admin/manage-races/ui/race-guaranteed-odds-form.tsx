@@ -2,6 +2,7 @@
 
 import { GuaranteedOddsInputs } from '@/features/admin/shared/ui/guaranteed-odds-inputs';
 import { Button } from '@/shared/ui';
+import { preventEnterSubmit } from '@/shared/utils/form';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { updateGuaranteedOdds } from '../actions/update-odds';
@@ -30,7 +31,7 @@ export function RaceGuaranteedOddsForm({ raceId, initialOdds, hideHeader = false
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-6">
       <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         {!hideHeader && (
           <>

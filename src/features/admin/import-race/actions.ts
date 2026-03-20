@@ -2,6 +2,7 @@
 
 import { db } from '@/shared/db';
 import { horses, raceEntries, raceInstances, raceOdds } from '@/shared/db/schema';
+import { RACE_EVENTS, raceEventEmitter } from '@/shared/lib/sse/event-emitter';
 import { requireAdmin } from '@/shared/utils/admin';
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -248,6 +249,11 @@ export async function updateOddsFromNetkeiba(raceId: string): Promise<void> {
       target: raceOdds.raceId,
       set: { winOdds, updatedAt: new Date() },
     });
+
+  raceEventEmitter.emit(RACE_EVENTS.RACE_ODDS_UPDATED, {
+    raceId,
+    data: { winOdds, placeOdds: {}, updatedAt: new Date() },
+  });
 
   revalidatePath(`/admin/races/${raceId}`);
 }

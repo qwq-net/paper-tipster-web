@@ -1,4 +1,10 @@
-import React from 'react';
+import type React from 'react';
+
+export function preventEnterSubmit(e: React.KeyboardEvent<HTMLFormElement>) {
+  if (e.key === 'Enter' && e.target instanceof HTMLInputElement && e.target.type !== 'submit') {
+    e.preventDefault();
+  }
+}
 
 export function getPasswordManagerIgnoreAttributes(ignore: boolean): React.InputHTMLAttributes<HTMLInputElement> {
   if (!ignore) return {};

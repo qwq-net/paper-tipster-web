@@ -2,6 +2,7 @@
 import { HORSE_TAG_CATEGORIES, HorseTagType } from '@/shared/constants/horse-tags';
 import { Button, Input, Label, Select, Textarea } from '@/shared/ui';
 import { cn } from '@/shared/utils/cn';
+import { preventEnterSubmit } from '@/shared/utils/form';
 import { X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -78,7 +79,7 @@ export function HorseForm({ initialData, tagOptions, onSuccess }: HorseFormProps
   }
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-5">
+    <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-5">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label>馬名</Label>

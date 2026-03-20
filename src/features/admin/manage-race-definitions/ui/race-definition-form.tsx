@@ -2,6 +2,7 @@
 
 import { RACE_GRADES, RACE_SURFACES, RACE_TYPES, VENUE_DIRECTIONS } from '@/shared/constants/race';
 import { Button, Input, Label, Select } from '@/shared/ui';
+import { preventEnterSubmit } from '@/shared/utils/form';
 import { useRef } from 'react';
 import { toast } from 'sonner';
 import { createRaceDefinition, updateRaceDefinition } from '../actions';
@@ -78,7 +79,7 @@ export function RaceDefinitionForm({ initialData, venues, onSuccess }: RaceDefin
   };
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-5">
+    <form ref={formRef} action={handleSubmit} onKeyDown={preventEnterSubmit} className="space-y-5">
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-2">
           <Label>レース名</Label>

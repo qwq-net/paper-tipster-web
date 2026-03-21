@@ -94,6 +94,7 @@ export function ImportRaceClient({ events, venues }: Props) {
           age: h.age,
           jockey: h.jockey,
           odds: h.odds,
+          scratched: h.scratched,
         })),
       });
       if (!result.success) {
@@ -194,7 +195,14 @@ export function ImportRaceClient({ events, venues }: Props) {
           </Card>
 
           <Card className="space-y-4 p-6">
-            <h2 className="text-lg font-semibold text-gray-900">出走馬一覧（{preview.horses.length}頭）</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              出走馬一覧（{preview.horses.filter((h) => !h.scratched).length}頭）
+              {preview.horses.some((h) => h.scratched) && (
+                <span className="ml-2 text-sm font-medium text-red-500">
+                  取消・除外 {preview.horses.filter((h) => h.scratched).length}頭
+                </span>
+              )}
+            </h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -211,7 +219,14 @@ export function ImportRaceClient({ events, venues }: Props) {
                 </thead>
                 <tbody>
                   {preview.horses.map((h) => (
-                    <tr key={h.name} className="border-b last:border-0">
+                    <tr
+                      key={h.name}
+                      className={
+                        h.scratched
+                          ? 'border-b bg-red-50/50 text-gray-400 line-through last:border-0'
+                          : 'border-b last:border-0'
+                      }
+                    >
                       <td className="px-2 py-1.5">{h.bracketNumber}</td>
                       <td className="px-2 py-1.5">{h.horseNumber}</td>
                       <td className="px-2 py-1.5 font-medium">{h.name}</td>
@@ -221,9 +236,11 @@ export function ImportRaceClient({ events, venues }: Props) {
                       </td>
                       <td className="px-2 py-1.5">{h.jockey ?? '-'}</td>
                       <td className="px-2 py-1.5">{h.weight?.toFixed(1) ?? '-'}</td>
-                      <td className="px-2 py-1.5">{h.odds?.toFixed(1) ?? '-'}</td>
-                      <td className="px-2 py-1.5">
-                        {h.existingHorseId ? (
+                      <td className="px-2 py-1.5">{h.scratched ? '-' : (h.odds?.toFixed(1) ?? '-')}</td>
+                      <td className="px-2 py-1.5 no-underline">
+                        {h.scratched ? (
+                          <Badge label="取消" className="bg-red-100 text-red-600" />
+                        ) : h.existingHorseId ? (
                           <Badge label="既存" className="bg-blue-100 text-blue-700" />
                         ) : (
                           <Badge label="新規" className="bg-green-100 text-green-700" />

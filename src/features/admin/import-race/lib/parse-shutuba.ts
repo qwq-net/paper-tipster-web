@@ -50,6 +50,8 @@ function parseHorses(root: ReturnType<typeof parse>): ScrapedHorse[] {
 
   return rows
     .map((row, idx): ScrapedHorse => {
+      const rowText = row.text;
+      const scratched = rowText.includes('取消') || rowText.includes('除外');
       const umaban = row.querySelector('td[class*="Umaban"]');
       const horseNumber = parseInt(umaban?.text?.trim() ?? '') || idx + 1;
 
@@ -80,7 +82,7 @@ function parseHorses(root: ReturnType<typeof parse>): ScrapedHorse[] {
       const oddsRaw = parseFloat(oddsText ?? '');
       const odds = isNaN(oddsRaw) ? null : oddsRaw;
 
-      return { horseNumber, bracketNumber, name: horseName, gender, age, jockey, weight, odds };
+      return { horseNumber, bracketNumber, name: horseName, gender, age, jockey, weight, odds, scratched };
     })
     .filter((h) => h.name !== '');
 }

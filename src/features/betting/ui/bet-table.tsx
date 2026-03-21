@@ -27,6 +27,7 @@ interface Entry {
   horseName: string;
   horseGender: string;
   horseAge: number | null;
+  status: string;
 }
 
 interface BetTableProps {
@@ -204,70 +205,98 @@ export function BetTable({
           <tbody>
             {isBracketType
               ? Object.entries(bracketGroups).map(([bracket, bracketEntries]) =>
-                  bracketEntries.map((entry, idx) => (
+                  bracketEntries.map((entry, idx) => {
+                    const isScratched = entry.status === 'SCRATCHED' || entry.status === 'EXCLUDED';
+                    return (
+                      <tr
+                        key={entry.id}
+                        className={
+                          isScratched
+                            ? 'border-b border-gray-300 bg-red-50/50 text-gray-400 line-through last:border-0'
+                            : 'border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50'
+                        }
+                      >
+                        {idx === 0 && (
+                          <td className="px-2 align-middle" rowSpan={bracketEntries.length}>
+                            <BracketBadge bracketNumber={Number(bracket)} />
+                          </td>
+                        )}
+                        <td className="px-2 py-2 text-sm font-semibold">{entry.horseNumber}</td>
+                        <td className="px-2 py-2 text-sm font-semibold">
+                          {entry.horseName}
+                          {isScratched && (
+                            <span className="ml-1.5 inline-flex items-center rounded bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
+                              取消
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-2 py-2">
+                          <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
+                        </td>
+                        <td className="px-2 py-2 text-center text-sm font-medium">
+                          {isScratched ? '-' : (odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-')}
+                        </td>
+
+                        {idx === 0 &&
+                          Array.from({ length: columnCount }).map((_, colIdx) => (
+                            <td key={colIdx} className="px-2 text-center align-middle" rowSpan={bracketEntries.length}>
+                              <Checkbox
+                                checked={selections[colIdx].has(Number(bracket))}
+                                onCheckedChange={() => handleCheckboxChange(colIdx, Number(bracket))}
+                                disabled={isClosed || isPending}
+                                aria-label={`${columnLabels[colIdx]} に枠${bracket}を選択`}
+                                className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
+                              />
+                            </td>
+                          ))}
+                      </tr>
+                    );
+                  })
+                )
+              : entries.map((entry) => {
+                  const isScratched = entry.status === 'SCRATCHED' || entry.status === 'EXCLUDED';
+                  return (
                     <tr
                       key={entry.id}
-                      className="border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50"
+                      className={
+                        isScratched
+                          ? 'border-b border-gray-300 bg-red-50/50 text-gray-400 line-through last:border-0'
+                          : 'border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50'
+                      }
                     >
-                      {idx === 0 && (
-                        <td className="px-2 align-middle" rowSpan={bracketEntries.length}>
-                          <BracketBadge bracketNumber={Number(bracket)} />
-                        </td>
-                      )}
+                      <td className="px-2 py-2">
+                        <BracketBadge bracketNumber={entry.bracketNumber} />
+                      </td>
                       <td className="px-2 py-2 text-sm font-semibold">{entry.horseNumber}</td>
-                      <td className="px-2 py-2 text-sm font-semibold">{entry.horseName}</td>
+                      <td className="px-2 py-2 text-sm font-semibold">
+                        {entry.horseName}
+                        {isScratched && (
+                          <span className="ml-1.5 inline-flex items-center rounded bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
+                            取消
+                          </span>
+                        )}
+                      </td>
                       <td className="px-2 py-2">
                         <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
                       </td>
                       <td className="px-2 py-2 text-center text-sm font-medium">
-                        {odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-'}
+                        {isScratched ? '-' : (odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-')}
                       </td>
 
-                      {idx === 0 &&
-                        Array.from({ length: columnCount }).map((_, colIdx) => (
-                          <td key={colIdx} className="px-2 text-center align-middle" rowSpan={bracketEntries.length}>
-                            <Checkbox
-                              checked={selections[colIdx].has(Number(bracket))}
-                              onCheckedChange={() => handleCheckboxChange(colIdx, Number(bracket))}
-                              disabled={isClosed || isPending}
-                              aria-label={`${columnLabels[colIdx]} に枠${bracket}を選択`}
-                              className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
-                            />
-                          </td>
-                        ))}
+                      {Array.from({ length: columnCount }).map((_, colIdx) => (
+                        <td key={colIdx} className="px-2 py-2 text-center">
+                          <Checkbox
+                            checked={!isScratched && selections[colIdx].has(entry.horseNumber!)}
+                            onCheckedChange={() => handleCheckboxChange(colIdx, entry.horseNumber!)}
+                            disabled={isClosed || isPending || isScratched}
+                            aria-label={`${columnLabels[colIdx]} に${entry.horseName}(${entry.horseNumber}番)を選択`}
+                            className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
+                          />
+                        </td>
+                      ))}
                     </tr>
-                  ))
-                )
-              : entries.map((entry) => (
-                  <tr
-                    key={entry.id}
-                    className="border-b border-gray-300 transition-colors last:border-0 hover:bg-gray-50"
-                  >
-                    <td className="px-2 py-2">
-                      <BracketBadge bracketNumber={entry.bracketNumber} />
-                    </td>
-                    <td className="px-2 py-2 text-sm font-semibold">{entry.horseNumber}</td>
-                    <td className="px-2 py-2 text-sm font-semibold">{entry.horseName}</td>
-                    <td className="px-2 py-2">
-                      <Badge variant="gender" label={getGenderAge(entry.horseGender, entry.horseAge)} />
-                    </td>
-                    <td className="px-2 py-2 text-center text-sm font-medium">
-                      {odds?.winOdds?.[entry.horseNumber!]?.toFixed(1) ?? '-.-'}
-                    </td>
-
-                    {Array.from({ length: columnCount }).map((_, colIdx) => (
-                      <td key={colIdx} className="px-2 py-2 text-center">
-                        <Checkbox
-                          checked={selections[colIdx].has(entry.horseNumber!)}
-                          onCheckedChange={() => handleCheckboxChange(colIdx, entry.horseNumber!)}
-                          disabled={isClosed || isPending}
-                          aria-label={`${columnLabels[colIdx]} に${entry.horseName}(${entry.horseNumber}番)を選択`}
-                          className="data-[state=checked]:border-primary data-[state=checked]:bg-primary h-5 w-5"
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                  );
+                })}
           </tbody>
         </table>
       </div>

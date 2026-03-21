@@ -104,7 +104,7 @@ export default async function RacePage({ params }: { params: Promise<{ id: strin
               <span className="h-1 w-1 rounded-full bg-gray-300" />
               <span>{race.distance}m</span>
               <span className="h-1 w-1 rounded-full bg-gray-300" />
-              <span>{entries.length}頭</span>
+              <span>{entries.filter((e) => e.status === 'ENTRANT').length}頭</span>
             </div>
           </div>
         </div>

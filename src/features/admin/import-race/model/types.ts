@@ -7,6 +7,7 @@ export type ScrapedHorse = {
   jockey: string | null;
   weight: number | null;
   odds: number | null;
+  scratched: boolean;
 };
 
 export type ScrapedRaceInfo = {

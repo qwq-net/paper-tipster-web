@@ -101,6 +101,39 @@ function HorseInfo({ horseName, jockey, odds }: { horseName: string; jockey?: st
   );
 }
 
+function EntryBadges({ entry }: { entry: Entry }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span
+        className={cn(
+          'flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ring-1 ring-black/5',
+          getBracketColor(entry.bracketNumber)
+        )}
+      >
+        {entry.bracketNumber || '?'}
+      </span>
+      <span className="text-primary bg-primary/10 ring-primary/10 flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ring-1">
+        {entry.horseNumber || '?'}
+      </span>
+    </div>
+  );
+}
+
+function ReadOnlyEntryList({ entries }: { entries: Entry[] }) {
+  return (
+    <div className="space-y-2">
+      {entries.map((entry) => (
+        <div key={entry.id} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-2">
+          <EntryBadges entry={entry} />
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 truncate">
+            <HorseInfo horseName={entry.horseName} jockey={entry.jockey} odds={entry.odds} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function SortableResultItem({ entry, position }: { entry: Entry; position: number }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: entry.id,
@@ -136,19 +169,7 @@ function SortableResultItem({ entry, position }: { entry: Entry; position: numbe
         <GripVertical className="h-5 w-5" />
       </div>
 
-      <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            'flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ring-1 ring-black/5',
-            getBracketColor(entry.bracketNumber)
-          )}
-        >
-          {entry.bracketNumber || '?'}
-        </span>
-        <span className="text-primary bg-primary/10 ring-primary/10 flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ring-1">
-          {entry.horseNumber || '?'}
-        </span>
-      </div>
+      <EntryBadges entry={entry} />
 
       <div className="flex min-w-0 flex-1 items-center gap-1.5 truncate">
         <HorseInfo horseName={entry.horseName} jockey={entry.jockey} odds={entry.odds} />
@@ -350,13 +371,16 @@ export function RaceResultForm({
         )}
 
         {race.fixedOddsMode && race.status === 'CLOSED' ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center text-gray-400">
-            <Loader2 className="mb-4 h-10 w-10 animate-spin opacity-20" />
-            <p className="text-sm font-semibold">
-              Netkeibaの実際のレース結果が確定するまでお待ちください。
-              <br />
-              確定後、右のボタンから結果を取得して着順を確定してください。
-            </p>
+          <div className="space-y-6">
+            <div className="flex flex-col items-center justify-center pt-6 pb-2 text-center text-gray-400">
+              <Loader2 className="mb-4 h-10 w-10 animate-spin opacity-20" />
+              <p className="text-sm font-semibold">
+                Netkeibaの実際のレース結果が確定するまでお待ちください。
+                <br />
+                確定後、右のボタンから結果を取得して着順を確定してください。
+              </p>
+            </div>
+            <ReadOnlyEntryList entries={initialEntries} />
           </div>
         ) : race.status === 'CLOSED' ? (
           <DndContext
@@ -386,19 +410,7 @@ export function RaceResultForm({
                     {activePosition}
                   </div>
                   <GripVertical className="text-primary h-4 w-4" />
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cn(
-                        'flex h-6 w-6 items-center justify-center rounded text-sm font-semibold',
-                        getBracketColor(activeEntry.bracketNumber)
-                      )}
-                    >
-                      {activeEntry.bracketNumber || '?'}
-                    </span>
-                    <span className="text-primary bg-primary/10 ring-primary/10 flex h-6 w-6 items-center justify-center rounded text-sm font-semibold ring-1">
-                      {activeEntry.horseNumber || '?'}
-                    </span>
-                  </div>
+                  <EntryBadges entry={activeEntry} />
                   <div className="flex min-w-0 items-center gap-1.5">
                     <HorseInfo horseName={activeEntry.horseName} jockey={activeEntry.jockey} odds={activeEntry.odds} />
                   </div>
@@ -407,20 +419,23 @@ export function RaceResultForm({
             </DragOverlay>
           </DndContext>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center text-gray-400">
-            <Settings2 className="mb-4 h-12 w-12 opacity-20" />
-            <p className="text-sm font-semibold">
-              受付が終了すると着順の操作が可能になります。
-              <br />
-              「自動タイマー」による締め切りか、「手動締切」を行ってください。
-            </p>
-            <div className="mt-6">
-              <KitchenTimer
-                raceId={raceId}
-                initialClosingAt={race.closingAt ? new Date(race.closingAt) : null}
-                status={race.status}
-              />
+          <div className="space-y-6">
+            <div className="flex flex-col items-center justify-center pt-6 pb-2 text-center text-gray-400">
+              <Settings2 className="mb-4 h-12 w-12 opacity-20" />
+              <p className="text-sm font-semibold">
+                受付が終了すると着順の操作が可能になります。
+                <br />
+                「自動タイマー」による締め切りか、「手動締切」を行ってください。
+              </p>
+              <div className="mt-6">
+                <KitchenTimer
+                  raceId={raceId}
+                  initialClosingAt={race.closingAt ? new Date(race.closingAt) : null}
+                  status={race.status}
+                />
+              </div>
             </div>
+            <ReadOnlyEntryList entries={initialEntries} />
           </div>
         )}
       </div>

@@ -26,6 +26,7 @@ interface RaceWithEntries {
     id: string;
     horseNumber: number | null;
     bracketNumber: number | null;
+    status: string;
     horse: {
       id: string;
       name: string;
@@ -164,12 +165,17 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {activeRace.entries.map((entry) => {
-                  const isSelected = activeRaceSelections.includes(entry.horse.id);
+                  const isScratched = entry.status === 'SCRATCHED' || entry.status === 'EXCLUDED';
+                  const isSelected = !isScratched && activeRaceSelections.includes(entry.horse.id);
                   return (
                     <tr
                       key={entry.id}
-                      className={`cursor-pointer transition-colors hover:bg-gray-50 ${isSelected ? 'bg-indigo-50/50 hover:bg-indigo-50' : ''}`}
-                      onClick={() => toggleSelection(activeRace.id, entry.horse.id)}
+                      className={
+                        isScratched
+                          ? 'bg-red-50/50 text-gray-400 line-through'
+                          : `cursor-pointer transition-colors hover:bg-gray-50 ${isSelected ? 'bg-indigo-50/50 hover:bg-indigo-50' : ''}`
+                      }
+                      onClick={() => !isScratched && toggleSelection(activeRace.id, entry.horse.id)}
                     >
                       <td className="px-4 py-3 text-center">
                         <span
@@ -178,15 +184,21 @@ export function Bet5VotingForm({ eventId, bet5EventId, races, balance }: Bet5Vot
                           {entry.bracketNumber || '-'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center font-mono font-medium text-gray-700">
-                        {entry.horseNumber || '-'}
+                      <td className="px-4 py-3 text-center font-mono font-medium">{entry.horseNumber || '-'}</td>
+                      <td className="px-4 py-3 font-medium">
+                        {entry.horse.name}
+                        {isScratched && (
+                          <span className="ml-1.5 inline-flex items-center rounded bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-600 no-underline">
+                            取消
+                          </span>
+                        )}
                       </td>
-                      <td className="px-4 py-3 font-medium text-gray-900">{entry.horse.name}</td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={() => toggleSelection(activeRace.id, entry.horse.id)}
+                            disabled={isScratched}
                             className="h-5 w-5 border-gray-300 data-[state=checked]:border-indigo-600 data-[state=checked]:bg-indigo-600"
                           />
                         </div>
